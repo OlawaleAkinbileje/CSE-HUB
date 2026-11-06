@@ -21,6 +21,7 @@ import {
     Settings,
     Bell,
     HelpCircle,
+    Home,
     Info,
     LogOut,
 } from 'lucide-react';
@@ -140,6 +141,16 @@ function SidebarContent({ userRole }: SidebarProps) {
             {/* Bottom Footer Links */}
             <div className="p-4 border-t border-[#E1E6F3] space-y-2">
                 <div className="space-y-1 mb-2 pb-2 border-b border-[#E1E6F3]">
+                    <Link
+                        href="/"
+                        className={`flex items-center gap-3.5 px-3.5 h-9 rounded-lg text-xs font-normal transition-all ${pathname === '/'
+                            ? 'bg-[#E9EDFF] text-[#245CFF] font-semibold'
+                            : 'text-[#64708C] hover:text-[#0B123D]'
+                            }`}
+                    >
+                        <Home className="w-4 h-4" />
+                        <span>Home</span>
+                    </Link>
                     <Link
                         href="/about"
                         className={`flex items-center gap-3.5 px-3.5 h-9 rounded-lg text-xs font-normal transition-all ${pathname === '/about'
