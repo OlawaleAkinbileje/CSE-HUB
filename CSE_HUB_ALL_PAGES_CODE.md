@@ -1,0 +1,10843 @@
+# CSE-HUB - Complete Frontend Pages Source Code Compilation
+
+> **Project**: Computer Science & Engineering Academic Resource Hub (CSE-Hub)
+> **Total Pages**: 26 Pages (including Root Layout)
+> **Framework**: Next.js 14+ (App Router), TypeScript, Tailwind CSS, Supabase & FastAPI
+> **Updated Compilation**: Fri, 06 Nov 2026 03:06:34 GMT
+
+---
+
+## Table of Contents
+
+### Global & Application Shell
+
+1. [Root Layout (`N/A (Global Shell)`)](#1-root-layout)
+   - *File*: `frontend/src/app/layout.tsx`
+
+### General & Public Pages
+
+2. [Home / Landing Page (`/`)](#2-home-landing-page)
+   - *File*: `frontend/src/app/page.tsx`
+3. [About CSE Hub (`/about`)](#3-about-cse-hub)
+   - *File*: `frontend/src/app/about/page.tsx`
+4. [User Login (`/login`)](#4-user-login)
+   - *File*: `frontend/src/app/login/page.tsx`
+5. [User Registration (`/register`)](#5-user-registration)
+   - *File*: `frontend/src/app/register/page.tsx`
+6. [User Profile & Settings (`/profile`)](#6-user-profile-settings)
+   - *File*: `frontend/src/app/profile/page.tsx`
+7. [My Resources & Saved Items (`/my-resources`)](#7-my-resources-saved-items)
+   - *File*: `frontend/src/app/my-resources/page.tsx`
+8. [Notifications & Announcements (`/notifications`)](#8-notifications-announcements)
+   - *File*: `frontend/src/app/notifications/page.tsx`
+9. [Support & Help Desk (`/support`)](#9-support-help-desk)
+   - *File*: `frontend/src/app/support/page.tsx`
+
+### Academic Repositories & Utilities
+
+10. [Past Questions Repository (`/past-questions`)](#10-past-questions-repository)
+   - *File*: `frontend/src/app/past-questions/page.tsx`
+11. [Projects Archive & Showcase (`/projects`)](#11-projects-archive-showcase)
+   - *File*: `frontend/src/app/projects/page.tsx`
+12. [Department Knowledge Base (`/knowledge`)](#12-department-knowledge-base)
+   - *File*: `frontend/src/app/knowledge/page.tsx`
+13. [Interactive Code Preview (`/code-preview`)](#13-interactive-code-preview)
+   - *File*: `frontend/src/app/code-preview/page.tsx`
+14. [Resource Details & Document Viewer (`/resources/[id]`)](#14-resource-details-document-viewer)
+   - *File*: `frontend/src/app/resources/[id]/page.tsx`
+
+### Student Portal
+
+15. [Student Dashboard (`/student/dashboard`)](#15-student-dashboard)
+   - *File*: `frontend/src/app/student/dashboard/page.tsx`
+16. [Student Search & Discovery (`/student/search`)](#16-student-search-discovery)
+   - *File*: `frontend/src/app/student/search/page.tsx`
+
+### Staff / Lecturer Portal
+
+17. [Staff Dashboard (`/staff/dashboard`)](#17-staff-dashboard)
+   - *File*: `frontend/src/app/staff/dashboard/page.tsx`
+18. [Staff Resource Upload (`/staff/upload`)](#18-staff-resource-upload)
+   - *File*: `frontend/src/app/staff/upload/page.tsx`
+19. [Staff Resource Management (`/staff/manage-resources`)](#19-staff-resource-management)
+   - *File*: `frontend/src/app/staff/manage-resources/page.tsx`
+20. [Staff Edit Resource Metadata (`/staff/edit-resource-metadata`)](#20-staff-edit-resource-metadata)
+   - *File*: `frontend/src/app/staff/edit-resource-metadata/page.tsx`
+21. [Staff Review Submissions (`/staff/review-submissions`)](#21-staff-review-submissions)
+   - *File*: `frontend/src/app/staff/review-submissions/page.tsx`
+
+### Administrator Portal
+
+22. [Administrator Dashboard (`/admin/dashboard`)](#22-administrator-dashboard)
+   - *File*: `frontend/src/app/admin/dashboard/page.tsx`
+23. [Admin User Management (`/admin/users`)](#23-admin-user-management)
+   - *File*: `frontend/src/app/admin/users/page.tsx`
+24. [Admin Category Management (`/admin/categories`)](#24-admin-category-management)
+   - *File*: `frontend/src/app/admin/categories/page.tsx`
+25. [Admin Analytics & Usage Reports (`/admin/analytics`)](#25-admin-analytics-usage-reports)
+   - *File*: `frontend/src/app/admin/analytics/page.tsx`
+26. [Admin System Settings (`/admin/settings`)](#26-admin-system-settings)
+   - *File*: `frontend/src/app/admin/settings/page.tsx`
+
+### Appendix: Key Shared Layout Components
+
+1. [Top Navigation Bar (Navbar)](#app-1-top-navigation-bar-navbar-) (`frontend/src/components/layout/Navbar.tsx`)
+2. [Sidebar Navigation](#app-2-sidebar-navigation) (`frontend/src/components/layout/Sidebar.tsx`)
+3. [Global Footer](#app-3-global-footer) (`frontend/src/components/layout/footer.tsx`)
+
+---
+
+# Section: Global & Application Shell
+
+## 1. Root Layout
+
+- **Route**: `N/A (Global Shell)`
+- **File**: `frontend/src/app/layout.tsx`
+- **Category**: Global & Application Shell
+- **Description**: The root application wrapper providing global font configurations, CSS styles, and structural context for all routes.
+
+```tsx
+import type { Metadata, Viewport } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "Create Next App",
+  description: "Generated by create next app",
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+};
+
+export default function RootLayout({ children }: LayoutProps<"/">) {
+  return (
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col">{children}</body>
+    </html>
+  );
+}
+```
+
+---
+
+# Section: General & Public Pages
+
+## 2. Home / Landing Page
+
+- **Route**: `/`
+- **File**: `frontend/src/app/page.tsx`
+- **Category**: General & Public Pages
+- **Description**: Public landing page presenting platform features, stats, quick search, recent uploads, and authentication prompts.
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Navbar from '@/components/layout/Navbar';
+import SearchInput from '@/components/ui/SearchInput';
+import CategoryCard from '@/components/ui/CategoryCard';
+import {
+  FileText,
+  FolderGit2,
+  BookMarked,
+  Code,
+  Search,
+  Eye,
+  Download,
+  BookOpenCheck
+} from 'lucide-react';
+import Footer from '@/components/layout/footer'
+
+export default function LandingPage() {
+  const router = useRouter();
+
+  const handleSearch = (query: string) => {
+    router.push(`/student/search?q=${encodeURIComponent(query)}`);
+  };
+
+  const popularTags = [
+    'Machine Learning',
+    'Web Development',
+    'Data Structures',
+    'Final Year Projects'
+  ];
+
+  const categoryCards = [
+    {
+      title: 'Past Questions',
+      bgColor: '#6460FF',
+      icon: FileText,
+      slug: 'past-questions'
+    },
+    {
+      title: 'Projects',
+      bgColor: '#8C4DFF',
+      icon: FolderGit2,
+      slug: 'projects'
+    },
+    {
+      title: 'Lecture Notes',
+      bgColor: '#14B9CA',
+      icon: BookMarked,
+      slug: 'lecture-notes'
+    },
+    {
+      title: 'Code Samples',
+      bgColor: '#514BFF',
+      icon: Code,
+      slug: 'code-samples'
+    },
+  ];
+
+  return (
+    <div className="w-full min-h-screen bg-gradient-to-br from-[#F6FCFF] via-[#F0ECFF] to-[#F7FCFF] overflow-hidden rounded-[24px] flex flex-col font-sans text-[#0B123D]">
+
+      {/* 1. REUSABLE GLOBAL NAVBAR */}
+      <Navbar />
+
+      {/* 2. HERO SECTION & CATEGORIES */}
+      <main className="flex-1 max-w-[1440px] mx-auto w-full px-6 sm:px-10 lg:px-[142px] pt-8 sm:pt-[40px] pb-16 flex flex-col gap-12 sm:gap-[40px]">
+
+        {/* Top Hero Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-[24px] items-center">
+
+          {/* Left Text + Reusable Search Input Box */}
+          <div className="lg:col-span-7 flex flex-col items-start gap-6 max-w-[650px]">
+
+            {/* Headline */}
+            <h1 className="text-[42px] sm:text-[52px] lg:text-[60px] font-bold leading-[1.07] tracking-tight text-[#0B123D]">
+              Discover<br />
+              Explore<br />
+              Learn<br />
+              <span className="text-[#7148FF]">Grow</span>
+            </h1>
+
+            {/* Subtitle */}
+            <p className="text-[16px] sm:text-[18px] lg:text-[20px] font-normal leading-[1.45] text-[#495471] max-w-[590px]">
+              A centralized search engine for past questions, projects, lecture notes, and learning resources from the Department of Computer Science and Engineering.
+            </p>
+
+            {/* Reusable Search Component */}
+            <SearchInput onSearch={handleSearch} />
+
+            {/* Popular Search Tags */}
+            <div className="flex flex-wrap items-center gap-[10px] pt-1">
+              <span className="text-[14px] font-semibold leading-[20.3px] text-[#0B123D]">Popular:</span>
+              {popularTags.map((tag, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => handleSearch(tag)}
+                  className="px-[12px] py-[6px] bg-[#E3E9FF] rounded-full text-[12px] sm:text-[13px] font-normal leading-[17.4px] text-[#0B123D] hover:bg-[#d0daff] transition-colors"
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+
+          </div>
+
+          {/* Right Hero Frame with Floating Badge & Widget */}
+          <div className="lg:col-span-5 flex justify-center w-full mt-4 lg:mt-0">
+            <div className="relative w-full max-w-[510px] h-[400px] sm:h-[500px] lg:h-[550px] rounded-[24px] overflow-hidden flex items-start justify-start">
+
+              <img
+                src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=80"
+                alt="CSE Students Collaborating"
+                className="absolute inset-0 w-full h-full object-cover rounded-[24px]"
+              />
+
+              <div className="absolute left-0 top-[280px] w-[62px] h-[270px] bg-gradient-to-r from-[#F0ECFF] via-[#F0ECFF]/75 to-transparent pointer-events-none" />
+
+              <div className="absolute left-[14px] top-[100px] sm:top-[140px] w-[116px] p-3 bg-[#7148FF] rounded-[16px] text-white text-[13px] font-semibold leading-[18.85px] shadow-md z-10">
+                Access the right resources
+              </div>
+
+              <div className="absolute right-[10px] sm:right-[20px] bottom-[20px] sm:bottom-[30px] w-[160px] p-[22px] bg-white rounded-[24px] shadow-[0px_5px_18px_rgba(39,63,121,0.06)] flex flex-col gap-[12px] z-10 border border-[#E1E6F3]/50">
+
+                <div className="flex items-center gap-[12px]">
+                  <Search className="w-[18px] h-[18px] text-[#245CFF]" />
+                  <span className="text-[14px] font-semibold text-[#0B123D]">Search</span>
+                </div>
+
+                <div className="flex items-center gap-[12px]">
+                  <Eye className="w-[18px] h-[18px] text-[#245CFF]" />
+                  <span className="text-[14px] font-semibold text-[#0B123D]">Preview</span>
+                </div>
+
+                <div className="flex items-center gap-[12px]">
+                  <Download className="w-[18px] h-[18px] text-[#245CFF]" />
+                  <span className="text-[14px] font-semibold text-[#0B123D]">Download</span>
+                </div>
+
+                <div className="flex items-center gap-[12px]">
+                  <BookOpenCheck className="w-[18px] h-[18px] text-[#245CFF]" />
+                  <span className="text-[14px] font-semibold text-[#0B123D]">Learn</span>
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        {/* 3. REUSABLE CATEGORY CARDS GRID */}
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[22px]">
+          {categoryCards.map((card, idx) => (
+            <CategoryCard
+              key={idx}
+              title={card.title}
+              bgColor={card.bgColor}
+              icon={card.icon}
+              onClick={() => router.push(`/student/search?category=${encodeURIComponent(card.slug)}`)}
+            />
+          ))}
+        </div>
+
+      </main>
+      <Footer />
+
+    </div>
+  );
+}
+```
+
+---
+
+## 3. About CSE Hub
+
+- **Route**: `/about`
+- **File**: `frontend/src/app/about/page.tsx`
+- **Category**: General & Public Pages
+- **Description**: Overview of the CSE Academic Resource Hub, department mission, features, contributors, and contact information.
+
+```tsx
+"use client";
+
+import React from "react";
+import Link from "next/link";
+import Navbar from "@/components/layout/Navbar";
+import Sidebar from "@/components/layout/Sidebar";
+import Footer from "@/components/layout/footer";
+import {
+    BookOpen,
+    Users,
+    GraduationCap,
+    FileText,
+    UserCheck,
+    ShieldCheck,
+    Search,
+    BookMarked,
+    UploadCloud,
+    ArrowRight,
+    HelpCircle,
+    Sparkles,
+} from "lucide-react";
+
+export default function AboutPage() {
+    const stats = [
+        {
+            value: "1,250",
+            label: "Learning resources",
+            icon: BookOpen,
+        },
+        {
+            value: "450",
+            label: "Registered users",
+            icon: Users,
+        },
+        {
+            value: "42",
+            label: "Courses supported",
+            icon: GraduationCap,
+        },
+    ];
+
+    const roles = [
+        {
+            title: "Students",
+            description:
+                "Discover course materials, revise with past questions, save useful resources and plan your reading.",
+            icon: BookMarked,
+        },
+        {
+            title: "Staff",
+            description:
+                "Share learning materials, keep resources up to date and review student contributions.",
+            icon: UserCheck,
+        },
+        {
+            title: "Administrators",
+            description:
+                "Maintain course categories, manage user access and keep the platform running reliably.",
+            icon: ShieldCheck,
+        },
+    ];
+
+    const workflowSteps = [
+        {
+            step: 1,
+            title: "Find what you need",
+            description:
+                "Search by title, course or keyword. Filter by category, academic year and file type.",
+        },
+        {
+            step: 2,
+            title: "Learn your way",
+            description:
+                "Preview materials, download files and organise saved resources in My Resources.",
+        },
+        {
+            step: 3,
+            title: "Contribute responsibly",
+            description:
+                "Upload useful content with clear metadata. Staff review submissions before publication.",
+        },
+    ];
+
+    return (
+        <div className="min-h-screen w-full bg-[#F6F8FF] flex flex-col font-sans text-[#0B123D]">
+            {/* Shared Header Navigation */}
+            <Navbar userRole="student" userName="John Doe" userRoleTitle="Student" />
+
+            {/* Main Layout Shell */}
+            <div className="flex-1 flex flex-col md:flex-row">
+                {/* Shared Desktop Sidebar */}
+                <Sidebar userRole="student" userName="John Doe" userCode="CSC/2021/042" />
+
+                {/* Workspace Container */}
+                <main className="flex-1 p-4 md:p-8 space-y-6 overflow-x-hidden flex flex-col justify-between">
+                    <div className="space-y-6 max-w-5xl mx-auto w-full">
+                        {/* Header Title Section */}
+                        <div>
+                            <h1 className="text-2xl md:text-3xl font-bold text-[#0B123D]">
+                                About CSE Hub
+                            </h1>
+                            <p className="text-sm text-[#64708C] mt-1">
+                                A shared resource hub for the Computer Science and Engineering community.
+                            </p>
+                        </div>
+
+                        {/* Main Gradient Hero Banner */}
+                        <div className="p-6 md:p-8 rounded-2xl bg-gradient-to-r from-[#DDF7FE] via-[#E7DCFF] to-[#D6F6FF] space-y-4 border border-[#E1E6F3]/50">
+                            <span className="px-3 py-1 bg-[#E9EDFF] text-[#245CFF] text-xs font-semibold rounded-full inline-block">
+                                Department of Computer Science and Engineering
+                            </span>
+                            <h2 className="text-2xl md:text-3xl font-bold text-[#0B123D] leading-tight">
+                                Learn, share and grow together.
+                            </h2>
+                            <p className="text-sm text-[#0B123D] leading-relaxed max-w-3xl">
+                                CSE Hub brings lecture notes, past questions, projects and code samples into one organised departmental library. It helps our university’s students and staff find reliable learning materials and preserve knowledge for the next cohort.
+                            </p>
+                        </div>
+
+                        {/* Department Metric Cards */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            {stats.map((stat, idx) => (
+                                <div
+                                    key={idx}
+                                    className="p-5 bg-white rounded-xl border border-[#E1E6F3] shadow-sm flex items-center gap-4"
+                                >
+                                    <div className="w-11 h-11 rounded-lg bg-[#E9EDFF] flex items-center justify-center shrink-0">
+                                        <stat.icon className="w-6 h-6 text-[#245CFF]" />
+                                    </div>
+                                    <div>
+                                        <span className="text-2xl font-bold text-[#0B123D] block leading-none">
+                                            {stat.value}
+                                        </span>
+                                        <span className="text-xs text-[#64708C] mt-1 block">
+                                            {stat.label}
+                                        </span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Built for Our Department Section */}
+                        <div className="bg-white p-6 md:p-8 rounded-xl border border-[#E1E6F3] shadow-sm space-y-6">
+                            <div>
+                                <h2 className="text-lg md:text-xl font-bold text-[#0B123D]">
+                                    Built for our department
+                                </h2>
+                                <p className="text-sm text-[#64708C] mt-1 leading-relaxed">
+                                    CSE Hub supports teaching, independent study and collaboration within the university’s Computer Science and Engineering department. Course codes, academic years and categories keep materials connected to the curriculum — not scattered across personal drives and chat groups.
+                                </p>
+                            </div>
+
+                            {/* Role Cards Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {roles.map((role, idx) => (
+                                    <div
+                                        key={idx}
+                                        className="p-5 bg-[#F6F8FF] rounded-xl space-y-2 border border-[#E1E6F3]/50"
+                                    >
+                                        <div className="w-9 h-9 rounded-lg bg-white flex items-center justify-center shadow-xs">
+                                            <role.icon className="w-5 h-5 text-[#245CFF]" />
+                                        </div>
+                                        <h3 className="text-sm font-bold text-[#0B123D]">
+                                            {role.title}
+                                        </h3>
+                                        <p className="text-xs text-[#64708C] leading-relaxed">
+                                            {role.description}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* How CSE Hub Works Process Steps */}
+                        <div className="space-y-4">
+                            <h2 className="text-xl font-bold text-[#0B123D]">
+                                How CSE Hub Works
+                            </h2>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {workflowSteps.map((item) => (
+                                    <div
+                                        key={item.step}
+                                        className="p-5 bg-white rounded-xl border border-[#E1E6F3] shadow-sm space-y-3"
+                                    >
+                                        <div className="w-8 h-8 rounded-full bg-[#245CFF] text-white font-bold text-sm flex items-center justify-center">
+                                            {item.step}
+                                        </div>
+                                        <h3 className="text-sm font-bold text-[#0B123D]">
+                                            {item.title}
+                                        </h3>
+                                        <p className="text-xs text-[#64708C] leading-relaxed">
+                                            {item.description}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Community & Accessibility Split Cards */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            {/* Card 1: Resources & Community */}
+                            <div className="bg-white p-6 rounded-xl border border-[#E1E6F3] shadow-sm space-y-4 flex flex-col justify-between">
+                                <div className="space-y-3">
+                                    <h3 className="text-base font-bold text-[#0B123D]">
+                                        Resources &amp; Community
+                                    </h3>
+                                    <p className="text-xs text-[#64708C] leading-relaxed">
+                                        Explore Lecture Notes, Past Questions, Projects, Code Samples and the Knowledge Hub. Resources are contributed by members of the department and reviewed for relevance and quality.
+                                    </p>
+                                    <hr className="border-[#E1E6F3]" />
+                                    <h4 className="text-xs font-semibold text-[#0B123D]">
+                                        Share with care
+                                    </h4>
+                                    <p className="text-xs text-[#64708C] leading-relaxed">
+                                        Credit original authors, respect copyright and avoid personal or confidential information. Past questions support revision and are not a substitute for attending classes or following course guidance.
+                                    </p>
+                                </div>
+
+                                <Link
+                                    href="/student/search"
+                                    className="text-xs font-semibold text-[#245CFF] hover:underline flex items-center gap-1 pt-2"
+                                >
+                                    <span>Browse the resource library</span>
+                                    <ArrowRight className="w-3.5 h-3.5" />
+                                </Link>
+                            </div>
+
+                            {/* Card 2: Access & Accessibility */}
+                            <div className="bg-white p-6 rounded-xl border border-[#E1E6F3] shadow-sm space-y-4 flex flex-col justify-between">
+                                <div className="space-y-3">
+                                    <h3 className="text-base font-bold text-[#0B123D]">
+                                        Access &amp; Accessibility
+                                    </h3>
+                                    <p className="text-xs text-[#64708C] leading-relaxed">
+                                        Use your verified university email to sign in. Some materials are limited to a course or to staff; permissions follow your account role and enrolment.
+                                    </p>
+                                    <hr className="border-[#E1E6F3]" />
+                                    <h4 className="text-xs font-semibold text-[#0B123D]">
+                                        Learning should be accessible
+                                    </h4>
+                                    <p className="text-xs text-[#64708C] leading-relaxed">
+                                        We encourage readable, searchable documents and clear descriptions. If you need an alternative format or encounter an accessibility barrier, contact the platform team through Help &amp; Support.
+                                    </p>
+                                </div>
+
+                                <Link
+                                    href="/student/support"
+                                    className="text-xs font-semibold text-[#245CFF] hover:underline flex items-center gap-1 pt-2"
+                                >
+                                    <span>Get accessibility support</span>
+                                    <ArrowRight className="w-3.5 h-3.5" />
+                                </Link>
+                            </div>
+                        </div>
+
+                        {/* Bottom Support Callout Banner */}
+                        <div className="p-6 rounded-xl bg-[#E9EDFF] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border border-[#E1E6F3]">
+                            <div className="flex items-start gap-4">
+                                <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center shrink-0 shadow-xs">
+                                    <HelpCircle className="w-6 h-6 text-[#245CFF]" />
+                                </div>
+                                <div className="space-y-1">
+                                    <h3 className="text-base font-bold text-[#0B123D]">
+                                        Have a question or an idea?
+                                    </h3>
+                                    <p className="text-xs text-[#64708C] leading-relaxed">
+                                        The CSE Hub platform team can help with resources, account access and feedback.
+                                    </p>
+                                    <p className="text-xs font-semibold text-[#245CFF] pt-0.5">
+                                        support@cse.edu.ng · Monday–Friday, 9 AM–5 PM WAT
+                                    </p>
+                                </div>
+                            </div>
+
+                            <Link
+                                href="/student/support"
+                                className="h-11 px-5 bg-gradient-to-r from-[#7148FF] to-[#245CFF] text-white text-xs font-semibold rounded-lg flex items-center justify-center shrink-0 hover:opacity-95 transition-opacity shadow-sm self-start sm:self-auto"
+                            >
+                                Help &amp; Support
+                            </Link>
+                        </div>
+                    </div>
+
+                    {/* Shared Standard Footer */}
+                    <Footer />
+                </main>
+            </div>
+        </div>
+    );
+}
+```
+
+---
+
+## 4. User Login
+
+- **Route**: `/login`
+- **File**: `frontend/src/app/login/page.tsx`
+- **Category**: General & Public Pages
+- **Description**: Authentication page handling user login via Supabase credentials, supporting student, staff, and admin roles.
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Eye, EyeOff, Check, AlertCircle } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+
+export default function LoginPage() {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [rememberMe, setRememberMe] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [errorMsg, setErrorMsg] = useState('');
+
+    const router = useRouter();
+
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setErrorMsg('');
+
+        try {
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
+
+            if (error) {
+                setErrorMsg(error.message);
+                setLoading(false);
+                return;
+            }
+
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('role')
+                .eq('id', data.user.id)
+                .single();
+
+            const role = profile?.role || 'student';
+
+            if (role === 'admin') {
+                router.push('/admin/dashboard');
+            } else if (role === 'staff') {
+                router.push('/staff/dashboard');
+            } else {
+                router.push('/student/dashboard');
+            }
+        } catch (err: any) {
+            setErrorMsg('An unexpected error occurred during login.');
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="w-full min-h-screen bg-white rounded-[24px] overflow-hidden flex flex-col xl:flex-row font-sans text-[#0B123D]">
+
+            {/* ------------------------------------------------------------- */}
+            {/* LEFT COLUMN: FORM SECTION                                      */}
+            {/* ------------------------------------------------------------- */}
+            <div className="w-full xl:w-[770px] flex-1 px-6 sm:px-16 xl:px-[88px] pt-10 sm:pt-14 xl:pt-[62px] pb-[38px] flex flex-col justify-between gap-[30px] overflow-hidden">
+                <div>
+                    {/* Logo Brand Header */}
+                    <Link href="/" className="inline-flex items-center gap-[10px] mb-6">
+                        <div className="w-[36px] h-[38px] bg-[#245CFF] rounded-[10px] flex items-center justify-center text-white font-bold text-[17px] relative shadow-sm">
+                            C
+                        </div>
+                        <span className="text-[25px] font-bold leading-[36.25px] text-[#0B123D]">CSE Hub</span>
+                    </Link>
+
+                    {/* Title & Subtitle */}
+                    <div className="space-y-2 mb-8">
+                        <h1 className="text-[32px] sm:text-[40px] xl:text-[43px] font-bold leading-[1.2] text-[#0B123D]">
+                            Welcome Back!
+                        </h1>
+                        <p className="text-[16px] sm:text-[18px] xl:text-[21px] font-normal leading-[1.45] text-[#64708C]">
+                            Sign in to access the CSE Resource Search Hub
+                        </p>
+                    </div>
+
+                    {/* Error Alert */}
+                    {errorMsg && (
+                        <div className="mb-6 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl flex items-center gap-3 text-sm">
+                            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                            <span>{errorMsg}</span>
+                        </div>
+                    )}
+
+                    {/* Login Form */}
+                    <form onSubmit={handleLogin} className="space-y-[20px]">
+
+                        {/* Email Field */}
+                        <div className="space-y-2">
+                            <label className="block text-[16px] font-semibold leading-[23.2px] text-[#0B123D]">
+                                Email Address
+                            </label>
+                            <div className="h-[50px] sm:h-[54px] px-[16px] bg-white rounded-[8px] border border-[#E1E6F3] flex items-center focus-within:ring-2 focus-within:ring-[#245CFF]">
+                                <input
+                                    type="email"
+                                    required
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="Enter your email"
+                                    className="w-full bg-transparent text-[#0B123D] text-[16px] placeholder-[#64708C] focus:outline-none"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Password Field */}
+                        <div className="space-y-2">
+                            <label className="block text-[16px] font-semibold leading-[23.2px] text-[#0B123D]">
+                                Password
+                            </label>
+                            <div className="h-[50px] sm:h-[54px] px-[16px] bg-white rounded-[8px] border border-[#E1E6F3] flex items-center justify-between gap-2 focus-within:ring-2 focus-within:ring-[#245CFF]">
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    required
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="Enter your password"
+                                    className="w-full bg-transparent text-[#0B123D] text-[16px] placeholder-[#64708C] focus:outline-none"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="text-[#64708C] hover:text-[#0B123D] p-1"
+                                >
+                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Remember Me & Forgot Password */}
+                        <div className="flex items-center justify-between pt-1 text-[14px] sm:text-[16px]">
+                            <label className="flex items-center gap-[10px] cursor-pointer text-[#0B123D]">
+                                <button
+                                    type="button"
+                                    onClick={() => setRememberMe(!rememberMe)}
+                                    className={`w-[22px] h-[22px] rounded-[4px] flex items-center justify-center transition-colors ${rememberMe ? 'bg-[#245CFF] text-white' : 'bg-white border border-[#E1E6F3]'
+                                        }`}
+                                >
+                                    {rememberMe && <Check className="w-4 h-4 stroke-[3]" />}
+                                </button>
+                                <span className="font-normal">Remember me</span>
+                            </label>
+                            <a href="#" className="font-semibold text-[#245CFF] hover:underline">
+                                Forgot password?
+                            </a>
+                        </div>
+
+                        {/* Sign In Button */}
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full h-[48px] sm:h-[52px] bg-gradient-to-r from-[#7148FF] to-[#245CFF] rounded-[8px] text-white text-[16px] font-semibold leading-[23.2px] flex items-center justify-center hover:opacity-95 transition-opacity disabled:opacity-50 mt-4"
+                        >
+                            {loading ? 'Signing In...' : 'Sign In'}
+                        </button>
+                    </form>
+
+                    {/* Divider */}
+                    <div className="flex items-center gap-[20px] my-6">
+                        <div className="flex-1 h-[1px] bg-[#E1E6F3]" />
+                        <span className="text-[16px] text-[#0B123D] font-normal">OR</span>
+                        <div className="flex-1 h-[1px] bg-[#E1E6F3]" />
+                    </div>
+
+                    {/* Social Logins */}
+                    <div className="space-y-[14px]">
+                        <button
+                            type="button"
+                            className="w-full h-[58px] rounded-[8px] border border-[#E1E6F3] flex items-center justify-center gap-[18px] sm:gap-[22px] hover:bg-slate-50 transition-colors"
+                        >
+                            <span className="text-[#4285F4] text-[25px] font-normal leading-none">G</span>
+                            <span className="text-[#0B123D] text-[16px] sm:text-[17px] font-semibold">
+                                Continue with Google
+                            </span>
+                        </button>
+
+                        <button
+                            type="button"
+                            className="w-full h-[58px] rounded-[8px] border border-[#E1E6F3] flex items-center justify-center gap-[18px] sm:gap-[22px] hover:bg-slate-50 transition-colors"
+                        >
+                            <div className="grid grid-cols-2 gap-[2px]">
+                                <div className="w-[10px] h-[10px] bg-[#F35325]" />
+                                <div className="w-[10px] h-[10px] bg-[#81BC06]" />
+                                <div className="w-[10px] h-[10px] bg-[#05A6F0]" />
+                                <div className="w-[10px] h-[10px] bg-[#FFBA08]" />
+                            </div>
+                            <span className="text-[#0B123D] text-[16px] sm:text-[17px] font-semibold">
+                                Continue with Microsoft
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+                {/* Footer Redirect Link */}
+                <div className="text-center pt-4 text-[16px] sm:text-[17px]">
+                    <span className="text-[#0B123D] font-normal">Don&apos;t have an account? </span>
+                    <Link href="/register" className="text-[#245CFF] font-normal hover:underline">
+                        Sign up
+                    </Link>
+                </div>
+            </div>
+
+            {/* ------------------------------------------------------------- */}
+            {/* RIGHT COLUMN: BRAND BANNER & QUOTE                            */}
+            {/* ------------------------------------------------------------- */}
+            <div className="flex-1 bg-gradient-to-br from-[#18233D] to-[#444C97] flex flex-col justify-between overflow-hidden min-h-[300px] xl:min-h-full">
+                <div className="relative w-full h-[240px] sm:h-[320px] xl:h-[420px] overflow-hidden">
+                    <img
+                        src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=1200&q=80"
+                        alt="Students Studying"
+                        className="w-full h-full object-cover opacity-60 mix-blend-overlay"
+                    />
+                </div>
+
+                <div className="p-6 sm:p-[32px] xl:pt-[42px] xl:px-[90px] xl:pb-[60px] flex flex-col gap-[22px] sm:gap-[28px]">
+                    <div className="flex gap-[18px] sm:gap-[34px]">
+                        <div className="w-[4px] h-[84px] sm:h-[120px] xl:h-[252px] bg-[#245CFF] flex-shrink-0" />
+                        <h2 className="text-white text-[28px] sm:text-[36px] xl:text-[44px] font-bold leading-[1.3] sm:leading-[1.45]">
+                            Knowledge<br className="hidden xl:block" /> shared is<br className="hidden xl:block" /> knowledge<br className="hidden xl:block" /> multiplied”
+                        </h2>
+                    </div>
+
+                    <p className="text-[#D8DBEF] text-[16px] sm:text-[18px] xl:text-[23px] font-normal leading-[1.45]">
+                        Access, search and explore a wide range of academic resources.
+                    </p>
+                </div>
+            </div>
+
+        </div>
+    );
+}
+```
+
+---
+
+## 5. User Registration
+
+- **Route**: `/register`
+- **File**: `frontend/src/app/register/page.tsx`
+- **Category**: General & Public Pages
+- **Description**: Account registration for students and academic staff with form validation, matriculation/staff ID capture, and profile setup.
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { Eye, EyeOff, Check, AlertCircle } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+
+export default function RegisterPage() {
+    const [fullName, setFullName] = useState('');
+    const [email, setEmail] = useState('');
+    const [matricNumber, setMatricNumber] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [errorMsg, setErrorMsg] = useState('');
+
+    const router = useRouter();
+
+    const handleRegister = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setErrorMsg('');
+
+        if (password !== confirmPassword) {
+            setErrorMsg('Passwords do not match.');
+            setLoading(false);
+            return;
+        }
+
+        try {
+            const { data, error } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: {
+                        full_name: fullName,
+                        role: 'student',
+                        id_number: matricNumber,
+                    },
+                },
+            });
+
+            if (error) {
+                setErrorMsg(error.message);
+                setLoading(false);
+                return;
+            }
+
+            router.push('/student/dashboard');
+        } catch (err: any) {
+            setErrorMsg('An unexpected error occurred during account creation.');
+            setLoading(false);
+        }
+    };
+
+    const featureChecklist = [
+        'Access academic resources',
+        'Search past questions',
+        'Explore projects',
+        'Join the CSE community',
+    ];
+
+    return (
+        <div className="w-full min-h-screen bg-white rounded-[24px] overflow-hidden flex flex-col xl:flex-row font-sans text-[#0B123D]">
+
+            {/* ------------------------------------------------------------- */}
+            {/* LEFT COLUMN: REGISTRATION FORM                                */}
+            {/* ------------------------------------------------------------- */}
+            <div className="w-full xl:w-[730px] px-6 sm:px-14 xl:px-[70px] pt-[38px] pb-[30px] flex flex-col justify-between gap-[18px]">
+                <div>
+                    {/* Logo Header */}
+                    <Link href="/" className="inline-flex items-center gap-[10px] mb-4">
+                        <div className="w-[36px] h-[38px] bg-[#245CFF] rounded-[10px] flex items-center justify-center text-white font-bold text-[17px] relative shadow-sm">
+                            C
+                        </div>
+                        <span className="text-[25px] font-bold leading-[36.25px] text-[#0B123D]">CSE Hub</span>
+                    </Link>
+
+                    {/* Heading */}
+                    <div className="space-y-1 mb-6">
+                        <h1 className="text-[30px] sm:text-[34px] font-bold leading-[1.3] text-[#0B123D]">
+                            Create Your Account
+                        </h1>
+                        <p className="text-[15px] sm:text-[16px] font-normal leading-[21.75px] text-[#64708C]">
+                            Join the CSE Resource Search Hub today
+                        </p>
+                    </div>
+
+                    {/* Error Feedback Alert */}
+                    {errorMsg && (
+                        <div className="mb-4 bg-red-50 border border-red-200 text-red-600 px-4 py-2.5 rounded-xl flex items-center gap-3 text-sm">
+                            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                            <span>{errorMsg}</span>
+                        </div>
+                    )}
+
+                    {/* Form Fields */}
+                    <form onSubmit={handleRegister} className="space-y-[16px]">
+
+                        {/* Full Name */}
+                        <div className="space-y-2">
+                            <label className="block text-[16px] font-semibold leading-[23.2px] text-[#0B123D]">
+                                Full Name
+                            </label>
+                            <div className="h-[50px] sm:h-[54px] px-[16px] bg-white rounded-[8px] border border-[#E1E6F3] flex items-center focus-within:ring-2 focus-within:ring-[#245CFF]">
+                                <input
+                                    type="text"
+                                    required
+                                    value={fullName}
+                                    onChange={(e) => setFullName(e.target.value)}
+                                    placeholder="Enter your full name"
+                                    className="w-full bg-transparent text-[#0B123D] text-[16px] placeholder-[#64708C] focus:outline-none"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Email Address */}
+                        <div className="space-y-2">
+                            <label className="block text-[16px] font-semibold leading-[23.2px] text-[#0B123D]">
+                                Email Address
+                            </label>
+                            <div className="h-[50px] sm:h-[54px] px-[16px] bg-white rounded-[8px] border border-[#E1E6F3] flex items-center focus-within:ring-2 focus-within:ring-[#245CFF]">
+                                <input
+                                    type="email"
+                                    required
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    placeholder="Enter your email"
+                                    className="w-full bg-transparent text-[#0B123D] text-[16px] placeholder-[#64708C] focus:outline-none"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Student Matric Number */}
+                        <div className="space-y-2">
+                            <label className="block text-[16px] font-semibold leading-[23.2px] text-[#0B123D]">
+                                Student Matric Number (for students)
+                            </label>
+                            <div className="h-[50px] sm:h-[54px] px-[16px] bg-white rounded-[8px] border border-[#E1E6F3] flex items-center focus-within:ring-2 focus-within:ring-[#245CFF]">
+                                <input
+                                    type="text"
+                                    required
+                                    value={matricNumber}
+                                    onChange={(e) => setMatricNumber(e.target.value)}
+                                    placeholder="Enter your matric number"
+                                    className="w-full bg-transparent text-[#0B123D] text-[16px] placeholder-[#64708C] focus:outline-none"
+                                />
+                            </div>
+                        </div>
+
+                        {/* Password */}
+                        <div className="space-y-2">
+                            <label className="block text-[16px] font-semibold leading-[23.2px] text-[#0B123D]">
+                                Password
+                            </label>
+                            <div className="h-[50px] sm:h-[54px] px-[16px] bg-white rounded-[8px] border border-[#E1E6F3] flex items-center justify-between gap-2 focus-within:ring-2 focus-within:ring-[#245CFF]">
+                                <input
+                                    type={showPassword ? 'text' : 'password'}
+                                    required
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="Create a password"
+                                    className="w-full bg-transparent text-[#0B123D] text-[16px] placeholder-[#64708C] focus:outline-none"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="text-[#64708C] hover:text-[#0B123D] p-1"
+                                >
+                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Confirm Password */}
+                        <div className="space-y-2">
+                            <label className="block text-[16px] font-semibold leading-[23.2px] text-[#0B123D]">
+                                Confirm Password
+                            </label>
+                            <div className="h-[50px] sm:h-[54px] px-[16px] bg-white rounded-[8px] border border-[#E1E6F3] flex items-center justify-between gap-2 focus-within:ring-2 focus-within:ring-[#245CFF]">
+                                <input
+                                    type={showConfirmPassword ? 'text' : 'password'}
+                                    required
+                                    value={confirmPassword}
+                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                    placeholder="Confirm your password"
+                                    className="w-full bg-transparent text-[#0B123D] text-[16px] placeholder-[#64708C] focus:outline-none"
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                    className="text-[#64708C] hover:text-[#0B123D] p-1"
+                                >
+                                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                </button>
+                            </div>
+                            <p className="text-[13px] text-[#64708C] font-normal leading-[18.85px]">
+                                Enter your password again to confirm.
+                            </p>
+                        </div>
+
+                        {/* Submit Button */}
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full h-[48px] sm:h-[52px] bg-gradient-to-r from-[#7148FF] to-[#245CFF] rounded-[8px] text-white text-[16px] font-semibold leading-[23.2px] flex items-center justify-center hover:opacity-95 transition-opacity disabled:opacity-50 mt-4"
+                        >
+                            {loading ? 'Creating Account...' : 'Create Account'}
+                        </button>
+                    </form>
+                </div>
+
+                {/* Footer Redirect */}
+                <div className="text-center pt-2 text-[16px]">
+                    <span className="text-[#64708C] font-normal">Already have an account? </span>
+                    <Link href="/login" className="text-[#245CFF] font-normal hover:underline">
+                        Sign in
+                    </Link>
+                </div>
+            </div>
+
+            {/* ------------------------------------------------------------- */}
+            {/* RIGHT COLUMN: REUSABLE LEARNING JOURNEY CARD                  */}
+            {/* ------------------------------------------------------------- */}
+            <div className="flex-1 bg-gradient-to-br from-[#F6FCFF] via-[#F0ECFF] to-[#F7FCFF] p-6 sm:p-10 xl:pr-[32px] flex flex-col items-center justify-center relative overflow-hidden">
+
+                {/* Background Overlay Image */}
+                <div className="w-full h-[220px] sm:h-[300px] xl:h-[350px] relative overflow-hidden rounded-[20px] mb-6">
+                    <img
+                        src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80"
+                        alt="Students Learning"
+                        className="w-full h-full object-cover rounded-[20px]"
+                    />
+                </div>
+
+                {/* White Feature Checklist Widget matching Figma Dev Mode specs */}
+                <div className="w-full max-w-[610px] p-6 sm:p-[30px] bg-white rounded-[24px] sm:rounded-[28px] shadow-[0px_5px_18px_rgba(39,63,121,0.06)] flex flex-col gap-[20px] border border-[#E1E6F3]/50">
+
+                    <div className="flex items-center gap-[20px] sm:gap-[28px]">
+                        <div className="w-[56px] h-[56px] sm:w-[85px] sm:h-[85px] bg-[#7148FF] rounded-[16px] sm:rounded-[20px] flex items-center justify-center text-white flex-shrink-0">
+                            <span className="text-[24px] sm:text-[36px] font-bold">🚀</span>
+                        </div>
+                        <h3 className="text-[#0B123D] text-[22px] sm:text-[26px] font-bold leading-[1.3]">
+                            Start Your<br />Learning Journey
+                        </h3>
+                    </div>
+
+                    {featureChecklist.map((feature, idx) => (
+                        <div key={idx} className="flex items-center gap-[14px] sm:gap-[20px]">
+                            <div className="w-[28px] h-[28px] sm:w-[30px] sm:h-[30px] bg-[#00B75E] rounded-full flex items-center justify-center text-white flex-shrink-0">
+                                <Check className="w-[16px] h-[16px] sm:w-[18px] sm:h-[18px] stroke-[3]" />
+                            </div>
+                            <span className="text-[#0B123D] text-[16px] sm:text-[18px] font-normal leading-[23.2px]">
+                                {feature}
+                            </span>
+                        </div>
+                    ))}
+
+                </div>
+
+            </div>
+
+        </div>
+    );
+}
+```
+
+---
+
+## 6. User Profile & Settings
+
+- **Route**: `/profile`
+- **File**: `frontend/src/app/profile/page.tsx`
+- **Category**: General & Public Pages
+- **Description**: User profile management, personal academic details, activity history, password reset, and account preferences.
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import Navbar from '@/components/layout/Navbar';
+import Sidebar from '@/components/layout/Sidebar';
+import Footer from '@/components/layout/footer';
+import {
+    Search,
+    ChevronDown,
+    Clock,
+    Download,
+    Folder,
+    Home,
+    HelpCircle,
+    BookOpen,
+    FolderSearch
+} from 'lucide-react';
+
+interface ProjectItem {
+    id: string;
+    title: string;
+    tags: string[];
+    year: number;
+    department: string;
+    downloads: number;
+    imageUrl: string;
+}
+
+const mockProjects: ProjectItem[] = [
+    {
+        id: '1',
+        title: 'Smart Campus Navigation System',
+        tags: ['Web Development', 'IoT'],
+        year: 2023,
+        department: 'CSE',
+        downloads: 125,
+        imageUrl: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop&q=80',
+    },
+    {
+        id: '2',
+        title: 'Machine Learning for Disease Prediction',
+        tags: ['Machine Learning'],
+        year: 2023,
+        department: 'CSE',
+        downloads: 86,
+        imageUrl: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=600&auto=format&fit=crop&q=80',
+    },
+    {
+        id: '3',
+        title: 'Student Attendance System',
+        tags: ['Web Development', 'C#'],
+        year: 2023,
+        department: 'CSE',
+        downloads: 68,
+        imageUrl: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=600&auto=format&fit=crop&q=80',
+    },
+    {
+        id: '4',
+        title: 'E-Learning Platform',
+        tags: ['Web Development'],
+        year: 2023,
+        department: 'CSE',
+        downloads: 76,
+        imageUrl: 'https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=600&auto=format&fit=crop&q=80',
+    },
+    {
+        id: '5',
+        title: 'Image Classifier using CNN',
+        tags: ['Deep Learning'],
+        year: 2023,
+        department: 'CSE',
+        downloads: 64,
+        imageUrl: 'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=600&auto=format&fit=crop&q=80',
+    },
+    {
+        id: '6',
+        title: 'Library Management System',
+        tags: ['Database'],
+        year: 2023,
+        department: 'CSE',
+        downloads: 89,
+        imageUrl: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=600&auto=format&fit=crop&q=80',
+    },
+];
+
+const departments = [
+    'All Departments',
+    'Computer Science & Engineering',
+    'Electrical Engineering',
+    'Mechanical Engineering',
+];
+
+export default function ProjectsPage() {
+    const [projectSearch, setProjectSearch] = useState('');
+    const [selectedDept, setSelectedDept] = useState('All Departments');
+
+    const filteredProjects = mockProjects.filter((project) => {
+        const matchesSearch =
+            project.title.toLowerCase().includes(projectSearch.toLowerCase()) ||
+            project.tags.some((t) => t.toLowerCase().includes(projectSearch.toLowerCase()));
+
+        const matchesDept =
+            selectedDept === 'All Departments' ||
+            selectedDept.toLowerCase().includes(project.department.toLowerCase());
+
+        return matchesSearch && matchesDept;
+    });
+
+    return (
+        <div className="w-full h-screen bg-[#F6F8FF] flex flex-col font-sans text-[#0B123D] overflow-hidden">
+            {/* Header Navigation */}
+            <Navbar userRole="student" userName="John Doe" userRoleTitle="Student" />
+
+            {/* Main Shell Container */}
+            <div className="flex-1 flex flex-row overflow-hidden min-h-0">
+                {/* Desktop Sidebar */}
+                <Sidebar userRole="student" userName="John Doe" userCode="CSC/2021/042" />
+
+                {/* Main Scrollable Content Workspace */}
+                <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+                    <main className="p-4 sm:p-6 lg:p-8 space-y-6 flex-1 max-w-6xl w-full mx-auto pb-24 lg:pb-8">
+                        {/* Heading & Filter Options */}
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="space-y-1">
+                                <h1 className="text-2xl sm:text-3xl font-bold text-[#0B123D] leading-tight">
+                                    Final Year Projects
+                                </h1>
+                                <p className="text-xs sm:text-sm text-[#64708C]">Resources</p>
+                            </div>
+
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                                {/* Search Input */}
+                                <div className="w-full sm:w-[280px] lg:w-[325px] h-[43px] px-4 bg-white rounded-lg border border-[#E1E6F3] flex items-center gap-3 focus-within:ring-2 focus-within:ring-[#245CFF]">
+                                    <Search className="w-4 h-4 text-[#64708C] shrink-0" />
+                                    <input
+                                        type="text"
+                                        value={projectSearch}
+                                        onChange={(e) => setProjectSearch(e.target.value)}
+                                        placeholder="Search for projects..."
+                                        className="w-full bg-transparent text-sm text-[#0B123D] placeholder-[#64708C] focus:outline-none"
+                                    />
+                                </div>
+
+                                {/* Department Selector */}
+                                <div className="relative w-full sm:w-[220px] lg:w-[260px]">
+                                    <select
+                                        value={selectedDept}
+                                        onChange={(e) => setSelectedDept(e.target.value)}
+                                        className="w-full h-[43px] pl-4 pr-10 bg-white rounded-lg border border-[#E1E6F3] text-sm text-[#0B123D] appearance-none focus:ring-2 focus:ring-[#245CFF] focus:outline-none cursor-pointer"
+                                    >
+                                        {departments.map((dept) => (
+                                            <option key={dept} value={dept}>
+                                                {dept}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown className="w-4 h-4 text-[#0B123D] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Projects Card Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                            {filteredProjects.map((project) => (
+                                <div
+                                    key={project.id}
+                                    className="bg-white rounded-2xl border border-[#E1E6F3] overflow-hidden flex flex-col justify-between hover:border-[#245CFF] hover:shadow-md transition-all duration-200"
+                                >
+                                    <div className="relative w-full h-[145px] bg-slate-100">
+                                        <Image
+                                            src={project.imageUrl}
+                                            alt={project.title}
+                                            fill
+                                            unoptimized
+                                            className="object-cover"
+                                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                        />
+                                    </div>
+
+                                    <div className="p-[18px] flex-1 flex flex-col justify-between gap-4">
+                                        <div className="space-y-3">
+                                            <h3 className="text-[17px] font-bold text-[#0B123D] leading-snug line-clamp-2">
+                                                {project.title}
+                                            </h3>
+
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                {project.tags.map((tag) => (
+                                                    <span
+                                                        key={tag}
+                                                        className="px-2.5 py-1 bg-[#E9EDFF] text-[#245CFF] font-semibold text-xs rounded-md"
+                                                    >
+                                                        {tag}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 text-xs text-[#64708C] pt-2 border-t border-[#F0F3FA]">
+                                            <div className="flex items-center gap-1">
+                                                <Clock className="w-3.5 h-3.5" />
+                                                <span>{project.year}</span>
+                                            </div>
+                                            <span>·</span>
+                                            <span>{project.department}</span>
+                                            <span>·</span>
+                                            <div className="flex items-center gap-1">
+                                                <Download className="w-3.5 h-3.5" />
+                                                <span>{project.downloads} downloads</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Empty Search State */}
+                        {filteredProjects.length === 0 && (
+                            <div className="p-12 text-center bg-white rounded-2xl border border-[#E1E6F3] space-y-2">
+                                <p className="text-base font-semibold text-[#0B123D]">No projects found</p>
+                                <p className="text-sm text-[#64708C]">
+                                    Try adjusting your search query or department filter.
+                                </p>
+                            </div>
+                        )}
+                    </main>
+
+                    {/* Shared Footer Component */}
+                    <Footer />
+                </div>
+            </div>
+
+            {/* Mobile Bottom Navigation */}
+            <div className="lg:hidden fixed bottom-0 left-0 right-0 h-[64px] bg-white border-t border-[#E1E6F3] px-2 flex items-center justify-around z-40">
+                <Link href="/student/dashboard" className="flex flex-col items-center gap-1 text-[#64708C]">
+                    <Home className="w-5 h-5" />
+                    <span className="text-[10px]">Home</span>
+                </Link>
+                <Link href="/student/search" className="flex flex-col items-center gap-1 text-[#64708C]">
+                    <FolderSearch className="w-5 h-5" />
+                    <span className="text-[10px]">Search</span>
+                </Link>
+                <Link href="/student/past-questions" className="flex flex-col items-center gap-1 text-[#64708C]">
+                    <HelpCircle className="w-5 h-5" />
+                    <span className="text-[10px]">Questions</span>
+                </Link>
+                <Link href="/projects" className="flex flex-col items-center gap-1 text-[#245CFF] font-bold bg-[#E9EDFF] px-3 py-1 rounded-lg">
+                    <Folder className="w-5 h-5" />
+                    <span className="text-[10px]">Projects</span>
+                </Link>
+                <Link href="/about" className="flex flex-col items-center gap-1 text-[#64708C]">
+                    <BookOpen className="w-5 h-5" />
+                    <span className="text-[10px]">Knowledge</span>
+                </Link>
+            </div>
+        </div>
+    );
+}
+```
+
+---
+
+## 7. My Resources & Saved Items
+
+- **Route**: `/my-resources`
+- **File**: `frontend/src/app/my-resources/page.tsx`
+- **Category**: General & Public Pages
+- **Description**: Personalized repository of bookmarked, downloaded, and user-uploaded academic materials.
+
+```tsx
+"use client";
+
+import React, { useState } from "react";
+import Navbar from "@/components/layout/Navbar";
+import Sidebar from "@/components/layout/Sidebar";
+import Footer from "@/components/layout/footer";
+import {
+    BookOpen,
+    Search,
+    Download,
+    Bookmark,
+    Trash2,
+    ExternalLink,
+    ChevronDown,
+    ChevronLeft,
+    ChevronRight,
+    FileText,
+    FileCode,
+    Layers,
+    Sparkles,
+} from "lucide-react";
+
+export default function StudentResourcesPage() {
+    const [activeTab, setActiveTab] = useState<"saved" | "downloaded" | "readingList">("saved");
+    const [searchQuery, setSearchQuery] = useState("");
+    const [selectedType, setSelectedType] = useState("All resource types");
+    const [sortBy, setSortBy] = useState("Recently saved");
+    const [currentPage, setCurrentPage] = useState(1);
+
+    // Sample Saved Resources Data
+    const savedResources = [
+        {
+            id: "1",
+            title: "Introduction to Machine Learning — Lecture Notes",
+            category: "Lecture Notes",
+            format: "PDF",
+            size: "2.4 MB",
+            course: "CSC 401",
+            author: "Dr. Amaka Osei",
+            savedDate: "24 Oct 2026",
+            downloadStatus: "Downloaded 24 Oct",
+            iconColor: "text-[#009F75]",
+            iconBg: "bg-[#009F75]/10",
+        },
+        {
+            id: "2",
+            title: "Data Structures & Algorithms Past Questions 2023",
+            category: "Past Questions",
+            format: "PDF",
+            size: "2.4 MB",
+            course: "CS201",
+            author: "Dr. Smith",
+            savedDate: "23 Oct 2026",
+            downloadStatus: "Downloaded 23 Oct",
+            iconColor: "text-[#DF365B]",
+            iconBg: "bg-[#DF365B]/10",
+        },
+        {
+            id: "3",
+            title: "Introduction to Operating Systems — Lecture 7",
+            category: "Lecture Notes",
+            format: "PPT",
+            size: "5.2 MB",
+            course: "CS301",
+            author: "Dr. Smith",
+            savedDate: "22 Oct 2026",
+            downloadStatus: "Not downloaded yet",
+            iconColor: "text-[#009F75]",
+            iconBg: "bg-[#009F75]/10",
+        },
+        {
+            id: "4",
+            title: "Binary Tree Traversal — Python Implementation",
+            category: "Code Samples",
+            format: "ZIP",
+            size: "840 KB",
+            course: "CS201",
+            author: "Kwame Mensah",
+            savedDate: "21 Oct 2026",
+            downloadStatus: "Downloaded 22 Oct",
+            iconColor: "text-[#245CFF]",
+            iconBg: "bg-[#245CFF]/10",
+        },
+        {
+            id: "5",
+            title: "Student Attendance System — Project Report",
+            category: "Projects",
+            format: "PDF",
+            size: "3.8 MB",
+            course: "CS305",
+            author: "Sarah Okafor",
+            savedDate: "20 Oct 2026",
+            downloadStatus: "Not downloaded yet",
+            iconColor: "text-[#7148FF]",
+            iconBg: "bg-[#7148FF]/10",
+        },
+        {
+            id: "6",
+            title: "Computer Networks — Final Exam Questions 2022",
+            category: "Past Questions",
+            format: "PDF",
+            size: "1.1 MB",
+            course: "CS302",
+            author: "Dr. Amaka Osei",
+            savedDate: "18 Oct 2026",
+            downloadStatus: "Downloaded 21 Oct",
+            iconColor: "text-[#DF365B]",
+            iconBg: "bg-[#DF365B]/10",
+        },
+    ];
+
+    // Sample Downloaded Resources Data
+    const downloadedResources = [
+        {
+            id: "d1",
+            title: "Introduction to Machine Learning — Lecture Notes",
+            category: "Lecture Notes",
+            format: "PDF",
+            size: "2.4 MB",
+            downloadDate: "Downloaded 24 Oct",
+        },
+        {
+            id: "d2",
+            title: "Data Structures & Algorithms Past Questions 2023",
+            category: "Past Questions",
+            format: "PDF",
+            size: "2.4 MB",
+            downloadDate: "Downloaded 23 Oct",
+        },
+        {
+            id: "d3",
+            title: "Binary Tree Traversal — Python Implementation",
+            category: "Code Samples",
+            format: "ZIP",
+            size: "840 KB",
+            downloadDate: "Downloaded 22 Oct",
+        },
+        {
+            id: "d4",
+            title: "Computer Networks — Final Exam Questions 2022",
+            category: "Past Questions",
+            format: "PDF",
+            size: "1.1 MB",
+            downloadDate: "Downloaded 21 Oct",
+        },
+    ];
+
+    const handleAction = (message: string) => {
+        alert(message);
+    };
+
+    return (
+        <div className="min-h-screen w-full bg-[#F6F8FF] flex flex-col font-sans text-[#0B123D]">
+            {/* Standard Shared Navbar */}
+            <Navbar userRole="student" userName="John Doe" userRoleTitle="Student" />
+
+            {/* Main Layout Shell */}
+            <div className="flex-1 flex flex-col md:flex-row">
+                {/* Standard Shared Sidebar */}
+                <Sidebar userRole="student" userName="John Doe" userCode="Student" />
+
+                {/* Main Content Area */}
+                <main className="flex-1 p-4 md:p-8 space-y-6 overflow-x-hidden flex flex-col justify-between">
+                    <div className="space-y-6 max-w-7xl mx-auto w-full">
+                        {/* Header Title Section & Quick Action */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <h1 className="text-2xl md:text-3xl font-bold text-[#0B123D]">
+                                    My Resources
+                                </h1>
+                                <p className="text-sm text-[#64708C] mt-1">
+                                    Your saved materials, downloads and reading list — all in one place.
+                                </p>
+                            </div>
+
+                            <button
+                                onClick={() => (window.location.href = "/search")}
+                                className="h-11 px-5 bg-white border border-[#E1E6F3] text-[#245CFF] text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#F6F8FF] transition-colors shadow-sm self-start sm:self-auto"
+                            >
+                                <Search className="w-4 h-4 text-[#245CFF]" />
+                                <span>Browse Resources</span>
+                            </button>
+                        </div>
+
+                        {/* Sub-Navigation Tabs */}
+                        <div className="border-b border-[#E1E6F3] flex items-center gap-2 overflow-x-auto no-scrollbar">
+                            <button
+                                onClick={() => setActiveTab("saved")}
+                                className={`py-3 px-4 text-xs font-semibold border-b-2 transition-all whitespace-nowrap ${activeTab === "saved"
+                                    ? "border-[#245CFF] text-[#245CFF]"
+                                    : "border-transparent text-[#64708C] hover:text-[#0B123D]"
+                                    }`}
+                            >
+                                Saved (12)
+                            </button>
+                            <button
+                                onClick={() => setActiveTab("downloaded")}
+                                className={`py-3 px-4 text-xs font-semibold border-b-2 transition-all whitespace-nowrap ${activeTab === "downloaded"
+                                    ? "border-[#245CFF] text-[#245CFF]"
+                                    : "border-transparent text-[#64708C] hover:text-[#0B123D]"
+                                    }`}
+                            >
+                                Downloaded (45)
+                            </button>
+                            <button
+                                onClick={() => setActiveTab("readingList")}
+                                className={`py-3 px-4 text-xs font-semibold border-b-2 transition-all whitespace-nowrap ${activeTab === "readingList"
+                                    ? "border-[#245CFF] text-[#245CFF]"
+                                    : "border-transparent text-[#64708C] hover:text-[#0B123D]"
+                                    }`}
+                            >
+                                Reading List (0)
+                            </button>
+                        </div>
+
+                        {/* Filter & Search Toolbar */}
+                        <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
+                            {/* Search Bar Input */}
+                            <div className="w-full flex-1 relative">
+                                <Search className="w-4 h-4 text-[#64708C] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                                <input
+                                    type="text"
+                                    placeholder="Search your saved resources..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    className="w-full h-11 pl-10 pr-4 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] placeholder-[#64708C] focus:outline-none focus:border-[#245CFF]"
+                                />
+                            </div>
+
+                            {/* Dropdown Filters */}
+                            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                                <div className="relative flex-1 sm:flex-initial sm:w-48">
+                                    <select
+                                        value={selectedType}
+                                        onChange={(e) => setSelectedType(e.target.value)}
+                                        className="w-full h-11 pl-3.5 pr-8 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] appearance-none focus:outline-none focus:border-[#245CFF] cursor-pointer"
+                                    >
+                                        <option value="All resource types">All resource types</option>
+                                        <option value="Lecture Notes">Lecture Notes</option>
+                                        <option value="Past Questions">Past Questions</option>
+                                        <option value="Code Samples">Code Samples</option>
+                                        <option value="Projects">Projects</option>
+                                    </select>
+                                    <ChevronDown className="w-4 h-4 text-[#64708C] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                </div>
+
+                                <div className="relative flex-1 sm:flex-initial sm:w-44">
+                                    <select
+                                        value={sortBy}
+                                        onChange={(e) => setSortBy(e.target.value)}
+                                        className="w-full h-11 pl-3.5 pr-8 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] appearance-none focus:outline-none focus:border-[#245CFF] cursor-pointer"
+                                    >
+                                        <option value="Recently saved">Recently saved</option>
+                                        <option value="Title A-Z">Title A-Z</option>
+                                        <option value="Course Code">Course Code</option>
+                                    </select>
+                                    <ChevronDown className="w-4 h-4 text-[#64708C] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* TAB CONTENT: SAVED RESOURCES */}
+                        {activeTab === "saved" && (
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-base font-bold text-[#0B123D]">Saved Resources</h3>
+                                    <span className="text-xs text-[#64708C]">
+                                        Showing 6 of 12 saved items
+                                    </span>
+                                </div>
+
+                                {/* Grid of Resource Cards */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                                    {savedResources.map((item) => (
+                                        <div
+                                            key={item.id}
+                                            className="bg-white p-5 rounded-xl border border-[#E1E6F3] shadow-sm flex flex-col justify-between space-y-4 hover:border-[#245CFF]/40 transition-all"
+                                        >
+                                            <div className="space-y-3">
+                                                <div className="flex items-center justify-between">
+                                                    <div
+                                                        className={`w-11 h-11 ${item.iconBg} rounded-xl flex items-center justify-center shrink-0`}
+                                                    >
+                                                        <FileText className={`w-5 h-5 ${item.iconColor}`} />
+                                                    </div>
+                                                    <span className="px-2.5 py-1 bg-[#E9EDFF] text-[#245CFF] text-[11px] font-semibold rounded-full">
+                                                        Saved
+                                                    </span>
+                                                </div>
+
+                                                <div>
+                                                    <h4 className="text-sm font-bold text-[#0B123D] line-clamp-2 leading-snug">
+                                                        {item.title}
+                                                    </h4>
+                                                    <p className="text-xs text-[#64708C] mt-1">
+                                                        {item.category} · {item.format} · {item.size}
+                                                    </p>
+                                                    <p className="text-xs text-[#64708C] mt-0.5 font-medium">
+                                                        {item.course} · {item.author}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-3 pt-2 border-t border-[#E1E6F3]">
+                                                <div className="flex items-center justify-between text-[11px] text-[#64708C]">
+                                                    <span>Saved {item.savedDate}</span>
+                                                    <span>{item.downloadStatus}</span>
+                                                </div>
+
+                                                <div className="flex items-center gap-2 pt-1">
+                                                    <button
+                                                        onClick={() => handleAction(`Downloading ${item.title}...`)}
+                                                        className="flex-1 h-9 bg-gradient-to-r from-[#7148FF] to-[#245CFF] text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 hover:opacity-95 transition-opacity"
+                                                    >
+                                                        <Download className="w-3.5 h-3.5" />
+                                                        <span>Download</span>
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => handleAction(`Added ${item.title} to Reading List`)}
+                                                        className="h-9 px-3 border border-[#E1E6F3] bg-white text-[#245CFF] text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 hover:bg-[#F6F8FF] transition-colors"
+                                                    >
+                                                        <Bookmark className="w-3.5 h-3.5" />
+                                                        <span className="hidden sm:inline">Reading List</span>
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => handleAction(`Removed ${item.title} from Saved`)}
+                                                        className="h-9 px-2 text-[#64708C] hover:text-[#DF365B] text-xs transition-colors"
+                                                        title="Remove resource"
+                                                    >
+                                                        Remove
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Pagination Toolbar */}
+                                <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4">
+                                    <span className="text-xs text-[#64708C]">
+                                        Showing 1–6 of 12 saved resources
+                                    </span>
+
+                                    <div className="flex items-center gap-2">
+                                        <button
+                                            disabled={currentPage === 1}
+                                            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                            className="h-9 px-3 border border-[#E1E6F3] bg-white text-[#245CFF] text-xs font-semibold rounded-lg flex items-center justify-center gap-1 hover:bg-[#F6F8FF] disabled:opacity-50 transition-colors"
+                                        >
+                                            <ChevronLeft className="w-4 h-4" />
+                                            <span>Previous</span>
+                                        </button>
+
+                                        <button
+                                            onClick={() => setCurrentPage(1)}
+                                            className={`w-8 h-8 rounded-lg text-xs font-semibold ${currentPage === 1 ? "bg-[#245CFF] text-white" : "bg-white text-[#64708C] border border-[#E1E6F3]"
+                                                }`}
+                                        >
+                                            1
+                                        </button>
+                                        <button
+                                            onClick={() => setCurrentPage(2)}
+                                            className={`w-8 h-8 rounded-lg text-xs font-semibold ${currentPage === 2 ? "bg-[#245CFF] text-white" : "bg-white text-[#64708C] border border-[#E1E6F3]"
+                                                }`}
+                                        >
+                                            2
+                                        </button>
+
+                                        <button
+                                            onClick={() => setCurrentPage((p) => p + 1)}
+                                            className="h-9 px-3 border border-[#E1E6F3] bg-white text-[#245CFF] text-xs font-semibold rounded-lg flex items-center justify-center gap-1 hover:bg-[#F6F8FF] transition-colors"
+                                        >
+                                            <span>Next</span>
+                                            <ChevronRight className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* TAB CONTENT: DOWNLOADED RESOURCES */}
+                        {activeTab === "downloaded" && (
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-base font-bold text-[#0B123D]">Downloaded Resources</h3>
+                                    <span className="text-xs text-[#64708C]">
+                                        Showing 4 recent files of 45 downloads
+                                    </span>
+                                </div>
+
+                                <div className="bg-white p-6 rounded-xl border border-[#E1E6F3] shadow-sm divide-y divide-[#E1E6F3]">
+                                    {downloadedResources.map((item) => (
+                                        <div
+                                            key={item.id}
+                                            className="py-4 first:pt-0 last:pb-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                                        >
+                                            <div className="flex items-start gap-3">
+                                                <div className="w-9 h-9 bg-[#E9EDFF] rounded-lg flex items-center justify-center shrink-0 mt-0.5">
+                                                    <FileText className="w-4 h-4 text-[#245CFF]" />
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-xs font-bold text-[#0B123D]">{item.title}</h4>
+                                                    <p className="text-[11px] text-[#64708C] mt-1">
+                                                        {item.category} · {item.format} · {item.size} · {item.downloadDate}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
+                                                <button
+                                                    onClick={() => handleAction(`Opening file ${item.title}...`)}
+                                                    className="h-9 px-3 border border-[#E1E6F3] bg-white text-[#245CFF] text-xs font-semibold rounded-lg hover:bg-[#F6F8FF] transition-colors"
+                                                >
+                                                    Open file
+                                                </button>
+                                                <button
+                                                    onClick={() => handleAction(`Removed ${item.title} from downloads history`)}
+                                                    className="h-9 px-3 border border-[#E1E6F3] bg-white text-[#DF365B] text-xs font-semibold rounded-lg hover:bg-[#FFF5F6] transition-colors"
+                                                >
+                                                    Remove file
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                    <div className="pt-4 flex justify-center">
+                                        <button
+                                            onClick={() => handleAction("Loading all downloads...")}
+                                            className="h-10 px-5 border border-[#E1E6F3] bg-white text-[#245CFF] text-xs font-semibold rounded-lg hover:bg-[#F6F8FF] transition-colors"
+                                        >
+                                            View All Downloads
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* TAB CONTENT: READING LIST (EMPTY STATE) */}
+                        {activeTab === "readingList" && (
+                            <div className="p-8 bg-[#E9EDFF] rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+                                <div className="flex items-start gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-white/60 flex items-center justify-center shrink-0">
+                                        <Bookmark className="w-5 h-5 text-[#245CFF]" />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <h3 className="text-base font-bold text-[#0B123D]">
+                                            Your Reading List is empty
+                                        </h3>
+                                        <p className="text-xs text-[#64708C] max-w-xl">
+                                            Plan what to study next. Choose “Reading List” on a resource card to add it
+                                            here without downloading it.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <button
+                                    onClick={() => (window.location.href = "/search")}
+                                    className="h-10 px-5 bg-white border border-[#E1E6F3] text-[#245CFF] text-xs font-semibold rounded-lg hover:bg-[#F6F8FF] transition-colors shrink-0"
+                                >
+                                    Explore Resources
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Standard Shared Footer */}
+                    <Footer />
+                </main>
+            </div>
+        </div>
+    );
+}
+```
+
+---
+
+## 8. Notifications & Announcements
+
+- **Route**: `/notifications`
+- **File**: `frontend/src/app/notifications/page.tsx`
+- **Category**: General & Public Pages
+- **Description**: Center for real-time alerts, department announcements, submission approvals, and platform notifications.
+
+```tsx
+"use client";
+
+import React, { useState } from "react";
+import Navbar from "@/components/layout/Navbar";
+import Sidebar from "@/components/layout/Sidebar";
+import Footer from "@/components/layout/footer";
+import {
+    Bell,
+    CheckCheck,
+    ChevronDown,
+    FileText,
+    Clock,
+    ArrowRight,
+    ShieldAlert,
+    SlidersHorizontal,
+    Mail,
+    HelpCircle,
+} from "lucide-react";
+
+interface NotificationItem {
+    id: string;
+    title: string;
+    description: string;
+    category: "Reviews" | "Resources" | "System";
+    timestamp: string;
+    isRead: boolean;
+    actionText?: string;
+    actionHref?: string;
+}
+
+export default function StudentNotificationsPage() {
+    const [activeTab, setActiveTab] = useState<"All" | "Resources" | "Reviews" | "System">("All");
+    const [statusFilter, setStatusFilter] = useState<"all" | "unread" | "read">("all");
+
+    // Notification Preferences State
+    const [preferences, setPreferences] = useState({
+        resourceUpdates: true,
+        reviewActivity: true,
+        weeklyDigest: false,
+        emailFrequency: "As events happen",
+        channelInApp: true,
+        channelEmail: true,
+    });
+
+    // Mock Notifications Data based on your layout specs
+    const [notifications, setNotifications] = useState<NotificationItem[]>([
+        {
+            id: "n1",
+            title: "A resubmission is ready for review",
+            description:
+                "John Doe updated Introduction to Algorithms — Lecture Notes 2024. Version 2 is waiting in your review queue.",
+            category: "Reviews",
+            timestamp: "Today, 10:42 AM · 12 min ago",
+            isRead: false,
+            actionText: "Review submission",
+            actionHref: "/staff/review-submissions",
+        },
+        {
+            id: "n2",
+            title: "Your resource has been approved",
+            description:
+                "Sorting Algorithms — C++ Implementations is now published and available to registered students.",
+            category: "Reviews",
+            timestamp: "Today, 9:30 AM · 1 hr ago",
+            isRead: false,
+            actionText: "View resource",
+            actionHref: "/student/resources",
+        },
+        {
+            id: "n3",
+            title: "New notes for CS201",
+            description:
+                "Dr. Amaka Osei shared Graph Algorithms — Worked Examples in Lecture Notes.",
+            category: "Resources",
+            timestamp: "Today, 8:15 AM · 2 hrs ago",
+            isRead: false,
+            actionText: "Open resource",
+            actionHref: "/student/resources",
+        },
+        {
+            id: "n4",
+            title: "Scheduled maintenance on 6 November",
+            description:
+                "CSE Hub will be unavailable from 10:00–10:30 PM WAT. Download any materials you need beforehand.",
+            category: "System",
+            timestamp: "Yesterday, 4:00 PM",
+            isRead: false,
+            actionText: "View service notice",
+            actionHref: "#",
+        },
+        {
+            id: "n5",
+            title: "Changes requested for your upload",
+            description:
+                "Please add source citations to Database Normalisation — Practice Set before it can be published.",
+            category: "Reviews",
+            timestamp: "Yesterday, 2:10 PM",
+            isRead: true,
+            actionText: "Edit resource",
+            actionHref: "/staff/upload",
+        },
+        {
+            id: "n6",
+            title: "A resource you saved was updated",
+            description:
+                "Introduction to Machine Learning now includes additional worked examples on gradient descent.",
+            category: "Resources",
+            timestamp: "Yesterday, 10:20 AM",
+            isRead: true,
+            actionText: "View updated resource",
+            actionHref: "/student/resources",
+        },
+        {
+            id: "n7",
+            title: "Weekly resource summary",
+            description:
+                "12 new resources were added to your courses this week, including 5 lecture notes and 3 code samples.",
+            category: "Resources",
+            timestamp: "22 Oct 2026, 8:00 AM",
+            isRead: true,
+            actionText: "Browse resources",
+            actionHref: "/student/search",
+        },
+        {
+            id: "n8",
+            title: "Welcome to your staff workspace",
+            description:
+                "Upload course materials, manage your resources and review submissions from your department.",
+            category: "System",
+            timestamp: "20 Oct 2026, 9:00 AM",
+            isRead: true,
+            actionText: "Go to Dashboard",
+            actionHref: "/student/dashboard",
+        },
+    ]);
+
+    const markAllAsRead = () => {
+        setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    };
+
+    const toggleReadStatus = (id: string) => {
+        setNotifications((prev) =>
+            prev.map((n) => (n.id === id ? { ...n, isRead: !n.isRead } : n))
+        );
+    };
+
+    const togglePreference = (key: keyof typeof preferences) => {
+        setPreferences((prev) => ({
+            ...prev,
+            [key]: !prev[key],
+        }));
+    };
+
+    // Filter items based on Category Tab & Read Status
+    const filteredNotifications = notifications.filter((item) => {
+        const matchesTab = activeTab === "All" || item.category === activeTab;
+        const matchesStatus =
+            statusFilter === "all"
+                ? true
+                : statusFilter === "unread"
+                    ? !item.isRead
+                    : item.isRead;
+        return matchesTab && matchesStatus;
+    });
+
+    const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+    return (
+        <div className="min-h-screen w-full bg-[#F6F8FF] flex flex-col font-sans text-[#0B123D]">
+            {/* Standard Shared Navbar */}
+            <Navbar userRole="student" userName="John Doe" userRoleTitle="Student" />
+
+            {/* Main Layout Shell with Sticky Sidebar */}
+            <div className="flex-1 flex flex-col md:flex-row">
+                {/* Standard Shared Sidebar */}
+                <Sidebar userRole="student" userName="John Doe" userCode="CSC/2021/042" />
+
+                {/* Main Workspace */}
+                <main className="flex-1 p-4 md:p-8 space-y-6 overflow-x-hidden flex flex-col justify-between">
+                    <div className="space-y-6 max-w-5xl mx-auto w-full">
+                        {/* Header Title Section & Action Button */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <h1 className="text-2xl md:text-3xl font-bold text-[#0B123D]">
+                                    Notifications
+                                </h1>
+                                <p className="text-sm text-[#64708C] mt-1">
+                                    Keep up with resources, review decisions and important CSE Hub updates.
+                                </p>
+                            </div>
+
+                            <button
+                                onClick={markAllAsRead}
+                                className="h-11 px-4 bg-white border border-[#E1E6F3] text-[#245CFF] text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#F6F8FF] transition-colors shadow-sm self-start sm:self-auto"
+                            >
+                                <CheckCheck className="w-4 h-4 text-[#245CFF]" />
+                                <span>Mark All as Read</span>
+                            </button>
+                        </div>
+
+                        {/* Sub-header Context Pill */}
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                            <span className="px-3 py-1 bg-[#E9EDFF] text-[#245CFF] text-xs font-semibold rounded-full w-fit">
+                                {unreadCount} unread
+                            </span>
+                            <span className="text-xs text-[#64708C]">
+                                You’re viewing notifications for John Doe · Student
+                            </span>
+                        </div>
+
+                        {/* Sub-Navigation Tabs */}
+                        <div className="border-b border-[#E1E6F3] flex items-center gap-2 overflow-x-auto no-scrollbar">
+                            {(["All", "Resources", "Reviews", "System"] as const).map((tab) => {
+                                const count =
+                                    tab === "All"
+                                        ? notifications.length
+                                        : notifications.filter((n) => n.category === tab).length;
+
+                                return (
+                                    <button
+                                        key={tab}
+                                        onClick={() => setActiveTab(tab)}
+                                        className={`py-3 px-4 text-xs font-semibold border-b-2 transition-all whitespace-nowrap ${activeTab === tab
+                                            ? "border-[#245CFF] text-[#245CFF]"
+                                            : "border-transparent text-[#64708C] hover:text-[#0B123D]"
+                                            }`}
+                                    >
+                                        {tab} ({count})
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* Filter controls toolbar */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+                            <h2 className="text-lg font-bold text-[#0B123D]">
+                                Recent notifications
+                            </h2>
+
+                            <div className="flex items-center gap-3">
+                                <span className="text-xs text-[#0B123D] font-semibold whitespace-nowrap">
+                                    Filter by status:
+                                </span>
+                                <div className="relative w-44">
+                                    <select
+                                        value={statusFilter}
+                                        onChange={(e) =>
+                                            setStatusFilter(e.target.value as "all" | "unread" | "read")
+                                        }
+                                        className="w-full h-10 pl-3.5 pr-8 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] appearance-none focus:outline-none focus:border-[#245CFF] cursor-pointer"
+                                    >
+                                        <option value="all">All notifications</option>
+                                        <option value="unread">Unread</option>
+                                        <option value="read">Read</option>
+                                    </select>
+                                    <ChevronDown className="w-4 h-4 text-[#64708C] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Notification Cards List */}
+                        <div className="bg-white rounded-xl border border-[#E1E6F3] overflow-hidden shadow-sm divide-y divide-[#E1E6F3]">
+                            {filteredNotifications.length === 0 ? (
+                                <div className="p-8 text-center text-xs text-[#64708C]">
+                                    No notifications match your selected filter criteria.
+                                </div>
+                            ) : (
+                                filteredNotifications.map((item) => (
+                                    <div
+                                        key={item.id}
+                                        className={`p-5 transition-colors flex flex-col gap-3 ${!item.isRead ? "bg-[#F0F3FF]" : "bg-white hover:bg-[#F9FAFF]"
+                                            }`}
+                                    >
+                                        {/* Header line of notification item */}
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="flex items-start gap-3">
+                                                <div className="w-10 h-10 rounded-xl bg-[#E9EDFF] flex items-center justify-center shrink-0 mt-0.5">
+                                                    <Bell className="w-5 h-5 text-[#245CFF]" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-sm font-semibold text-[#0B123D]">
+                                                        {item.title}
+                                                    </h3>
+                                                    <p className="text-xs text-[#64708C] mt-1 leading-relaxed">
+                                                        {item.description}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {!item.isRead && (
+                                                <span className="w-2.5 h-2.5 bg-[#245CFF] rounded-full shrink-0 mt-1.5" />
+                                            )}
+                                        </div>
+
+                                        {/* Metadata & Tag line */}
+                                        <div className="flex items-center justify-between gap-4 pt-1">
+                                            <div className="flex items-center gap-3">
+                                                <span className="px-2.5 py-0.5 bg-[#E9EDFF] text-[#245CFF] text-[11px] font-semibold rounded-full">
+                                                    {item.category}
+                                                </span>
+                                                <span className="text-[11px] text-[#64708C] flex items-center gap-1">
+                                                    <Clock className="w-3 h-3 text-[#64708C]" />
+                                                    {item.timestamp}
+                                                </span>
+                                            </div>
+
+                                            {/* Action buttons */}
+                                            <div className="flex items-center gap-2">
+                                                {item.actionText && item.actionHref && (
+                                                    <a
+                                                        href={item.actionHref}
+                                                        className="h-8 px-3 border border-[#E1E6F3] bg-white text-[#245CFF] text-xs font-semibold rounded-lg flex items-center gap-1 hover:bg-[#F6F8FF] transition-colors"
+                                                    >
+                                                        <span>{item.actionText}</span>
+                                                        <ArrowRight className="w-3.5 h-3.5" />
+                                                    </a>
+                                                )}
+
+                                                <button
+                                                    onClick={() => toggleReadStatus(item.id)}
+                                                    className="h-8 px-2 text-xs font-medium text-[#64708C] hover:text-[#0B123D] transition-colors"
+                                                >
+                                                    {item.isRead ? "Mark as unread" : "Mark as read"}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))
+                            )}
+                        </div>
+
+                        <p className="text-xs text-[#64708C]">
+                            You’re all caught up with the last 7 days. Older notifications are kept for 90 days.
+                        </p>
+
+                        <hr className="border-[#E1E6F3]" />
+
+                        {/* Notification Preferences Section */}
+                        <div className="space-y-4">
+                            <h2 className="text-xl font-bold text-[#0B123D]">
+                                Notification preferences
+                            </h2>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                                {/* Preferences Box */}
+                                <div className="bg-white p-5 rounded-xl border border-[#E1E6F3] shadow-sm space-y-4">
+                                    <div>
+                                        <h3 className="text-base font-bold text-[#0B123D]">
+                                            Preferences
+                                        </h3>
+                                        <p className="text-xs text-[#64708C] mt-0.5">
+                                            Choose which optional updates reach your inbox.
+                                        </p>
+                                    </div>
+
+                                    <div className="space-y-3 divide-y divide-[#E1E6F3]">
+                                        {/* Toggle Item 1 */}
+                                        <div className="pt-3 first:pt-0 flex items-center justify-between gap-4">
+                                            <div>
+                                                <p className="text-xs font-semibold text-[#0B123D]">
+                                                    Resource updates
+                                                </p>
+                                                <p className="text-[11px] text-[#64708C]">
+                                                    New and updated course materials
+                                                </p>
+                                            </div>
+                                            <button
+                                                onClick={() => togglePreference("resourceUpdates")}
+                                                className={`w-11 h-6 rounded-full p-0.5 transition-colors ${preferences.resourceUpdates ? "bg-[#245CFF]" : "bg-[#B0BAD3]"
+                                                    }`}
+                                            >
+                                                <div
+                                                    className={`w-5 h-5 bg-white rounded-full transition-transform ${preferences.resourceUpdates ? "translate-x-5" : "translate-x-0"
+                                                        }`}
+                                                />
+                                            </button>
+                                        </div>
+
+                                        {/* Toggle Item 2 */}
+                                        <div className="pt-3 flex items-center justify-between gap-4">
+                                            <div>
+                                                <p className="text-xs font-semibold text-[#0B123D]">
+                                                    Review activity
+                                                </p>
+                                                <p className="text-[11px] text-[#64708C]">
+                                                    Submissions and review decisions
+                                                </p>
+                                            </div>
+                                            <button
+                                                onClick={() => togglePreference("reviewActivity")}
+                                                className={`w-11 h-6 rounded-full p-0.5 transition-colors ${preferences.reviewActivity ? "bg-[#245CFF]" : "bg-[#B0BAD3]"
+                                                    }`}
+                                            >
+                                                <div
+                                                    className={`w-5 h-5 bg-white rounded-full transition-transform ${preferences.reviewActivity ? "translate-x-5" : "translate-x-0"
+                                                        }`}
+                                                />
+                                            </button>
+                                        </div>
+
+                                        {/* Toggle Item 3 */}
+                                        <div className="pt-3 flex items-center justify-between gap-4">
+                                            <div>
+                                                <p className="text-xs font-semibold text-[#0B123D]">
+                                                    Weekly digest
+                                                </p>
+                                                <p className="text-[11px] text-[#64708C]">
+                                                    A summary every Monday
+                                                </p>
+                                            </div>
+                                            <button
+                                                onClick={() => togglePreference("weeklyDigest")}
+                                                className={`w-11 h-6 rounded-full p-0.5 transition-colors ${preferences.weeklyDigest ? "bg-[#245CFF]" : "bg-[#B0BAD3]"
+                                                    }`}
+                                            >
+                                                <div
+                                                    className={`w-5 h-5 bg-white rounded-full transition-transform ${preferences.weeklyDigest ? "translate-x-5" : "translate-x-0"
+                                                        }`}
+                                                />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Dropdown Selection */}
+                                    <div className="space-y-1.5 pt-2">
+                                        <label className="text-xs font-semibold text-[#0B123D]">
+                                            Email frequency
+                                        </label>
+                                        <div className="relative w-full">
+                                            <select
+                                                value={preferences.emailFrequency}
+                                                onChange={(e) =>
+                                                    setPreferences({ ...preferences, emailFrequency: e.target.value })
+                                                }
+                                                className="w-full h-11 pl-3.5 pr-8 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] appearance-none focus:outline-none focus:border-[#245CFF] cursor-pointer"
+                                            >
+                                                <option value="As events happen">As events happen</option>
+                                                <option value="Daily summary">Daily summary</option>
+                                                <option value="Weekly summary">Weekly summary</option>
+                                            </select>
+                                            <ChevronDown className="w-4 h-4 text-[#64708C] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        onClick={() => alert("Notification preferences saved!")}
+                                        className="w-full h-11 bg-gradient-to-r from-[#7148FF] to-[#245CFF] text-white text-xs font-semibold rounded-lg hover:opacity-95 transition-opacity"
+                                    >
+                                        Save Preferences
+                                    </button>
+                                </div>
+
+                                {/* Delivery Channels & Help */}
+                                <div className="space-y-5 flex flex-col justify-between">
+                                    <div className="bg-white p-5 rounded-xl border border-[#E1E6F3] shadow-sm space-y-4">
+                                        <h3 className="text-base font-bold text-[#0B123D]">
+                                            Delivery channels
+                                        </h3>
+
+                                        <div className="space-y-3 divide-y divide-[#E1E6F3]">
+                                            <div className="pt-3 first:pt-0 flex items-center justify-between gap-4">
+                                                <div>
+                                                    <p className="text-xs font-semibold text-[#0B123D]">In-app</p>
+                                                    <p className="text-[11px] text-[#64708C]">
+                                                        Notifications in CSE Hub
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    onClick={() => togglePreference("channelInApp")}
+                                                    className={`w-11 h-6 rounded-full p-0.5 transition-colors ${preferences.channelInApp ? "bg-[#245CFF]" : "bg-[#B0BAD3]"
+                                                        }`}
+                                                >
+                                                    <div
+                                                        className={`w-5 h-5 bg-white rounded-full transition-transform ${preferences.channelInApp ? "translate-x-5" : "translate-x-0"
+                                                            }`}
+                                                    />
+                                                </button>
+                                            </div>
+
+                                            <div className="pt-3 flex items-center justify-between gap-4">
+                                                <div>
+                                                    <p className="text-xs font-semibold text-[#0B123D]">Email</p>
+                                                    <p className="text-[11px] text-[#64708C]">
+                                                        john.doe@student.cse.edu.ng
+                                                    </p>
+                                                </div>
+                                                <button
+                                                    onClick={() => togglePreference("channelEmail")}
+                                                    className={`w-11 h-6 rounded-full p-0.5 transition-colors ${preferences.channelEmail ? "bg-[#245CFF]" : "bg-[#B0BAD3]"
+                                                        }`}
+                                                >
+                                                    <div
+                                                        className={`w-5 h-5 bg-white rounded-full transition-transform ${preferences.channelEmail ? "translate-x-5" : "translate-x-0"
+                                                            }`}
+                                                    />
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <p className="text-[11px] text-[#64708C]">
+                                            Security and critical service notices are always sent, regardless of your optional preferences.
+                                        </p>
+                                    </div>
+
+                                    {/* Support CTA Box */}
+                                    <div className="bg-white p-5 rounded-xl border border-[#E1E6F3] shadow-sm space-y-3">
+                                        <h3 className="text-base font-bold text-[#0B123D]">Need help?</h3>
+                                        <p className="text-xs text-[#64708C]">
+                                            Not receiving updates? Check your email address and spam folder.
+                                        </p>
+                                        <a
+                                            href="/student/support"
+                                            className="h-10 px-4 border border-[#E1E6F3] bg-white text-[#245CFF] text-xs font-semibold rounded-lg flex items-center justify-center gap-1 hover:bg-[#F6F8FF] transition-colors inline-flex"
+                                        >
+                                            <span>Visit Help & Support</span>
+                                            <ArrowRight className="w-3.5 h-3.5" />
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Shared Standard Footer */}
+                    <Footer />
+                </main>
+            </div>
+        </div>
+    );
+}
+```
+
+---
+
+## 9. Support & Help Desk
+
+- **Route**: `/support`
+- **File**: `frontend/src/app/support/page.tsx`
+- **Category**: General & Public Pages
+- **Description**: Help documentation, frequently asked questions, inquiry ticket submission, and contact details for technical support.
+
+```tsx
+"use client";
+
+import React, { useState } from "react";
+import Navbar from "@/components/layout/Navbar";
+import Sidebar from "@/components/layout/Sidebar";
+import Footer from "@/components/layout/footer";
+import {
+    Search,
+    BookOpen,
+    FolderSearch,
+    DownloadCloud,
+    Share2,
+    ChevronDown,
+    ChevronUp,
+    AlertCircle,
+    FileUp,
+    X,
+    CheckSquare,
+    Square,
+    ShieldAlert,
+    ArrowRight,
+    Clock,
+    Mail,
+    HelpCircle,
+} from "lucide-react";
+
+interface FAQItem {
+    id: string;
+    question: string;
+    answerText1: string;
+    answerText2?: string;
+    linkText?: string;
+    linkHref?: string;
+}
+
+export default function HelpAndSupportPage() {
+    const [searchQuery, setSearchQuery] = useState("");
+    const [openFaqId, setOpenFaqId] = useState<string | null>("faq-1");
+
+    // Contact Form State
+    const [formState, setFormState] = useState({
+        subject: "Unable to download CS201 lecture notes",
+        category: "Downloads & Access",
+        message:
+            "I receive an Access denied message when downloading Introduction to Algorithms — Lecture Notes 2024 (CS201). I am enrolled in CS201 and signed in with my university email. I tried refreshing and using another browser, but the issue remains.",
+        includeDeviceInfo: true,
+    });
+
+    // Attachment Error State (reflecting the Figma design specs)
+    const [attachment, setAttachment] = useState<{
+        name: string;
+        size: string;
+        error: string;
+    } | null>({
+        name: "download-error.png",
+        size: "6.2 MB",
+        error: "File too large",
+    });
+
+    const faqs: FAQItem[] = [
+        {
+            id: "faq-1",
+            question: "Why can’t I download a resource?",
+            answerText1:
+                "Make sure you are signed in with your verified university email. Some resources are restricted to enrolled students or staff. If the download still fails, try refreshing the page or using another browser.",
+            answerText2:
+                "If you see “Access denied” for a course you are enrolled in, contact support with the resource title, course code and a screenshot. Do not include your password.",
+            linkText: "Read the download troubleshooting guide →",
+            linkHref: "#",
+        },
+        {
+            id: "faq-2",
+            question: "How do I save a resource for later?",
+            answerText1:
+                "You can save any resource to your personal list by clicking the bookmark or 'Save Resource' icon on any resource page. Access your saved items anytime under 'My Resources' in the sidebar navigation.",
+        },
+        {
+            id: "faq-3",
+            question: "Can I upload my own lecture notes?",
+            answerText1:
+                "Students can upload course materials for approval if peer contributions are enabled by your department. Staff members can upload files directly through the Staff Workspace.",
+        },
+        {
+            id: "faq-4",
+            question: "How do I report an incorrect or inaccessible file?",
+            answerText1:
+                "If a file is broken, corrupted, or contains inaccurate content, use the 'Report File' button located on the resource detail view, or submit a request using the contact form below with the category set to 'Downloads & Access'.",
+        },
+    ];
+
+    const categories = [
+        {
+            title: "Getting Started",
+            description: "Account setup and navigation",
+            articleCount: "8 articles →",
+            icon: BookOpen,
+            href: "#",
+        },
+        {
+            title: "Finding Resources",
+            description: "Search, filters and courses",
+            articleCount: "12 articles →",
+            icon: FolderSearch,
+            href: "/student/search",
+        },
+        {
+            title: "Downloads & Access",
+            description: "Files, permissions and saving",
+            articleCount: "9 articles →",
+            icon: DownloadCloud,
+            href: "#",
+        },
+        {
+            title: "Sharing & Reviews",
+            description: "Uploads and approval guidance",
+            articleCount: "7 articles →",
+            icon: Share2,
+            href: "#",
+        },
+    ];
+
+    const handleFaqToggle = (id: string) => {
+        setOpenFaqId(openFaqId === id ? null : id);
+    };
+
+    const isFormDisabled = !!(attachment && attachment.error);
+
+    return (
+        <div className="min-h-screen w-full bg-[#F6F8FF] flex flex-col font-sans text-[#0B123D]">
+            {/* Shared Navbar */}
+            <Navbar userRole="student" userName="John Doe" userRoleTitle="Student" />
+
+            {/* Main Container */}
+            <div className="flex-1 flex flex-col md:flex-row">
+                {/* Shared Sidebar */}
+                <Sidebar userRole="student" userName="John Doe" userCode="CSC/2021/042" />
+
+                {/* Content Area */}
+                <main className="flex-1 p-4 md:p-8 space-y-6 overflow-x-hidden flex flex-col justify-between">
+                    <div className="space-y-6 max-w-5xl mx-auto w-full">
+                        {/* Header Title Section */}
+                        <div>
+                            <h1 className="text-2xl md:text-3xl font-bold text-[#0B123D]">
+                                Help &amp; Support
+                            </h1>
+                            <p className="text-sm text-[#64708C] mt-1">
+                                Find answers, solve common issues or contact the CSE Hub team.
+                            </p>
+                        </div>
+
+                        {/* Gradient Search Banner */}
+                        <div className="p-6 md:p-8 rounded-2xl bg-gradient-to-r from-[#DDF7FE] via-[#E7DCFF] to-[#D6F6FF] space-y-4 border border-[#E1E6F3]/50">
+                            <h2 className="text-xl md:text-2xl font-bold text-[#0B123D]">
+                                How can we help you?
+                            </h2>
+                            <div className="h-11 px-4 bg-white rounded-lg border border-[#E1E6F3] flex items-center gap-3 shadow-sm max-w-2xl">
+                                <Search className="w-4 h-4 text-[#64708C]" />
+                                <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    placeholder="Search help articles, guides or questions..."
+                                    className="w-full bg-transparent text-sm text-[#0B123D] placeholder-[#64708C] focus:outline-none"
+                                />
+                            </div>
+                            <p className="text-xs text-[#64708C]">
+                                Popular: download issues · account access · saving resources
+                            </p>
+                        </div>
+
+                        {/* Help Topics Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {categories.map((cat, idx) => (
+                                <a
+                                    key={idx}
+                                    href={cat.href}
+                                    className="p-5 bg-white rounded-xl border border-[#E1E6F3] hover:border-[#245CFF] transition-all flex flex-col justify-between gap-4 shadow-sm group"
+                                >
+                                    <div className="space-y-2">
+                                        <div className="w-10 h-10 rounded-lg bg-[#E9EDFF] flex items-center justify-center">
+                                            <cat.icon className="w-5 h-5 text-[#245CFF]" />
+                                        </div>
+                                        <h3 className="text-sm font-bold text-[#0B123D] group-hover:text-[#245CFF] transition-colors">
+                                            {cat.title}
+                                        </h3>
+                                        <p className="text-xs text-[#64708C]">{cat.description}</p>
+                                    </div>
+                                    <span className="text-xs font-semibold text-[#245CFF]">
+                                        {cat.articleCount}
+                                    </span>
+                                </a>
+                            ))}
+                        </div>
+
+                        {/* Frequently Asked Questions */}
+                        <div className="bg-white p-6 rounded-xl border border-[#E1E6F3] shadow-sm space-y-4">
+                            <h2 className="text-lg font-bold text-[#0B123D]">
+                                Frequently Asked Questions
+                            </h2>
+
+                            <div className="divide-y divide-[#E1E6F3]">
+                                {faqs.map((faq) => {
+                                    const isOpen = openFaqId === faq.id;
+                                    return (
+                                        <div key={faq.id} className="py-4 first:pt-0 last:pb-0">
+                                            <button
+                                                onClick={() => handleFaqToggle(faq.id)}
+                                                className="w-full flex items-center justify-between text-left gap-4"
+                                            >
+                                                <span
+                                                    className={`text-sm font-semibold transition-colors ${isOpen ? "text-[#245CFF]" : "text-[#0B123D]"
+                                                        }`}
+                                                >
+                                                    {faq.question}
+                                                </span>
+                                                {isOpen ? (
+                                                    <ChevronUp className="w-4 h-4 text-[#64708C] shrink-0" />
+                                                ) : (
+                                                    <ChevronDown className="w-4 h-4 text-[#64708C] shrink-0" />
+                                                )}
+                                            </button>
+
+                                            {isOpen && (
+                                                <div className="mt-3 space-y-2.5 text-xs text-[#64708C] leading-relaxed">
+                                                    <p>{faq.answerText1}</p>
+                                                    {faq.answerText2 && <p>{faq.answerText2}</p>}
+                                                    {faq.linkText && (
+                                                        <a
+                                                            href={faq.linkHref || "#"}
+                                                            className="text-[#245CFF] font-semibold hover:underline inline-block pt-1"
+                                                        >
+                                                            {faq.linkText}
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Contact Support & Info Split Layout */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            {/* Left Column: Form */}
+                            <div className="lg:col-span-2 bg-white p-6 rounded-xl border border-[#E1E6F3] shadow-sm space-y-5">
+                                <div>
+                                    <h2 className="text-lg font-bold text-[#0B123D]">
+                                        Contact Support
+                                    </h2>
+                                    <p className="text-xs text-[#64708C] mt-0.5">
+                                        Tell us what happened so we can help. Required fields are marked *.
+                                    </p>
+                                </div>
+
+                                {/* Sender Context Pill */}
+                                <div className="p-3 bg-[#F6F8FF] rounded-lg border border-[#E1E6F3] flex items-center gap-3">
+                                    <span className="px-2.5 py-1 bg-[#E9EDFF] text-[#245CFF] text-xs font-semibold rounded-full">
+                                        John Doe
+                                    </span>
+                                    <span className="text-xs text-[#64708C]">
+                                        john.doe@student.cse.edu.ng
+                                    </span>
+                                </div>
+
+                                {/* Form Fields */}
+                                <div className="space-y-4">
+                                    {/* Subject Input */}
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-semibold text-[#0B123D]">
+                                            Subject *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={formState.subject}
+                                            onChange={(e) =>
+                                                setFormState({ ...formState, subject: e.target.value })
+                                            }
+                                            className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
+                                        />
+                                    </div>
+
+                                    {/* Category Selection */}
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-semibold text-[#0B123D]">
+                                            Category *
+                                        </label>
+                                        <div className="relative w-full">
+                                            <select
+                                                value={formState.category}
+                                                onChange={(e) =>
+                                                    setFormState({ ...formState, category: e.target.value })
+                                                }
+                                                className="w-full h-11 pl-3.5 pr-8 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] appearance-none focus:outline-none focus:border-[#245CFF] cursor-pointer"
+                                            >
+                                                <option value="Downloads & Access">
+                                                    Downloads &amp; Access
+                                                </option>
+                                                <option value="Account Issues">Account Issues</option>
+                                                <option value="Resource Feedback">Resource Feedback</option>
+                                                <option value="Accessibility">Accessibility</option>
+                                            </select>
+                                            <ChevronDown className="w-4 h-4 text-[#64708C] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                        </div>
+                                    </div>
+
+                                    {/* Message Input */}
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-semibold text-[#0B123D]">
+                                            Message *
+                                        </label>
+                                        <textarea
+                                            rows={4}
+                                            value={formState.message}
+                                            onChange={(e) =>
+                                                setFormState({ ...formState, message: e.target.value })
+                                            }
+                                            className="w-full p-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF] resize-none"
+                                        />
+                                        <p className="text-[11px] text-[#64708C]">
+                                            Include the resource title, course code and steps you have already tried.
+                                        </p>
+                                    </div>
+
+                                    {/* Attachment Section with Error State */}
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-semibold text-[#0B123D]">
+                                            Attachment (optional)
+                                        </label>
+
+                                        {attachment ? (
+                                            <div className="p-3.5 bg-[#FFF0F4] border border-[#DF365B] rounded-lg space-y-2">
+                                                <div className="flex items-center justify-between gap-3">
+                                                    <div className="flex items-center gap-2.5 min-w-0">
+                                                        <AlertCircle className="w-5 h-5 text-[#DF365B] shrink-0" />
+                                                        <div className="min-w-0">
+                                                            <p className="text-xs font-semibold text-[#0B123D] truncate">
+                                                                {attachment.name}
+                                                            </p>
+                                                            <p className="text-[11px] text-[#DF365B] font-medium">
+                                                                {attachment.size} · {attachment.error}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => setAttachment(null)}
+                                                        className="text-xs font-semibold text-[#DF365B] hover:underline shrink-0"
+                                                    >
+                                                        Remove
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : null}
+
+                                        {attachment?.error && (
+                                            <p className="text-[11px] text-[#DF365B]">
+                                                Attachment must be 5 MB or smaller. Replace or remove this file before sending.
+                                            </p>
+                                        )}
+
+                                        <div className="flex items-center gap-3 pt-1">
+                                            <label className="h-9 px-3.5 bg-white border border-[#E1E6F3] text-[#245CFF] text-xs font-semibold rounded-lg flex items-center gap-2 cursor-pointer hover:bg-[#F6F8FF] transition-colors">
+                                                <FileUp className="w-4 h-4 text-[#245CFF]" />
+                                                <span>Replace Attachment</span>
+                                                <input
+                                                    type="file"
+                                                    className="hidden"
+                                                    onChange={() =>
+                                                        setAttachment({
+                                                            name: "error-screen.png",
+                                                            size: "2.1 MB",
+                                                            error: "",
+                                                        })
+                                                    }
+                                                />
+                                            </label>
+                                            <span className="text-[11px] text-[#64708C]">
+                                                PNG, JPG or PDF · Max 5 MB
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Checkbox */}
+                                    <div className="flex items-center gap-2.5 pt-1">
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setFormState({
+                                                    ...formState,
+                                                    includeDeviceInfo: !formState.includeDeviceInfo,
+                                                })
+                                            }
+                                            className="text-[#245CFF]"
+                                        >
+                                            {formState.includeDeviceInfo ? (
+                                                <CheckSquare className="w-4 h-4 text-[#245CFF]" />
+                                            ) : (
+                                                <Square className="w-4 h-4 text-[#64708C]" />
+                                            )}
+                                        </button>
+                                        <span className="text-xs text-[#0B123D]">
+                                            Include my browser and device information to help troubleshoot
+                                        </span>
+                                    </div>
+
+                                    {/* Submit Button & Validation Bar */}
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-[#E1E6F3]">
+                                        <span className="text-xs text-[#64708C]">
+                                            {isFormDisabled
+                                                ? "Resolve the attachment issue to continue."
+                                                : "Ready to submit."}
+                                        </span>
+
+                                        <button
+                                            disabled={isFormDisabled}
+                                            onClick={() => alert("Support ticket submitted!")}
+                                            className={`h-11 px-6 rounded-lg text-xs font-semibold transition-all ${isFormDisabled
+                                                ? "bg-[#E1E6F3] text-[#64708C] cursor-not-allowed"
+                                                : "bg-[#245CFF] text-white hover:bg-blue-700 shadow-sm"
+                                                }`}
+                                        >
+                                            Send Request
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Right Sidebar: Details & Instructions */}
+                            <div className="space-y-5">
+                                {/* Hours Box */}
+                                <div className="bg-white p-5 rounded-xl border border-[#E1E6F3] shadow-sm space-y-3">
+                                    <h3 className="text-base font-bold text-[#0B123D]">
+                                        Support hours
+                                    </h3>
+                                    <span className="px-2.5 py-1 bg-[#E6FAF4] text-[#009F75] text-xs font-semibold rounded-full w-fit inline-block">
+                                        Monday–Friday
+                                    </span>
+                                    <p className="text-xs font-semibold text-[#0B123D]">
+                                        9:00 AM–5:00 PM WAT
+                                    </p>
+                                    <p className="text-xs text-[#64708C] leading-relaxed">
+                                        We usually reply within 1–2 working days. You’ll receive a reference number and updates by email.
+                                    </p>
+                                    <hr className="border-[#E1E6F3]" />
+                                    <p className="text-xs font-semibold text-[#0B123D]">
+                                        Email the platform team
+                                    </p>
+                                    <a
+                                        href="mailto:support@cse.edu.ng"
+                                        className="text-xs text-[#245CFF] hover:underline block"
+                                    >
+                                        support@cse.edu.ng
+                                    </a>
+                                </div>
+
+                                {/* Before You Send Checklist */}
+                                <div className="bg-white p-5 rounded-xl border border-[#E1E6F3] shadow-sm space-y-3">
+                                    <h3 className="text-base font-bold text-[#0B123D]">
+                                        Before you send
+                                    </h3>
+                                    <ul className="space-y-2 text-xs text-[#64708C]">
+                                        <li>• Include the resource title and course code.</li>
+                                        <li>• Describe the issue and any error message.</li>
+                                        <li>• Attach a screenshot with private details hidden.</li>
+                                        <li>• For enrolment changes, contact your department office.</li>
+                                    </ul>
+                                </div>
+
+                                {/* Privacy Reminder Banner */}
+                                <div className="p-4 bg-[#F0F3FF] rounded-lg border border-[#E1E6F3] flex items-start gap-3">
+                                    <ShieldAlert className="w-4 h-4 text-[#245CFF] shrink-0 mt-0.5" />
+                                    <p className="text-xs text-[#245CFF] leading-relaxed">
+                                        Never share passwords, verification codes or sensitive personal data with support.
+                                    </p>
+                                </div>
+
+                                {/* Accessibility Box */}
+                                <div className="bg-white p-5 rounded-xl border border-[#E1E6F3] shadow-sm space-y-3">
+                                    <h3 className="text-base font-bold text-[#0B123D]">
+                                        Accessibility support
+                                    </h3>
+                                    <p className="text-xs text-[#64708C] leading-relaxed">
+                                        Need an accessible document or assistance using the platform? Choose Accessibility as your request category.
+                                    </p>
+                                    <a
+                                        href="/about"
+                                        className="text-xs font-semibold text-[#245CFF] hover:underline flex items-center gap-1 pt-1"
+                                    >
+                                        <span>About CSE Hub</span>
+                                        <ArrowRight className="w-3.5 h-3.5" />
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Shared Footer */}
+                    <Footer />
+                </main>
+            </div>
+        </div>
+    );
+}
+```
+
+---
+
+# Section: Academic Repositories & Utilities
+
+## 10. Past Questions Repository
+
+- **Route**: `/past-questions`
+- **File**: `frontend/src/app/past-questions/page.tsx`
+- **Category**: Academic Repositories & Utilities
+- **Description**: Archive of department examination past questions categorized by session, semester, level, and course code.
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import Sidebar from '@/components/layout/Sidebar';
+import Footer from '@/components/layout/Footer';
+import {
+    Search,
+    Bell,
+    ChevronDown,
+    ArrowRight,
+    Home,
+    HelpCircle,
+    Folder,
+    BookOpen
+} from 'lucide-react';
+
+interface PastQuestionYear {
+    year: number;
+    count: number;
+    isPopular?: boolean;
+}
+
+const pastQuestionYears: PastQuestionYear[] = [
+    { year: 2023, count: 24, isPopular: true },
+    { year: 2022, count: 20 },
+    { year: 2021, count: 30 },
+    { year: 2020, count: 30 },
+    { year: 2019, count: 26 },
+    { year: 2018, count: 20 },
+    { year: 2017, count: 24 },
+    { year: 2016, count: 18 },
+];
+
+export default function PastQuestionsPage() {
+    const [searchQuery, setSearchQuery] = useState('');
+
+    return (
+        <div className="w-full h-screen bg-[#F6F8FF] flex flex-col lg:flex-row font-sans text-[#0B123D] overflow-hidden">
+
+            {/* DESKTOP SIDEBAR */}
+            <Sidebar userRole="student" userName="John Doe" userCode="Student" />
+
+            {/* MAIN CONTAINER */}
+            <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
+
+                {/* FIXED HEADER / APP BAR */}
+                <header className="h-[76px] bg-white border-b border-[#E1E6F3] px-4 sm:px-6 lg:px-8 flex items-center justify-between flex-shrink-0 z-30">
+
+                    {/* Logo Section */}
+                    <div className="flex items-center gap-3">
+                        <div className="w-[34px] h-[36px] sm:w-[36px] sm:h-[38px] bg-[#245CFF] rounded-[10px] flex items-center justify-center text-white font-bold text-[16px] sm:text-[17px]">
+                            C
+                        </div>
+                        <span className="text-[20px] sm:text-[24px] lg:text-[25px] font-bold text-[#0B123D]">
+                            CSE Hub
+                        </span>
+                    </div>
+
+                    {/* Search Field (Desktop & Tablet) */}
+                    <div className="hidden sm:block w-full max-w-[620px] mx-4 lg:mx-6">
+                        <div className="h-[43px] px-4 bg-white rounded-[8px] border border-[#E1E6F3] flex items-center gap-3 focus-within:ring-2 focus-within:ring-[#245CFF]">
+                            <Search className="w-[18px] h-[18px] text-[#64708C]" />
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Search for resources, topics, or keywords..."
+                                className="w-full bg-transparent text-[14px] text-[#0B123D] placeholder-[#64708C] focus:outline-none"
+                            />
+                        </div>
+                    </div>
+
+                    {/* User Profile & Actions */}
+                    <div className="flex items-center gap-3 sm:gap-6">
+                        <button className="p-2 text-[#0B123D] hover:bg-slate-50 rounded-lg">
+                            <Bell className="w-[20px] h-[20px]" />
+                        </button>
+
+                        <div className="flex items-center gap-2 sm:gap-3 border-l border-[#E1E6F3] pl-3 sm:pl-4">
+                            <div className="w-[34px] h-[36px] sm:w-[38px] sm:h-[40px] rounded-full bg-[#245CFF]/10 text-[#245CFF] font-bold flex items-center justify-center text-xs sm:text-sm">
+                                JD
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[13px] sm:text-[14px] font-bold text-[#0B123D] leading-tight">John Doe</span>
+                                <span className="text-[11px] sm:text-[12px] text-[#64708C] leading-tight">Student</span>
+                            </div>
+                            <ChevronDown className="w-4 h-4 text-[#64708C] hidden sm:block" />
+                        </div>
+                    </div>
+                </header>
+
+                {/* SCROLLABLE MAIN CONTENT AREA */}
+                <div className="flex-1 overflow-y-auto flex flex-col min-h-0">
+
+                    <main className="p-4 sm:p-6 lg:p-[32px] space-y-[24px] sm:space-y-[28px] flex-1 max-w-[1280px] w-full mx-auto pb-20 lg:pb-8">
+
+                        {/* PAGE TITLE & SUBTITLE */}
+                        <div className="space-y-1.5">
+                            <h1 className="text-[28px] sm:text-[32px] font-bold text-[#0B123D] leading-tight">
+                                Past Questions
+                            </h1>
+                            <p className="text-[14px] sm:text-[16px] text-[#64708C]">
+                                Browse and search past questions by year and course
+                            </p>
+                        </div>
+
+                        {/* YEAR CARDS GRID */}
+                        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+                            {pastQuestionYears.map((item) => (
+                                <Link
+                                    key={item.year}
+                                    href={`/past-questions/${item.year}`}
+                                    className="group min-h-[164px] sm:min-h-[195px] p-5 sm:p-7 bg-white rounded-[16px] border border-transparent shadow-[0px_5px_18px_rgba(39,63,121,0.06)] flex flex-col justify-between hover:border-[#245CFF] hover:shadow-md transition-all duration-200"
+                                >
+                                    <div className="space-y-1 sm:space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[28px] sm:text-[33px] font-bold text-[#0B123D] group-hover:text-[#245CFF] transition-colors">
+                                                {item.year} {item.isPopular && <span className="text-[#245CFF]">‹</span>}
+                                            </span>
+                                        </div>
+                                        <p className="text-[14px] sm:text-[16px] text-[#64708C]">
+                                            {item.count} Questions
+                                        </p>
+                                    </div>
+
+                                    <div className="flex justify-end pt-3 sm:pt-4">
+                                        <div className="w-[20px] h-[20px] flex items-center justify-center text-[#245CFF] group-hover:translate-x-1 transition-transform">
+                                            <ArrowRight className="w-5 h-5" />
+                                        </div>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+
+                    </main>
+
+                    {/* FOOTER */}
+                    <Footer />
+                </div>
+
+                {/* MOBILE BOTTOM NAVIGATION BAR */}
+                <div className="lg:hidden fixed bottom-0 left-0 right-0 h-[64px] bg-white border-t border-[#E1E6F3] px-2 flex items-center justify-around z-40">
+                    <Link href="/dashboard" className="flex flex-col items-center gap-1 text-[#64708C]">
+                        <Home className="w-5 h-5" />
+                        <span className="text-[10px]">Home</span>
+                    </Link>
+                    <Link href="/resources" className="flex flex-col items-center gap-1 text-[#64708C]">
+                        <Search className="w-5 h-5" />
+                        <span className="text-[10px]">Search</span>
+                    </Link>
+                    <Link href="/past-questions" className="flex flex-col items-center gap-1 text-[#245CFF] font-bold bg-[#E9EDFF] px-3 py-1 rounded-[8px]">
+                        <HelpCircle className="w-5 h-5" />
+                        <span className="text-[10px]">Questions</span>
+                    </Link>
+                    <Link href="#" className="flex flex-col items-center gap-1 text-[#64708C]">
+                        <Folder className="w-5 h-5" />
+                        <span className="text-[10px]">Projects</span>
+                    </Link>
+                    <Link href="#" className="flex flex-col items-center gap-1 text-[#64708C]">
+                        <BookOpen className="w-5 h-5" />
+                        <span className="text-[10px]">Knowledge</span>
+                    </Link>
+                </div>
+
+            </div>
+        </div>
+    );
+}
+```
+
+---
+
+## 11. Projects Archive & Showcase
+
+- **Route**: `/projects`
+- **File**: `frontend/src/app/projects/page.tsx`
+- **Category**: Academic Repositories & Utilities
+- **Description**: Showcase of final-year capstone, research, and semester software projects with abstracts, documentation, and code links.
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
+import Navbar from '@/components/layout/Navbar';
+import Sidebar from '@/components/layout/Sidebar';
+import Footer from '@/components/layout/footer';
+import {
+    Search,
+    ChevronDown,
+    Clock,
+    Download,
+    Folder,
+    Home,
+    HelpCircle,
+    BookOpen,
+    FolderSearch
+} from 'lucide-react';
+
+interface ProjectItem {
+    id: string;
+    title: string;
+    tags: string[];
+    year: number;
+    department: string;
+    downloads: number;
+    imageUrl: string;
+}
+
+const mockProjects: ProjectItem[] = [
+    {
+        id: '1',
+        title: 'Smart Campus Navigation System',
+        tags: ['Web Development', 'IoT'],
+        year: 2023,
+        department: 'CSE',
+        downloads: 125,
+        imageUrl: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop&q=80',
+    },
+    {
+        id: '2',
+        title: 'Machine Learning for Disease Prediction',
+        tags: ['Machine Learning'],
+        year: 2023,
+        department: 'CSE',
+        downloads: 86,
+        imageUrl: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=600&auto=format&fit=crop&q=80',
+    },
+    {
+        id: '3',
+        title: 'Student Attendance System',
+        tags: ['Web Development', 'C#'],
+        year: 2023,
+        department: 'CSE',
+        downloads: 68,
+        imageUrl: 'https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=600&auto=format&fit=crop&q=80',
+    },
+    {
+        id: '4',
+        title: 'E-Learning Platform',
+        tags: ['Web Development'],
+        year: 2023,
+        department: 'CSE',
+        downloads: 76,
+        imageUrl: 'https://images.unsplash.com/photo-1501504905252-473c47e087f8?w=600&auto=format&fit=crop&q=80',
+    },
+    {
+        id: '5',
+        title: 'Image Classifier using CNN',
+        tags: ['Deep Learning'],
+        year: 2023,
+        department: 'CSE',
+        downloads: 64,
+        imageUrl: 'https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=600&auto=format&fit=crop&q=80',
+    },
+    {
+        id: '6',
+        title: 'Library Management System',
+        tags: ['Database'],
+        year: 2023,
+        department: 'CSE',
+        downloads: 89,
+        imageUrl: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?w=600&auto=format&fit=crop&q=80',
+    },
+];
+
+const departments = [
+    'All Departments',
+    'Computer Science & Engineering',
+    'Electrical Engineering',
+    'Mechanical Engineering',
+];
+
+export default function ProjectsPage() {
+    const [projectSearch, setProjectSearch] = useState('');
+    const [selectedDept, setSelectedDept] = useState('All Departments');
+
+    // Filter project cards by search query and selected department
+    const filteredProjects = mockProjects.filter((project) => {
+        const matchesSearch =
+            project.title.toLowerCase().includes(projectSearch.toLowerCase()) ||
+            project.tags.some((t) => t.toLowerCase().includes(projectSearch.toLowerCase()));
+
+        const matchesDept =
+            selectedDept === 'All Departments' ||
+            selectedDept.toLowerCase().includes(project.department.toLowerCase());
+
+        return matchesSearch && matchesDept;
+    });
+
+    return (
+        <div className="min-h-screen w-full bg-[#F6F8FF] flex flex-col font-sans text-[#0B123D]">
+            {/* Shared Header Navigation */}
+            <Navbar userRole="student" userName="John Doe" userRoleTitle="Student" />
+
+            {/* Main Shell */}
+            <div className="flex-1 flex flex-col md:flex-row">
+                {/* Shared Sidebar */}
+                <Sidebar userRole="student" userName="John Doe" userCode="CSC/2021/042" />
+
+                {/* Main Workspace Container */}
+                <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 overflow-x-hidden flex flex-col justify-between">
+                    <div className="space-y-6 max-w-6xl mx-auto w-full">
+
+                        {/* Page Heading & Filters Bar */}
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div className="space-y-1">
+                                <h1 className="text-2xl sm:text-3xl font-bold text-[#0B123D] leading-tight">
+                                    Final Year Projects
+                                </h1>
+                                <p className="text-xs sm:text-sm text-[#64708C]">Resources</p>
+                            </div>
+
+                            {/* Search & Dropdown Filters */}
+                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                                {/* Project Search Input */}
+                                <div className="w-full sm:w-[280px] lg:w-[325px] h-[43px] px-4 bg-white rounded-8 border border-[#E1E6F3] flex items-center gap-3 focus-within:ring-2 focus-within:ring-[#245CFF]">
+                                    <Search className="w-4 h-4 text-[#64708C] shrink-0" />
+                                    <input
+                                        type="text"
+                                        value={projectSearch}
+                                        onChange={(e) => setProjectSearch(e.target.value)}
+                                        placeholder="Search for projects..."
+                                        className="w-full bg-transparent text-sm text-[#0B123D] placeholder-[#64708C] focus:outline-none"
+                                    />
+                                </div>
+
+                                {/* Department Dropdown */}
+                                <div className="relative w-full sm:w-[220px] lg:w-[260px]">
+                                    <select
+                                        value={selectedDept}
+                                        onChange={(e) => setSelectedDept(e.target.value)}
+                                        className="w-full h-[43px] pl-4 pr-10 bg-white rounded-8 border border-[#E1E6F3] text-sm text-[#0B123D] appearance-none focus:ring-2 focus:ring-[#245CFF] focus:outline-none cursor-pointer"
+                                    >
+                                        {departments.map((dept) => (
+                                            <option key={dept} value={dept}>
+                                                {dept}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <ChevronDown className="w-4 h-4 text-[#0B123D] absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Projects Card Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                            {filteredProjects.map((project) => (
+                                <div
+                                    key={project.id}
+                                    className="bg-white rounded-2xl border border-[#E1E6F3] overflow-hidden flex flex-col justify-between hover:border-[#245CFF] hover:shadow-md transition-all duration-200"
+                                >
+                                    {/* Thumbnail Image Banner */}
+                                    <div className="relative w-full h-[145px] bg-slate-100">
+                                        <Image
+                                            src={project.imageUrl}
+                                            alt={project.title}
+                                            fill
+                                            unoptimized
+                                            className="object-cover"
+                                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                                        />
+                                    </div>
+
+                                    {/* Card Content Body */}
+                                    <div className="p-[18px] flex-1 flex flex-col justify-between gap-4">
+                                        <div className="space-y-3">
+                                            <h3 className="text-[17px] font-bold text-[#0B123D] leading-snug line-clamp-2">
+                                                {project.title}
+                                            </h3>
+
+                                            {/* Category Tag Badges */}
+                                            <div className="flex flex-wrap items-center gap-2">
+                                                {project.tags.map((tag) => (
+                                                    <span
+                                                        key={tag}
+                                                        className="px-2.5 py-1 bg-[#E9EDFF] text-[#245CFF] font-semibold text-xs rounded-md"
+                                                    >
+                                                        {tag}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* Card Metadata Footer */}
+                                        <div className="flex items-center gap-2 text-xs text-[#64708C] pt-2 border-t border-[#F0F3FA]">
+                                            <div className="flex items-center gap-1">
+                                                <Clock className="w-3.5 h-3.5" />
+                                                <span>{project.year}</span>
+                                            </div>
+                                            <span>·</span>
+                                            <span>{project.department}</span>
+                                            <span>·</span>
+                                            <div className="flex items-center gap-1">
+                                                <Download className="w-3.5 h-3.5" />
+                                                <span>{project.downloads} downloads</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Empty Search State */}
+                        {filteredProjects.length === 0 && (
+                            <div className="p-12 text-center bg-white rounded-2xl border border-[#E1E6F3] space-y-2">
+                                <p className="text-base font-semibold text-[#0B123D]">No projects found</p>
+                                <p className="text-sm text-[#64708C]">
+                                    Try adjusting your search query or department filter.
+                                </p>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Footer */}
+                    <Footer />
+                </main>
+            </div>
+
+            {/* Mobile Navigation Bar */}
+            <div className="md:hidden fixed bottom-0 left-0 right-0 h-[64px] bg-white border-t border-[#E1E6F3] px-2 flex items-center justify-around z-40">
+                <Link href="/student/dashboard" className="flex flex-col items-center gap-1 text-[#64708C]">
+                    <Home className="w-5 h-5" />
+                    <span className="text-[10px]">Home</span>
+                </Link>
+                <Link href="/student/search" className="flex flex-col items-center gap-1 text-[#64708C]">
+                    <FolderSearch className="w-5 h-5" />
+                    <span className="text-[10px]">Search</span>
+                </Link>
+                <Link href="/student/past-questions" className="flex flex-col items-center gap-1 text-[#64708C]">
+                    <HelpCircle className="w-5 h-5" />
+                    <span className="text-[10px]">Questions</span>
+                </Link>
+                <Link href="/projects" className="flex flex-col items-center gap-1 text-[#245CFF] font-bold bg-[#E9EDFF] px-3 py-1 rounded-lg">
+                    <Folder className="w-5 h-5" />
+                    <span className="text-[10px]">Projects</span>
+                </Link>
+                <Link href="/about" className="flex flex-col items-center gap-1 text-[#64708C]">
+                    <BookOpen className="w-5 h-5" />
+                    <span className="text-[10px]">Knowledge</span>
+                </Link>
+            </div>
+        </div>
+    );
+}
+```
+
+---
+
+## 12. Department Knowledge Base
+
+- **Route**: `/knowledge`
+- **File**: `frontend/src/app/knowledge/page.tsx`
+- **Category**: Academic Repositories & Utilities
+- **Description**: Curated repository of department documentation, coding tutorials, academic guides, and course roadmaps.
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import Sidebar from '@/components/layout/Sidebar';
+import Footer from '@/components/layout/Footer';
+import {
+    Search,
+    Bell,
+    ChevronDown,
+    Home,
+    HelpCircle,
+    Folder,
+    BookOpen
+} from 'lucide-react';
+
+interface KnowledgeItem {
+    id: string;
+    title: string;
+    category: 'Tutorial' | 'Article' | 'Guide' | 'Tips';
+    readTime: string;
+    tagColor: string;
+    tagBg: string;
+}
+
+const knowledgeItems: KnowledgeItem[] = [
+    {
+        id: '1',
+        title: 'Getting Started with Python',
+        category: 'Tutorial',
+        readTime: '5 min read',
+        tagColor: '#D977C9',
+        tagBg: 'rgba(217, 119, 201, 0.12)',
+    },
+    {
+        id: '2',
+        title: 'Understanding Data Structures',
+        category: 'Article',
+        readTime: '8 min read',
+        tagColor: '#ED9B45',
+        tagBg: 'rgba(237, 155, 69, 0.12)',
+    },
+    {
+        id: '3',
+        title: 'Web Development Roadmap',
+        category: 'Guide',
+        readTime: '10 min read',
+        tagColor: '#6D71FF',
+        tagBg: 'rgba(109, 113, 255, 0.12)',
+    },
+    {
+        id: '4',
+        title: 'Database Design Best Practices',
+        category: 'Article',
+        readTime: '7 min read',
+        tagColor: '#A660E6',
+        tagBg: 'rgba(166, 96, 230, 0.12)',
+    },
+    {
+        id: '5',
+        title: 'Tips for Final Year Projects',
+        category: 'Tips',
+        readTime: '6 min read',
+        tagColor: '#12B2A7',
+        tagBg: 'rgba(18, 178, 167, 0.12)',
+    },
+    {
+        id: '6',
+        title: 'Career Opportunities in CSE',
+        category: 'Guide',
+        readTime: '6 min read',
+        tagColor: '#7983FF',
+        tagBg: 'rgba(121, 131, 255, 0.12)',
+    },
+];
+
+const categories = ['All', 'Tutorials', 'Articles', 'Guides', 'Others'];
+
+export default function KnowledgeHubPage() {
+    const [globalSearch, setGlobalSearch] = useState('');
+    const [knowledgeSearch, setKnowledgeSearch] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('All');
+
+    const filteredItems = knowledgeItems.filter((item) => {
+        const matchesSearch = item.title.toLowerCase().includes(knowledgeSearch.toLowerCase());
+
+        let matchesCategory = true;
+        if (selectedCategory === 'Tutorials') matchesCategory = item.category === 'Tutorial';
+        if (selectedCategory === 'Articles') matchesCategory = item.category === 'Article';
+        if (selectedCategory === 'Guides') matchesCategory = item.category === 'Guide';
+        if (selectedCategory === 'Others') matchesCategory = item.category === 'Tips';
+
+        return matchesSearch && matchesCategory;
+    });
+
+    return (
+        <div className="w-full h-screen bg-[#F6F8FF] flex flex-col lg:flex-row font-sans text-[#0B123D] overflow-hidden">
+
+            {/* DESKTOP SIDEBAR */}
+            <Sidebar userRole="student" userName="John Doe" userCode="Student" />
+
+            {/* MAIN CONTAINER */}
+            <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
+
+                {/* FIXED HEADER / APP BAR */}
+                <header className="h-[76px] bg-white border-b border-[#E1E6F3] px-4 sm:px-6 lg:px-8 flex items-center justify-between flex-shrink-0 z-30">
+
+                    <div className="flex items-center gap-3">
+                        <div className="w-[34px] h-[36px] sm:w-[36px] sm:h-[38px] bg-[#245CFF] rounded-[10px] flex items-center justify-center text-white font-bold text-[16px] sm:text-[17px]">
+                            C
+                        </div>
+                        <span className="text-[20px] sm:text-[24px] lg:text-[25px] font-bold text-[#0B123D]">
+                            CSE Hub
+                        </span>
+                    </div>
+
+                    <div className="hidden sm:block w-full max-w-[620px] mx-4 lg:mx-6">
+                        <div className="h-[43px] px-4 bg-white rounded-[8px] border border-[#E1E6F3] flex items-center gap-3 focus-within:ring-2 focus-within:ring-[#245CFF]">
+                            <Search className="w-[18px] h-[18px] text-[#64708C]" />
+                            <input
+                                type="text"
+                                value={globalSearch}
+                                onChange={(e) => setGlobalSearch(e.target.value)}
+                                placeholder="Search for resources, topics, or keywords..."
+                                className="w-full bg-transparent text-[14px] text-[#0B123D] placeholder-[#64708C] focus:outline-none"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 sm:gap-6">
+                        <button className="p-2 text-[#0B123D] hover:bg-slate-50 rounded-lg">
+                            <Bell className="w-[20px] h-[20px]" />
+                        </button>
+
+                        <div className="flex items-center gap-2 sm:gap-3 border-l border-[#E1E6F3] pl-3 sm:pl-4">
+                            <div className="w-[34px] h-[36px] sm:w-[38px] sm:h-[40px] rounded-full bg-[#245CFF]/10 text-[#245CFF] font-bold flex items-center justify-center text-xs sm:text-sm">
+                                JD
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[13px] sm:text-[14px] font-bold text-[#0B123D] leading-tight">John Doe</span>
+                                <span className="text-[11px] sm:text-[12px] text-[#64708C] leading-tight">Student</span>
+                            </div>
+                            <ChevronDown className="w-4 h-4 text-[#64708C] hidden sm:block" />
+                        </div>
+                    </div>
+                </header>
+
+                {/* SCROLLABLE MAIN CONTENT AREA */}
+                <div className="flex-1 overflow-y-auto flex flex-col min-h-0">
+
+                    <main className="p-4 sm:p-6 lg:p-[32px] space-y-[24px] sm:space-y-[26px] flex-1 max-w-[1280px] w-full mx-auto pb-20 lg:pb-8">
+
+                        {/* TITLE & SEARCH HEADER */}
+                        <div className="space-y-4">
+                            <h1 className="text-[28px] sm:text-[33px] font-bold text-[#0B123D] leading-tight">
+                                Knowledge Hub
+                            </h1>
+
+                            {/* SEARCH INPUT */}
+                            <div className="h-[43px] px-4 bg-white rounded-[8px] border border-[#E1E6F3] flex items-center gap-3 focus-within:ring-2 focus-within:ring-[#245CFF]">
+                                <Search className="w-[18px] h-[18px] text-[#64708C] flex-shrink-0" />
+                                <input
+                                    type="text"
+                                    value={knowledgeSearch}
+                                    onChange={(e) => setKnowledgeSearch(e.target.value)}
+                                    placeholder="Search tutorials, articles, or topics..."
+                                    className="w-full bg-transparent text-[14px] text-[#0B123D] placeholder-[#64708C] focus:outline-none"
+                                />
+                            </div>
+
+                            {/* CATEGORY PILL FILTERS */}
+                            <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto pb-1 no-scrollbar">
+                                {categories.map((cat) => {
+                                    const isActive = selectedCategory === cat;
+                                    return (
+                                        <button
+                                            key={cat}
+                                            onClick={() => setSelectedCategory(cat)}
+                                            className={`px-4 sm:px-5 py-2 rounded-full text-[13px] sm:text-[14px] font-semibold transition-all whitespace-nowrap ${isActive
+                                                ? 'bg-[#245CFF] text-white'
+                                                : 'bg-white text-[#0B123D] border border-[#E1E6F3] hover:bg-slate-50'
+                                                }`}
+                                        >
+                                            {cat}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* KNOWLEDGE ARTICLES GRID */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
+                            {filteredItems.map((item) => (
+                                <div
+                                    key={item.id}
+                                    className="h-[190px] p-5 sm:p-6 bg-white rounded-[16px] border border-[#E1E6F3] flex flex-col justify-between hover:border-[#245CFF] hover:shadow-md transition-all duration-200"
+                                >
+                                    <h3 className="text-[20px] sm:text-[24px] font-bold text-[#0B123D] leading-snug line-clamp-2">
+                                        {item.title}
+                                    </h3>
+
+                                    <div className="space-y-4">
+                                        <div className="h-[1px] bg-[#E1E6F3]" />
+                                        <div className="flex items-center justify-between">
+                                            <span
+                                                className="px-3 py-1 rounded-[6px] text-[12px] sm:text-[13px] font-semibold"
+                                                style={{ backgroundColor: item.tagBg, color: item.tagColor }}
+                                            >
+                                                {item.category}
+                                            </span>
+                                            <span className="text-[13px] sm:text-[14px] text-[#64708C]">
+                                                {item.readTime}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {filteredItems.length === 0 && (
+                            <div className="p-12 text-center bg-white rounded-[16px] border border-[#E1E6F3] space-y-2">
+                                <p className="text-[16px] font-semibold text-[#0B123D]">No articles found</p>
+                                <p className="text-[14px] text-[#64708C]">Try searching for another topic or selecting a different category filter.</p>
+                            </div>
+                        )}
+
+                    </main>
+
+                    {/* FOOTER */}
+                    <Footer />
+                </div>
+
+                {/* MOBILE BOTTOM NAVIGATION BAR */}
+                <div className="lg:hidden fixed bottom-0 left-0 right-0 h-[64px] bg-white border-t border-[#E1E6F3] px-2 flex items-center justify-around z-40">
+                    <Link href="/dashboard" className="flex flex-col items-center gap-1 text-[#64708C]">
+                        <Home className="w-5 h-5" />
+                        <span className="text-[10px]">Home</span>
+                    </Link>
+                    <Link href="/resources" className="flex flex-col items-center gap-1 text-[#64708C]">
+                        <Search className="w-5 h-5" />
+                        <span className="text-[10px]">Search</span>
+                    </Link>
+                    <Link href="/past-questions" className="flex flex-col items-center gap-1 text-[#64708C]">
+                        <HelpCircle className="w-5 h-5" />
+                        <span className="text-[10px]">Questions</span>
+                    </Link>
+                    <Link href="/projects" className="flex flex-col items-center gap-1 text-[#64708C]">
+                        <Folder className="w-5 h-5" />
+                        <span className="text-[10px]">Projects</span>
+                    </Link>
+                    <Link href="/knowledge" className="flex flex-col items-center gap-1 text-[#245CFF] font-bold bg-[#E9EDFF] px-3 py-1 rounded-[8px]">
+                        <BookOpen className="w-5 h-5" />
+                        <span className="text-[10px]">Knowledge</span>
+                    </Link>
+                </div>
+
+            </div>
+        </div>
+    );
+}
+```
+
+---
+
+## 13. Interactive Code Preview
+
+- **Route**: `/code-preview`
+- **File**: `frontend/src/app/code-preview/page.tsx`
+- **Category**: Academic Repositories & Utilities
+- **Description**: In-browser syntax-highlighted code runner and snippet preview tool for programming assignments and student projects.
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import Sidebar from '@/components/layout/Sidebar';
+import Footer from '@/components/layout/Footer';
+import {
+    Search,
+    Bell,
+    ChevronDown,
+    Download,
+    Copy,
+    Check,
+    Home,
+    HelpCircle,
+    Folder,
+    Code
+} from 'lucide-react';
+
+interface CodeLine {
+    num: number;
+    content: React.ReactNode;
+}
+
+export default function CodePreviewPage() {
+    const [globalSearch, setGlobalSearch] = useState('');
+    const [copied, setCopied] = useState(false);
+
+    const rawCode = `# Import necessary libraries
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+
+# Load dataset
+data = pd.read_csv('dataset.csv')
+
+# Split features and target
+X = data.drop('target', axis=1)
+y = data['target']
+
+# Split data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42)`;
+
+    const codeLines: CodeLine[] = [
+        { num: 1, content: <span className="text-[#6B995E]"># Import necessary libraries</span> },
+        { num: 2, content: <span className="text-[#D486C4]">import numpy as np</span> },
+        { num: 3, content: <span className="text-[#D486C4]">import pandas as pd</span> },
+        { num: 4, content: <span className="text-[#D486C4]">from sklearn.model_selection import train_test_split</span> },
+        { num: 5, content: <span className="text-[#D486C4]">from sklearn.ensemble import RandomForestClassifier</span> },
+        { num: 6, content: <span></span> },
+        { num: 7, content: <span className="text-[#6B995E]"># Load dataset</span> },
+        {
+            num: 8,
+            content: (
+                <>
+                    <span className="text-[#D7DCD6]">data = pd.read_csv(</span>
+                    <span className="text-[#D8B572]">&apos;dataset.csv&apos;</span>
+                    <span className="text-[#D7DCD6]">)</span>
+                </>
+            ),
+        },
+        { num: 9, content: <span></span> },
+        { num: 10, content: <span className="text-[#6B995E]"># Split features and target</span> },
+        { num: 11, content: <span className="text-[#D7DCD6]">X = data.drop(&apos;target&apos;, axis=1)</span> },
+        { num: 12, content: <span className="text-[#D7DCD6]">y = data[&apos;target&apos;]</span> },
+        { num: 13, content: <span></span> },
+        { num: 14, content: <span className="text-[#6B995E]"># Split data into training and testing sets</span> },
+        { num: 15, content: <span className="text-[#D7DCD6]">X_train, X_test, y_train, y_test = train_test_split(</span> },
+        { num: 16, content: <span className="text-[#D7DCD6]">    X, y, test_size=0.2, random_state=42)</span> },
+    ];
+
+    const handleCopy = () => {
+        navigator.clipboard.writeText(rawCode);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    const handleDownload = () => {
+        const element = document.createElement('a');
+        const file = new Blob([rawCode], { type: 'text/plain' });
+        element.href = URL.createObjectURL(file);
+        element.download = 'app.py';
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+    };
+
+    return (
+        <div className="w-full h-screen bg-[#F6F8FF] flex flex-col lg:flex-row font-sans text-[#0B123D] overflow-hidden">
+
+            {/* DESKTOP SIDEBAR */}
+            <Sidebar userRole="student" userName="John Doe" userCode="Student" />
+
+            {/* MAIN CONTAINER */}
+            <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
+
+                {/* FIXED HEADER / APP BAR */}
+                <header className="h-[76px] bg-white border-b border-[#E1E6F3] px-4 sm:px-6 lg:px-8 flex items-center justify-between flex-shrink-0 z-30">
+
+                    <div className="flex items-center gap-3">
+                        <div className="w-[34px] h-[36px] sm:w-[36px] sm:h-[38px] bg-[#245CFF] rounded-[10px] flex items-center justify-center text-white font-bold text-[16px] sm:text-[17px]">
+                            C
+                        </div>
+                        <span className="text-[20px] sm:text-[24px] lg:text-[25px] font-bold text-[#0B123D]">
+                            CSE Hub
+                        </span>
+                    </div>
+
+                    <div className="hidden sm:block w-full max-w-[620px] mx-4 lg:mx-6">
+                        <div className="h-[43px] px-4 bg-white rounded-[8px] border border-[#E1E6F3] flex items-center gap-3 focus-within:ring-2 focus-within:ring-[#245CFF]">
+                            <Search className="w-[18px] h-[18px] text-[#64708C]" />
+                            <input
+                                type="text"
+                                value={globalSearch}
+                                onChange={(e) => setGlobalSearch(e.target.value)}
+                                placeholder="Search for resources, topics, or keywords..."
+                                className="w-full bg-transparent text-[14px] text-[#0B123D] placeholder-[#64708C] focus:outline-none"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3 sm:gap-6">
+                        <button className="p-2 text-[#0B123D] hover:bg-slate-50 rounded-lg">
+                            <Bell className="w-[20px] h-[20px]" />
+                        </button>
+
+                        <div className="flex items-center gap-2 sm:gap-3 border-l border-[#E1E6F3] pl-3 sm:pl-4">
+                            <div className="w-[34px] h-[36px] sm:w-[38px] sm:h-[40px] rounded-full bg-[#245CFF]/10 text-[#245CFF] font-bold flex items-center justify-center text-xs sm:text-sm">
+                                JD
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[13px] sm:text-[14px] font-bold text-[#0B123D] leading-tight">John Doe</span>
+                                <span className="text-[11px] sm:text-[12px] text-[#64708C] leading-tight">Student</span>
+                            </div>
+                            <ChevronDown className="w-4 h-4 text-[#64708C] hidden sm:block" />
+                        </div>
+                    </div>
+                </header>
+
+                {/* SCROLLABLE MAIN CONTENT AREA */}
+                <div className="flex-1 overflow-y-auto flex flex-col min-h-0">
+
+                    <main className="p-4 sm:p-6 lg:p-[32px] space-y-[24px] flex-1 max-w-[1280px] w-full mx-auto pb-20 lg:pb-8">
+
+                        {/* PAGE HEADING & ACTIONS */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div className="space-y-1">
+                                <h1 className="text-[28px] sm:text-[32px] font-bold text-[#0B123D] leading-tight">
+                                    Code Preview
+                                </h1>
+                                <p className="text-[14px] sm:text-[15px] text-[#64708C]">app.py · 1.1 KB</p>
+                            </div>
+
+                            {/* ACTION BUTTONS */}
+                            <div className="flex items-center gap-3">
+                                <button
+                                    onClick={handleDownload}
+                                    className="h-[46px] sm:h-[48px] px-5 sm:px-6 bg-gradient-to-r from-[#7148FF] to-[#245CFF] text-white font-semibold text-[14px] sm:text-[16px] rounded-[8px] flex items-center gap-2.5 hover:opacity-95 transition-opacity"
+                                >
+                                    <Download className="w-4.5 h-4.5" />
+                                    <span>Download</span>
+                                </button>
+
+                                <button
+                                    onClick={handleCopy}
+                                    className="h-[46px] sm:h-[48px] px-5 sm:px-6 bg-white border border-[#E1E6F3] text-[#0B123D] font-semibold text-[14px] sm:text-[16px] rounded-[8px] flex items-center gap-2.5 hover:bg-slate-50 transition-colors"
+                                >
+                                    {copied ? <Check className="w-4.5 h-4.5 text-green-600" /> : <Copy className="w-4.5 h-4.5" />}
+                                    <span>{copied ? 'Copied!' : 'Copy'}</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* CODE VIEWER BOX */}
+                        <div className="bg-[#161D23] rounded-[8px] overflow-hidden border border-[#161D23]">
+                            <div className="p-4 sm:p-5 overflow-x-auto">
+                                <div className="min-w-[650px] font-mono text-[14px] sm:text-[15px] space-y-1 sm:space-y-1.5">
+                                    {codeLines.map((line) => (
+                                        <div key={line.num} className="flex items-start gap-4 sm:gap-6 leading-relaxed">
+                                            <span className="w-8 text-right text-[#AEB7C5] select-none flex-shrink-0">
+                                                {line.num}
+                                            </span>
+                                            <div className="flex-1 whitespace-pre">{line.content}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* HORIZONTAL SCROLLBAR INDICATOR */}
+                            <div className="px-4 pb-3 pt-2">
+                                <div className="w-full h-1.5 bg-[#303944] rounded-full overflow-hidden">
+                                    <div className="w-1/2 h-full bg-[#7C8796] rounded-full" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <p className="text-[12px] text-[#64708C]">
+                            ↔ Scroll horizontally to view the full code
+                        </p>
+
+                    </main>
+
+                    {/* FOOTER */}
+                    <Footer />
+                </div>
+
+                {/* MOBILE BOTTOM NAVIGATION BAR */}
+                <div className="lg:hidden fixed bottom-0 left-0 right-0 h-[64px] bg-white border-t border-[#E1E6F3] px-2 flex items-center justify-around z-40">
+                    <Link href="/dashboard" className="flex flex-col items-center gap-1 text-[#64708C]">
+                        <Home className="w-5 h-5" />
+                        <span className="text-[10px]">Home</span>
+                    </Link>
+                    <Link href="/resources" className="flex flex-col items-center gap-1 text-[#64708C]">
+                        <Search className="w-5 h-5" />
+                        <span className="text-[10px]">Search</span>
+                    </Link>
+                    <Link href="/past-questions" className="flex flex-col items-center gap-1 text-[#64708C]">
+                        <HelpCircle className="w-5 h-5" />
+                        <span className="text-[10px]">Questions</span>
+                    </Link>
+                    <Link href="/projects" className="flex flex-col items-center gap-1 text-[#64708C]">
+                        <Folder className="w-5 h-5" />
+                        <span className="text-[10px]">Projects</span>
+                    </Link>
+                    <Link href="/code-preview" className="flex flex-col items-center gap-1 text-[#245CFF] font-bold bg-[#E9EDFF] px-3 py-1 rounded-[8px]">
+                        <Code className="w-5 h-5" />
+                        <span className="text-[10px]">Code</span>
+                    </Link>
+                </div>
+
+            </div>
+        </div>
+    );
+}
+```
+
+---
+
+## 14. Resource Details & Document Viewer
+
+- **Route**: `/resources/[id]`
+- **File**: `frontend/src/app/resources/[id]/page.tsx`
+- **Category**: Academic Repositories & Utilities
+- **Description**: Detailed view for individual academic resources including PDF preview, metadata, ratings, comments, and direct download.
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import Sidebar from '@/components/layout/Sidebar';
+import {
+    Search,
+    Bell,
+    ChevronDown,
+    ArrowLeft,
+    FileText,
+    Download,
+    Bookmark,
+    Share2,
+    ThumbsUp,
+    MessageSquare,
+    Flag,
+    Bold,
+    Italic,
+    Link as LinkIcon,
+    Home,
+    HelpCircle,
+    Folder,
+    BookOpen
+} from 'lucide-react';
+import Footer from '@/components/layout/footer';
+
+export default function ResourceDetailsPage() {
+    const [searchQuery, setSearchQuery] = useState('');
+    const [activeTab, setActiveTab] = useState<'preview' | 'details' | 'comments'>('preview');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [commentText, setCommentText] = useState('Great set of notes! The section on gradient descent really helped clarify the concept. Would love to see more worked examples in the next revision.');
+
+    return (
+        <div className="w-full min-h-screen bg-[#F6F8FF] flex flex-col lg:flex-row font-sans text-[#0B123D]">
+
+            {/* DESKTOP SIDEBAR */}
+            <Sidebar userRole="student" userName="John Doe" userCode="Student" />
+
+            {/* MAIN CONTAINER */}
+            <div className="flex-1 flex flex-col min-w-0 pb-16 lg:pb-0">
+
+                {/* HEADER / APP BAR */}
+                <header className="h-[76px] bg-white border-b border-[#E1E6F3] px-4 sm:px-6 lg:px-8 flex items-center justify-between sticky top-0 z-30">
+
+                    {/* Logo Section */}
+                    <div className="flex items-center gap-3">
+                        <div className="w-[34px] h-[36px] sm:w-[36px] sm:h-[38px] bg-[#245CFF] rounded-[10px] flex items-center justify-center text-white font-bold text-[16px] sm:text-[17px]">
+                            C
+                        </div>
+                        <span className="text-[20px] sm:text-[24px] lg:text-[25px] font-bold text-[#0B123D]">
+                            CSE Hub
+                        </span>
+                    </div>
+
+                    {/* Search Field (Desktop) */}
+                    <div className="hidden lg:block w-full max-w-[620px] mx-6">
+                        <div className="h-[43px] px-4 bg-white rounded-[8px] border border-[#E1E6F3] flex items-center gap-3 focus-within:ring-2 focus-within:ring-[#245CFF]">
+                            <Search className="w-[18px] h-[18px] text-[#64708C]" />
+                            <input
+                                type="text"
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Search for resources, topics, or keywords..."
+                                className="w-full bg-transparent text-[14px] text-[#0B123D] placeholder-[#64708C] focus:outline-none"
+                            />
+                        </div>
+                    </div>
+
+                    {/* User Profile & Notifications */}
+                    <div className="flex items-center gap-3 sm:gap-6">
+                        <button className="p-2 text-[#0B123D] hover:bg-slate-50 rounded-lg">
+                            <Bell className="w-[20px] h-[20px]" />
+                        </button>
+
+                        <div className="flex items-center gap-2 sm:gap-3 border-l border-[#E1E6F3] pl-3 sm:pl-4">
+                            <div className="w-[32px] h-[34px] sm:w-[38px] sm:h-[40px] rounded-full bg-[#245CFF]/10 text-[#245CFF] font-bold flex items-center justify-center text-xs sm:text-sm">
+                                JD
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[12px] sm:text-[14px] font-bold text-[#0B123D] leading-tight">John Doe</span>
+                                <span className="text-[11px] sm:text-[12px] text-[#64708C] leading-tight">Student</span>
+                            </div>
+                            <ChevronDown className="w-4 h-4 text-[#64708C] hidden sm:block" />
+                        </div>
+                    </div>
+                </header>
+
+                {/* PAGE CONTENT CONTAINER */}
+                <main className="p-4 sm:p-6 lg:p-[32px] space-y-[24px] lg:space-y-[26px] flex-1 max-w-[1280px] w-full mx-auto">
+
+                    {/* BACK TO RESULTS LINK */}
+                    <a
+                        href="/resources"
+                        className="inline-flex items-center gap-1.5 text-[15px] font-semibold text-[#245CFF] hover:underline"
+                    >
+                        <ArrowLeft className="w-4 h-4" />
+                        <span>Back to Results</span>
+                    </a>
+
+                    {/* HERO RESOURCE HEADER */}
+                    <div className="flex flex-col md:flex-row items-start gap-4 sm:gap-6 lg:gap-[28px]">
+                        {/* Resource Cover Thumbnail */}
+                        <div className="w-[88px] h-[92px] sm:w-[136px] sm:h-[141px] bg-[#00C58A]/10 rounded-[14px] flex items-center justify-center flex-shrink-0">
+                            <div className="w-[58px] h-[68px] sm:w-[88px] sm:h-[104px] bg-[#00C58A] rounded-[7px] flex items-center justify-center shadow-sm">
+                                <FileText className="w-8 h-8 sm:w-12 sm:h-12 text-white" />
+                            </div>
+                        </div>
+
+                        {/* Title & Metadata */}
+                        <div className="flex-1 space-y-3 sm:space-y-3.5">
+                            <h1 className="text-[23px] sm:text-[27px] lg:text-[29px] font-bold text-[#0B123D] leading-tight sm:leading-[42px]">
+                                Introduction to Machine Learning - Lecture Notes
+                            </h1>
+
+                            {/* Meta Stats Inline */}
+                            <div className="flex items-center gap-2 sm:gap-3 text-[13px] sm:text-[15px] text-[#64708C] flex-wrap">
+                                <span className="font-medium text-[#0B123D]">Lecture Notes</span>
+                                <span>·</span>
+                                <span>2.4 MB</span>
+                                <span>·</span>
+                                <span>2023</span>
+                                <span>·</span>
+                                <span>125 downloads</span>
+                            </div>
+
+                            {/* Description */}
+                            <p className="text-[14px] sm:text-[16px] lg:text-[18px] text-[#64708C] leading-normal sm:leading-[26px]">
+                                Comprehensive lecture notes covering the basics of Machine Learning, including supervised and unsupervised learning, algorithms, and practical examples.
+                            </p>
+
+                            {/* Action Buttons */}
+                            <div className="flex items-center gap-2.5 sm:gap-5 pt-1 flex-wrap">
+                                <button className="h-[46px] sm:h-[48px] px-4 sm:px-6 bg-gradient-to-r from-[#7148FF] to-[#245CFF] text-white font-semibold text-[14px] sm:text-[16px] rounded-[8px] flex items-center gap-2 shadow-sm hover:opacity-95 transition-opacity">
+                                    <Download className="w-[18px] h-[18px] sm:w-[19px] sm:h-[19px]" />
+                                    <span>Download</span>
+                                </button>
+                                <button className="h-[46px] sm:h-[48px] px-4 sm:px-6 bg-white border border-[#E1E6F3] text-[#0B123D] font-semibold text-[14px] sm:text-[16px] rounded-[8px] flex items-center gap-2 hover:bg-slate-50 transition-colors">
+                                    <Bookmark className="w-[18px] h-[18px] sm:w-[19px] sm:h-[19px]" />
+                                    <span>Bookmark</span>
+                                </button>
+                                <button className="h-[46px] sm:h-[48px] px-4 sm:px-6 bg-white border border-[#E1E6F3] text-[#0B123D] font-semibold text-[14px] sm:text-[16px] rounded-[8px] flex items-center gap-2 hover:bg-slate-50 transition-colors">
+                                    <Share2 className="w-[18px] h-[18px] sm:w-[19px] sm:h-[19px]" />
+                                    <span>Share</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* DOCUMENT PREVIEW CARD */}
+                    <div className="bg-white rounded-[16px] border border-[#E1E6F3] overflow-hidden flex flex-col">
+
+                        {/* PREVIEW CARD HEADER / TABS */}
+                        <div className="h-[56px] px-4 sm:px-6 border-b border-[#E1E6F3] flex items-center justify-between sm:justify-start gap-4 sm:gap-6">
+                            <button
+                                onClick={() => setActiveTab('preview')}
+                                className={`h-full px-[18px] text-[14px] sm:text-[16px] font-bold flex items-center relative ${activeTab === 'preview' ? 'text-[#245CFF] bg-[#EFF2FF]' : 'text-[#64708C] hover:text-[#0B123D]'
+                                    }`}
+                            >
+                                Preview
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('details')}
+                                className={`h-full px-2 text-[14px] sm:text-[16px] font-medium flex items-center ${activeTab === 'details' ? 'text-[#245CFF] font-bold' : 'text-[#64708C] hover:text-[#0B123D]'
+                                    }`}
+                            >
+                                Details
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('comments')}
+                                className={`h-full px-2 text-[14px] sm:text-[16px] font-medium flex items-center ${activeTab === 'comments' ? 'text-[#245CFF] font-bold' : 'text-[#64708C] hover:text-[#0B123D]'
+                                    }`}
+                            >
+                                Comments
+                            </button>
+                        </div>
+
+                        {/* PREVIEW TOOLBAR (MOBILE/TABLET READABILITY) */}
+                        <div className="px-4 py-3 bg-[#F9FAFE] border-b border-[#E1E6F3] flex items-center justify-between text-[13px] text-[#0B123D]">
+                            <span className="font-semibold cursor-pointer flex items-center gap-1">
+                                Document Pages <ChevronDown className="w-3.5 h-3.5" />
+                            </span>
+                            <div className="flex items-center gap-3 text-[#245CFF] font-medium">
+                                <button onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}>‹</button>
+                                <span>{currentPage} / 24</span>
+                                <button onClick={() => setCurrentPage(Math.min(24, currentPage + 1))}>›</button>
+                            </div>
+                            <span className="text-[#64708C] cursor-pointer flex items-center gap-1">
+                                Fit <ChevronDown className="w-3.5 h-3.5" />
+                            </span>
+                        </div>
+
+                        {/* PREVIEW MAIN BODY: SIDEBAR + READER */}
+                        <div className="flex flex-col lg:flex-row min-h-[480px] sm:min-h-[522px]">
+
+                            {/* PAGE THUMBNAILS (DESKTOP / TABLET SIDEBAR) */}
+                            <div className="w-full lg:w-[270px] p-4 sm:p-6 border-b lg:border-b-0 lg:border-r border-[#E1E6F3] space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[15px] font-semibold text-[#0B123D]">Document Pages</span>
+                                    <div className="w-2 h-2 rounded-full bg-[#64708C]" />
+                                </div>
+
+                                {/* Page Thumbnails Grid */}
+                                <div className="grid grid-cols-2 lg:grid-cols-2 gap-4">
+                                    {[1, 2, 3, 4].map((page) => (
+                                        <div
+                                            key={page}
+                                            onClick={() => setCurrentPage(page)}
+                                            className={`flex flex-col items-center gap-2 cursor-pointer group`}
+                                        >
+                                            <div
+                                                className={`w-full h-[90px] sm:h-[120px] lg:h-[140px] bg-white border rounded-[7px] p-3 flex flex-col gap-1.5 transition-all ${currentPage === page
+                                                    ? 'border-[#245CFF] ring-2 ring-[#245CFF]/20'
+                                                    : 'border-[#E1E6F3] group-hover:border-[#245CFF]'
+                                                    }`}
+                                            >
+                                                <div className="w-3/4 h-[2px] bg-[#B8BFCD]" />
+                                                <div className="w-full h-[2px] bg-[#B8BFCD]" />
+                                                <div className="w-full h-[2px] bg-[#B8BFCD]" />
+                                                <div className="w-2/3 h-[2px] bg-[#B8BFCD]" />
+                                                <div className="w-full h-[2px] bg-[#B8BFCD]" />
+                                                <div className="w-3/4 h-[2px] bg-[#B8BFCD]" />
+                                            </div>
+                                            <span className="text-[12px] sm:text-[14px] text-[#0B123D] font-medium">{page}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* MAIN READER VIEWPORT */}
+                            <div className="flex-1 bg-[#EDF0F4] p-4 sm:p-8 flex items-center justify-center relative overflow-x-auto">
+                                {/* Book Page Spread Mock */}
+                                <div className="w-full max-w-[715px] min-h-[380px] sm:min-h-[470px] lg:min-h-[520px] bg-[#FFFDFA] border-l-[14px] sm:border-l-[24px] lg:border-l-[38px] border-[#212226] shadow-md p-6 sm:p-10 relative flex flex-col justify-between">
+
+                                    {/* Decorative Header Dots */}
+                                    <div className="text-[#FF9235] text-[14px] tracking-[7px] leading-tight font-serif select-none">
+                                        ••••<br />••••<br />••••
+                                    </div>
+
+                                    {/* Title & Subtitle */}
+                                    <div className="space-y-3 my-auto">
+                                        <h2 className="text-center font-serif font-bold text-[25px] sm:text-[35px] lg:text-[38px] text-[#0B123D] leading-tight">
+                                            Introduction to<br />Machine Learning
+                                        </h2>
+                                        <p className="text-center font-serif text-[16px] sm:text-[21px] text-[#0B123D]">
+                                            Discover the basics of Machine Learning
+                                        </p>
+                                    </div>
+
+                                    {/* Graphic Watermarks */}
+                                    <div className="flex items-center justify-between pt-6">
+                                        <div className="w-12 h-12 sm:w-20 sm:h-20 rounded-full border-2 border-[#00AFFF] flex items-center justify-center opacity-80" />
+                                        <div className="flex items-center -space-x-4">
+                                            <div className="w-10 h-10 sm:w-16 sm:h-16 rounded-full bg-[#8B60FF]" />
+                                            <div className="w-12 h-12 sm:w-20 sm:h-20 rounded-full bg-[#8C68FF]/30" />
+                                        </div>
+                                    </div>
+
+                                    {/* Custom Scrollbar visual element */}
+                                    <div className="hidden sm:block absolute right-3 top-4 w-[9px] h-[200px] bg-[#777B84] rounded-full" />
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    {/* DOCUMENT DETAILS CARD */}
+                    <div className="bg-white rounded-[16px] border border-[#E1E6F3] overflow-hidden">
+                        <div className="h-[56px] px-6 border-b border-[#E1E6F3] flex items-center">
+                            <h3 className="text-[18px] font-bold text-[#0B123D]">Document Details</h3>
+                        </div>
+
+                        <div className="p-4 sm:p-7 space-y-0 divide-y divide-[#E1E6F3]">
+
+                            {/* Row 1 */}
+                            <div className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                <span className="text-[13px] sm:text-[14px] text-[#64708C]">Resource Type</span>
+                                <span className="inline-block px-3 py-1 bg-[#00C58A]/10 text-[#00C58A] text-[12px] sm:text-[13px] font-semibold rounded-full w-fit">
+                                    Lecture Notes
+                                </span>
+                            </div>
+
+                            {/* Row 2 */}
+                            <div className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                <span className="text-[13px] sm:text-[14px] text-[#64708C]">Course</span>
+                                <span className="text-[14px] font-semibold text-[#0B123D]">
+                                    CSC 401 – Introduction to Machine Learning
+                                </span>
+                            </div>
+
+                            {/* Row 3 */}
+                            <div className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                <span className="text-[13px] sm:text-[14px] text-[#64708C]">Uploaded by</span>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-7 h-7 bg-[#245CFF] rounded-full text-white font-bold text-[12px] flex items-center justify-center">
+                                        Dr
+                                    </div>
+                                    <span className="text-[14px] font-semibold text-[#0B123D]">Dr. Amaka Osei</span>
+                                    <span className="px-2.5 py-0.5 bg-[#245CFF]/10 text-[#245CFF] text-[12px] font-semibold rounded-full">
+                                        Lecturer
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Row 4 */}
+                            <div className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                <span className="text-[13px] sm:text-[14px] text-[#64708C]">Year / Semester</span>
+                                <span className="text-[14px] font-semibold text-[#0B123D]">2023 / First Semester</span>
+                            </div>
+
+                            {/* Row 5 */}
+                            <div className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                <span className="text-[13px] sm:text-[14px] text-[#64708C]">File Size</span>
+                                <span className="text-[14px] font-semibold text-[#0B123D]">
+                                    2.4 MB · PDF Document · 24 pages
+                                </span>
+                            </div>
+
+                            {/* Row 6 */}
+                            <div className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                <span className="text-[13px] sm:text-[14px] text-[#64708C]">Downloads</span>
+                                <span className="text-[14px] font-semibold text-[#0B123D]">125 total · 18 this week</span>
+                            </div>
+
+                            {/* Row 7 */}
+                            <div className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                <span className="text-[13px] sm:text-[14px] text-[#64708C]">Tags</span>
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    {['Machine Learning', 'AI', 'Algorithms', 'CSC 401'].map((tag) => (
+                                        <span
+                                            key={tag}
+                                            className="px-3 py-1 bg-[#F3F4F6] border border-[#E1E6F3] text-[#0B123D] text-[12px] sm:text-[13px] rounded-full"
+                                        >
+                                            {tag}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    {/* DISCUSSION SECTION */}
+                    <div className="bg-white rounded-[16px] border border-[#E1E6F3] overflow-hidden">
+
+                        {/* DISCUSSION HEADER */}
+                        <div className="h-[60px] px-4 sm:px-7 border-b border-[#E1E6F3] flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <h3 className="text-[18px] sm:text-[20px] font-bold text-[#0B123D]">Discussion</h3>
+                                <span className="px-2.5 py-0.5 bg-[#245CFF]/10 text-[#245CFF] text-[12px] sm:text-[13px] font-bold rounded-full">
+                                    14 comments
+                                </span>
+                            </div>
+
+                            <div className="flex items-center gap-1.5 text-[13px] text-[#64708C]">
+                                <span>Sort by:</span>
+                                <button className="text-[#245CFF] font-semibold flex items-center gap-1">
+                                    Most Recent <ChevronDown className="w-3.5 h-3.5" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* COMMENTS CONTENT AREA */}
+                        <div className="p-4 sm:p-7 space-y-6">
+
+                            {/* COMMENT INPUT FORM */}
+                            <div className="flex gap-3 sm:gap-4 items-start">
+                                <div className="w-10 h-10 bg-[#245CFF] rounded-full text-white font-bold text-[15px] flex items-center justify-center flex-shrink-0">
+                                    JD
+                                </div>
+
+                                <div className="flex-1 bg-white rounded-[12px] border-2 border-[#245CFF] p-4 space-y-4">
+                                    <textarea
+                                        rows={3}
+                                        value={commentText}
+                                        onChange={(e) => setCommentText(e.target.value)}
+                                        className="w-full text-[14px] text-[#0B123D] placeholder-[#64708C] focus:outline-none resize-none leading-relaxed"
+                                    />
+
+                                    <div className="flex items-center justify-between pt-2 border-t border-[#E1E6F3]/50">
+                                        <div className="flex items-center gap-2">
+                                            <button className="w-7 h-7 bg-[#F3F4F6] rounded-[6px] text-[#64708C] font-bold flex items-center justify-center hover:bg-slate-200">
+                                                <Bold className="w-3.5 h-3.5" />
+                                            </button>
+                                            <button className="w-7 h-7 bg-[#F3F4F6] rounded-[6px] text-[#64708C] italic flex items-center justify-center hover:bg-slate-200">
+                                                <Italic className="w-3.5 h-3.5" />
+                                            </button>
+                                            <button className="w-7 h-7 bg-[#F3F4F6] rounded-[6px] text-[#64708C] flex items-center justify-center hover:bg-slate-200">
+                                                <LinkIcon className="w-3.5 h-3.5" />
+                                            </button>
+                                        </div>
+
+                                        <button className="px-5 py-2 bg-gradient-to-r from-[#7148FF] to-[#245CFF] text-white text-[14px] font-semibold rounded-[8px] hover:opacity-95">
+                                            Post Comment
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="h-[1px] bg-[#E1E6F3]" />
+
+                            {/* PINNED LECTURER COMMENT */}
+                            <div className="flex gap-3 sm:gap-4">
+                                <div className="w-10 h-10 bg-[#FF4869] rounded-full text-white font-bold text-[14px] flex items-center justify-center flex-shrink-0">
+                                    AO
+                                </div>
+
+                                <div className="flex-1 space-y-2.5">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <span className="text-[14px] font-bold text-[#0B123D]">Dr. Amaka Osei</span>
+                                        <span className="px-2 py-0.5 bg-[#FF4869]/10 text-[#FF4869] text-[12px] font-semibold rounded-full">
+                                            Lecturer
+                                        </span>
+                                        <span className="px-2 py-0.5 bg-[#FF9D25]/10 text-[#FF9D25] text-[12px] font-semibold rounded-full">
+                                            📌 Pinned
+                                        </span>
+                                        <span className="text-[13px] text-[#64708C]">3 days ago</span>
+                                    </div>
+
+                                    <div className="p-3.5 bg-[#FFF9F5] border border-[#FF9D25]/20 rounded-[12px]">
+                                        <p className="text-[14px] text-[#0B123D] leading-relaxed">
+                                            Welcome to this resource! These notes were prepared for the 2023/24 CSC 401 cohort. If you have questions or find any errors, please leave a comment below and I&apos;ll respond as soon as possible. For chapter-specific queries, mention the page number so I can help you faster. Happy studying! 🎓
+                                        </p>
+                                    </div>
+
+                                    <div className="flex items-center gap-5 text-[13px] text-[#64708C]">
+                                        <span className="flex items-center gap-1.5 cursor-pointer hover:text-[#0B123D]">
+                                            <ThumbsUp className="w-3.5 h-3.5" /> 24 likes
+                                        </span>
+                                        <button className="text-[#245CFF] font-semibold hover:underline">Reply</button>
+                                        <span>·</span>
+                                        <button className="text-[#64708C] hover:underline">Report</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="h-[1px] bg-[#E1E6F3]" />
+
+                            {/* THREADED COMMENT WITH REPLIES */}
+                            <div className="space-y-4">
+                                <div className="flex gap-3 sm:gap-4">
+                                    <div className="w-10 h-10 bg-[#7148FF] rounded-full text-white font-bold text-[14px] flex items-center justify-center flex-shrink-0">
+                                        KM
+                                    </div>
+
+                                    <div className="flex-1 space-y-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[14px] font-bold text-[#0B123D]">Kwame Mensah</span>
+                                            <span className="px-2 py-0.5 bg-[#7148FF]/10 text-[#7148FF] text-[12px] font-semibold rounded-full">
+                                                Student
+                                            </span>
+                                            <span className="text-[13px] text-[#64708C]">2 days ago</span>
+                                        </div>
+
+                                        <p className="text-[14px] text-[#0B123D] leading-relaxed">
+                                            Page 7 on the bias-variance tradeoff is super well explained. I&apos;d been struggling with this concept for weeks and this diagram finally made it click! Does anyone know if the original source paper for Figure 3 is cited somewhere?
+                                        </p>
+
+                                        <div className="flex items-center gap-5 text-[13px]">
+                                            <span className="text-[#245CFF] font-semibold flex items-center gap-1 cursor-pointer">
+                                                <ThumbsUp className="w-3.5 h-3.5" /> 9 likes
+                                            </span>
+                                            <button className="text-[#245CFF] font-semibold hover:underline">Reply</button>
+                                            <span className="text-[#B8BFCD]">·</span>
+                                            <button className="text-[#64708C] hover:underline">Report</button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* THREAD REPLIES CONTAINER */}
+                                <div className="pl-6 sm:pl-12 border-l-2 border-[#E1E6F3] space-y-4">
+
+                                    {/* Reply 1 */}
+                                    <div className="flex gap-3">
+                                        <div className="w-8 h-8 bg-[#FF4869] rounded-full text-white font-bold text-[12px] flex items-center justify-center flex-shrink-0">
+                                            AO
+                                        </div>
+                                        <div className="flex-1 space-y-1.5">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[13px] font-bold text-[#0B123D]">Dr. Amaka Osei</span>
+                                                <span className="px-2 py-0.5 bg-[#FF4869]/10 text-[#FF4869] text-[11px] font-semibold rounded-full">
+                                                    Lecturer
+                                                </span>
+                                                <span className="text-[12px] text-[#64708C]">2 days ago</span>
+                                            </div>
+                                            <div className="p-3 bg-[#F9FAFE] border border-[#E1E6F3] rounded-[10px]">
+                                                <p className="text-[13px] text-[#0B123D] leading-relaxed">
+                                                    @Kwame Great question! Figure 3 is adapted from Hastie et al. &quot;The Elements of Statistical Learning&quot; (2nd ed., 2009), p. 37. I&apos;ll add a formal citation in the next version of these notes.
+                                                </p>
+                                            </div>
+                                            <div className="flex items-center gap-4 text-[12px] text-[#64708C]">
+                                                <span className="flex items-center gap-1"><ThumbsUp className="w-3 h-3" /> 6</span>
+                                                <button className="text-[#245CFF] font-semibold hover:underline">Reply</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Reply 2 */}
+                                    <div className="flex gap-3">
+                                        <div className="w-8 h-8 bg-[#00C58A] rounded-full text-white font-bold text-[12px] flex items-center justify-center flex-shrink-0">
+                                            ZA
+                                        </div>
+                                        <div className="flex-1 space-y-1.5">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[13px] font-bold text-[#0B123D]">Zainab Aliyu</span>
+                                                <span className="px-2 py-0.5 bg-[#00C58A]/10 text-[#00C58A] text-[11px] font-semibold rounded-full">
+                                                    Student
+                                                </span>
+                                                <span className="text-[12px] text-[#64708C]">1 day ago</span>
+                                            </div>
+                                            <p className="text-[13px] text-[#0B123D] leading-relaxed">
+                                                Thanks for clarifying, Dr. Osei! That book has been on my reading list — now I have an extra reason to pick it up 😊
+                                            </p>
+                                            <div className="flex items-center gap-4 text-[12px] text-[#64708C]">
+                                                <span className="flex items-center gap-1"><ThumbsUp className="w-3 h-3" /> 3</span>
+                                                <button className="text-[#245CFF] font-semibold hover:underline">Reply</button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Active Reply Editor Box */}
+                                    <div className="flex gap-3">
+                                        <div className="w-8 h-8 bg-[#245CFF] rounded-full text-white font-bold text-[12px] flex items-center justify-center flex-shrink-0">
+                                            JD
+                                        </div>
+                                        <div className="flex-1 bg-white rounded-[10px] border-2 border-[#245CFF] p-3 space-y-3">
+                                            <div className="text-[13px] text-[#0B123D]">
+                                                <span className="text-[#245CFF] font-semibold">@Zainab</span> Same here! Also, the section on k-NN was really intuitive.
+                                            </div>
+                                            <div className="flex items-center justify-between border-t border-[#E1E6F3]/50 pt-2 text-[12px]">
+                                                <span className="text-[#B8BFCD]">Replying to Kwame&apos;s thread</span>
+                                                <div className="flex items-center gap-2">
+                                                    <button className="px-3 py-1.5 bg-[#F3F4F6] text-[#64708C] font-semibold rounded-[6px] hover:bg-slate-200">
+                                                        Cancel
+                                                    </button>
+                                                    <button className="px-3 py-1.5 bg-[#245CFF] text-white font-semibold rounded-[6px] hover:opacity-95">
+                                                        Post Reply
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div className="h-[1px] bg-[#E1E6F3]" />
+
+                            {/* FLAGGED / MODERATED COMMENT */}
+                            <div className="flex gap-3 sm:gap-4">
+                                <div className="w-10 h-10 bg-[#B8BFCD] rounded-full text-white font-bold text-[14px] flex items-center justify-center flex-shrink-0">
+                                    UN
+                                </div>
+
+                                <div className="flex-1 space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[14px] font-bold text-[#0B123D]">Unknown User</span>
+                                        <span className="px-2 py-0.5 bg-[#FF4869]/10 text-[#FF4869] text-[12px] font-semibold rounded-full flex items-center gap-1">
+                                            <Flag className="w-3 h-3" /> Flagged
+                                        </span>
+                                        <span className="text-[13px] text-[#64708C]">4 hours ago</span>
+                                    </div>
+
+                                    <div className="p-3.5 bg-[#FFF5F7] border border-[#FF4869]/20 rounded-[10px]">
+                                        <p className="text-[14px] text-[#64708C] italic">
+                                            [This comment has been flagged for review and is pending moderation.]
+                                        </p>
+                                    </div>
+
+                                    <div className="flex items-center gap-4 text-[13px]">
+                                        <button className="text-[#64708C] font-semibold hover:underline">Dismiss</button>
+                                        <span className="text-[#B8BFCD]">·</span>
+                                        <button className="text-[#FF4869] font-semibold hover:underline">Remove Comment</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="h-[1px] bg-[#E1E6F3]" />
+
+                            {/* USER'S OWN COMMENT */}
+                            <div className="flex gap-3 sm:gap-4">
+                                <div className="w-10 h-10 bg-[#245CFF] rounded-full text-white font-bold text-[14px] flex items-center justify-center flex-shrink-0">
+                                    JD
+                                </div>
+
+                                <div className="flex-1 space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[14px] font-bold text-[#0B123D]">John Doe</span>
+                                        <span className="px-2 py-0.5 bg-[#245CFF]/10 text-[#245CFF] text-[12px] font-semibold rounded-full">
+                                            You
+                                        </span>
+                                        <span className="text-[13px] text-[#64708C]">Just now</span>
+                                    </div>
+
+                                    <p className="text-[14px] text-[#0B123D] leading-relaxed">
+                                        These are hands-down the best ML notes I&apos;ve found on the platform. The visual on page 12 showing the decision boundary was especially helpful. Thank you Dr. Osei! 🙌
+                                    </p>
+
+                                    <div className="flex items-center gap-4 text-[13px] text-[#64708C]">
+                                        <span className="flex items-center gap-1"><ThumbsUp className="w-3.5 h-3.5" /> 0 likes</span>
+                                        <button className="text-[#245CFF] font-semibold hover:underline">Reply</button>
+                                        <span>·</span>
+                                        <button className="hover:underline">Edit</button>
+                                        <span>·</span>
+                                        <button className="text-[#FF4869] hover:underline">Delete</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* LOAD MORE COMMENTS BUTTON */}
+                            <div className="pt-2 flex justify-center">
+                                <button className="px-7 py-2.5 bg-white border border-[#E1E6F3] text-[#245CFF] text-[14px] font-semibold rounded-[8px] hover:bg-slate-50 transition-colors">
+                                    Load 9 more comments
+                                </button>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </main>
+
+                <Footer />
+
+                {/* MOBILE BOTTOM NAVIGATION BAR */}
+                <div className="lg:hidden fixed bottom-0 left-0 right-0 h-[64px] bg-white border-t border-[#E1E6F3] px-2 flex items-center justify-around z-40">
+                    <a href="/dashboard" className="flex flex-col items-center gap-1 text-[#64708C]">
+                        <Home className="w-5 h-5" />
+                        <span className="text-[10px]">Home</span>
+                    </a>
+                    <a href="/resources" className="flex flex-col items-center gap-1 text-[#245CFF] font-bold bg-[#E9EDFF] px-3 py-1 rounded-[8px]">
+                        <Search className="w-5 h-5" />
+                        <span className="text-[10px]">Search</span>
+                    </a>
+                    <a href="#" className="flex flex-col items-center gap-1 text-[#64708C]">
+                        <HelpCircle className="w-5 h-5" />
+                        <span className="text-[10px]">Questions</span>
+                    </a>
+                    <a href="#" className="flex flex-col items-center gap-1 text-[#64708C]">
+                        <Folder className="w-5 h-5" />
+                        <span className="text-[10px]">Projects</span>
+                    </a>
+                    <a href="#" className="flex flex-col items-center gap-1 text-[#64708C]">
+                        <BookOpen className="w-5 h-5" />
+                        <span className="text-[10px]">Knowledge</span>
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    );
+}
+```
+
+---
+
+# Section: Student Portal
+
+## 15. Student Dashboard
+
+- **Route**: `/student/dashboard`
+- **File**: `frontend/src/app/student/dashboard/page.tsx`
+- **Category**: Student Portal
+- **Description**: Personalized student home hub with quick access to course materials, recently opened files, announcements, and metrics.
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Sidebar from '@/components/layout/Sidebar';
+import {
+    Search,
+    FileText,
+    FolderGit2,
+    BookMarked,
+    Code,
+    Download,
+    Bookmark,
+    ChevronRight,
+    User,
+    Bell
+} from 'lucide-react';
+import Footer from '@/components/layout/footer';
+
+export default function StudentDashboardPage() {
+    const [query, setQuery] = useState('');
+    const [activeCategory, setActiveCategory] = useState('All');
+    const router = useRouter();
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (query.trim()) {
+            router.push(`/student/search?q=${encodeURIComponent(query)}`);
+        }
+    };
+
+    const categories = [
+        { name: 'All', active: activeCategory === 'All' },
+        { name: 'Past Questions', active: activeCategory === 'Past Questions' },
+        { name: 'Projects', active: activeCategory === 'Projects' },
+        { name: 'Lecture Notes', active: activeCategory === 'Lecture Notes' },
+        { name: 'Code Samples', active: activeCategory === 'Code Samples' },
+    ];
+
+    const metrics = [
+        { label: 'Total Resources', count: '1,250', bgColor: 'rgba(0, 197, 138, 0.09)', iconColor: '#00C58A', icon: FileText },
+        { label: 'Downloads', count: '45', bgColor: 'rgba(36, 92, 255, 0.09)', iconColor: '#245CFF', icon: Download },
+        { label: 'Bookmarks', count: '12', bgColor: 'rgba(255, 146, 53, 0.09)', iconColor: '#FF9235', icon: Bookmark },
+        { label: 'Recent Searches', count: '8', bgColor: 'rgba(36, 92, 255, 0.09)', iconColor: '#245CFF', icon: Search },
+    ];
+
+    const popularCollectionCards = [
+        { title: 'Past Questions', badgeBg: '#FF4869', lightBg: 'rgba(255, 72, 105, 0.09)', icon: FileText, cat: 'past-questions' },
+        { title: 'Projects', badgeBg: '#7148FF', lightBg: 'rgba(113, 72, 255, 0.09)', icon: FolderGit2, cat: 'projects' },
+        { title: 'Lecture Notes', badgeBg: '#00C58A', lightBg: 'rgba(0, 197, 138, 0.09)', icon: BookMarked, cat: 'lecture-notes' },
+        { title: 'Code Samples', badgeBg: '#245CFF', lightBg: 'rgba(36, 92, 255, 0.09)', icon: Code, cat: 'code-samples' },
+    ];
+
+    return (
+        <div className="w-full min-h-screen bg-[#F6F8FF] flex font-sans text-[#0B123D]">
+
+            {/* 1. REUSABLE DASHBOARD SIDEBAR */}
+            <Sidebar userRole="student" userName="John Doe" userCode="Student" />
+
+            {/* MAIN CONTAINER */}
+            <div className="flex-1 flex flex-col min-w-0">
+
+                {/* TOP DASHBOARD APP BAR */}
+                <header className="h-[76px] bg-white border-b border-[#E1E6F3] px-6 sm:px-8 flex items-center justify-between sticky top-0 z-30">
+                    <form onSubmit={handleSearch} className="w-full max-w-[620px]">
+                        <div className="h-[43px] px-4 bg-white rounded-[8px] border border-[#E1E6F3] flex items-center gap-3 focus-within:ring-2 focus-within:ring-[#245CFF]">
+                            <Search className="w border-none text-[#64708C] w-[18px] h-[18px]" />
+                            <input
+                                type="text"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                placeholder="Search for resources, topics, or keywords..."
+                                className="w-full bg-transparent text-[14px] text-[#0B123D] placeholder-[#64708C] focus:outline-none"
+                            />
+                        </div>
+                    </form>
+
+                    {/* User Profile Pill */}
+                    <div className="flex items-center gap-4">
+                        <button className="p-2 text-[#0B123D] hover:bg-slate-50 rounded-lg">
+                            <Bell className="w-[20px] h-[20px]" />
+                        </button>
+                        <div className="flex items-center gap-3 border-l border-[#E1E6F3] pl-4">
+                            <div className="w-[38px] h-[40px] rounded-[22px] bg-[#245CFF]/10 text-[#245CFF] font-bold flex items-center justify-center text-sm">
+                                JD
+                            </div>
+                            <div className="hidden sm:flex flex-col">
+                                <span className="text-[14px] font-bold leading-[20.3px] text-[#0B123D]">John Doe</span>
+                                <span className="text-[12px] text-[#64708C]">Student</span>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                {/* DASHBOARD CONTENT AREA */}
+                <main className="p-6 sm:p-[32px] space-y-[26px] flex-1">
+
+                    {/* BANNER WITH SEARCH ENGINE & PILLS */}
+                    <div className="relative p-6 sm:p-[36px] bg-gradient-to-br from-[#DDF7FE] via-[#E7DCFF] to-[#D6F6FF] rounded-[16px] flex flex-col gap-[24px] overflow-hidden border border-[#E1E6F3]/50">
+                        <div className="space-y-2">
+                            <h1 className="text-[26px] sm:text-[31px] font-bold leading-[44.95px] text-[#0B123D]">
+                                Welcome Back, John!
+                            </h1>
+                            <p className="text-[16px] sm:text-[18px] font-normal text-[#0B123D]">
+                                What would you like to explore today?
+                            </p>
+                        </div>
+
+                        {/* Banner Search Box */}
+                        <form onSubmit={handleSearch} className="w-full h-[60px] pl-[17px] pr-[6px] bg-white rounded-full flex items-center justify-between gap-3 border border-[#E1E6F3]/50 shadow-sm focus-within:ring-2 focus-within:ring-[#245CFF]">
+                            <input
+                                type="text"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                placeholder="Search for resources, topics, or keywords..."
+                                className="w-full bg-transparent text-[15px] text-[#0B123D] placeholder-[#64708C] focus:outline-none"
+                            />
+                            <button type="submit" className="w-[47px] h-[47px] bg-[#245CFF] rounded-full flex items-center justify-center text-white hover:bg-blue-700 transition-colors">
+                                <Search className="w-[22px] h-[22px]" />
+                            </button>
+                        </form>
+
+                        {/* Category Filter Pills */}
+                        <div className="flex flex-wrap items-center gap-[12px]">
+                            {categories.map((cat, idx) => (
+                                <button
+                                    key={idx}
+                                    type="button"
+                                    onClick={() => {
+                                        setActiveCategory(cat.name);
+                                        if (cat.name !== 'All') {
+                                            router.push(`/student/search?category=${encodeURIComponent(cat.name.toLowerCase().replace(' ', '-'))}`);
+                                        }
+                                    }}
+                                    className={`px-[20px] py-[9px] rounded-full text-[14px] font-semibold transition-all ${cat.active
+                                        ? 'bg-[#245CFF] text-white border border-[#245CFF]'
+                                        : 'bg-white text-[#0B123D] border border-[#E1E6F3] hover:border-[#245CFF]'
+                                        }`}
+                                >
+                                    {cat.name}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* 4 METRICS CARDS GRID */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[20px]">
+                        {metrics.map((item, idx) => (
+                            <div
+                                key={idx}
+                                className="h-[123px] p-[22px] bg-white rounded-[16px] shadow-[0px_5px_18px_rgba(39,63,121,0.06)] border border-[#E1E6F3]/50 flex items-center gap-[18px]"
+                            >
+                                <div
+                                    style={{ backgroundColor: item.bgColor }}
+                                    className="w-[56px] h-[58px] rounded-[14px] flex items-center justify-center flex-shrink-0"
+                                >
+                                    <item.icon style={{ color: item.iconColor }} className="w-[29px] h-[29px]" />
+                                </div>
+                                <div className="flex flex-col gap-0.5">
+                                    <span className="text-[30px] font-bold leading-[43.5px] text-[#0B123D]">{item.count}</span>
+                                    <span className="text-[14px] text-[#64708C] font-normal">{item.label}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* POPULAR CATEGORIES SECTION */}
+                    <div className="space-y-[20px]">
+                        <h2 className="text-[27px] font-bold leading-[39.15px] text-[#0B123D]">
+                            Popular Categories
+                        </h2>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[20px]">
+                            {popularCollectionCards.map((card, idx) => (
+                                <div
+                                    key={idx}
+                                    onClick={() => router.push(`/student/search?category=${card.cat}`)}
+                                    className="h-[138px] p-[22px] bg-white rounded-[16px] shadow-[0px_5px_18px_rgba(39,63,121,0.06)] border border-[#E1E6F3]/50 flex items-center gap-[18px] cursor-pointer hover:border-[#245CFF] transition-all group"
+                                >
+                                    {/* Category Square Badge */}
+                                    <div
+                                        style={{ backgroundColor: card.lightBg }}
+                                        className="w-[56px] h-[61px] rounded-[14px] flex items-center justify-center flex-shrink-0"
+                                    >
+                                        <div
+                                            style={{ backgroundColor: card.badgeBg }}
+                                            className="w-[36px] h-[43px] rounded-[7px] flex items-center justify-center text-white"
+                                        >
+                                            <card.icon className="w-[22px] h-[22px]" />
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col gap-1">
+                                        <h3 className="text-[17px] font-bold text-[#0B123D] group-hover:text-[#245CFF] transition-colors">
+                                            {card.title}
+                                        </h3>
+                                        <span className="text-[14px] text-[#64708C]">View Collection</span>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                </main>
+                <Footer />
+
+            </div>
+        </div>
+    );
+}
+```
+
+---
+
+## 16. Student Search & Discovery
+
+- **Route**: `/student/search`
+- **File**: `frontend/src/app/student/search/page.tsx`
+- **Category**: Student Portal
+- **Description**: Advanced full-text search and filter interface with multi-criteria filtering by semester, course, level, and file type.
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Sidebar from '@/components/layout/Sidebar';
+import {
+    Search,
+    FileText,
+    FolderGit2,
+    BookMarked,
+    Code,
+    Bell
+} from 'lucide-react';
+import Footer from '@/components/layout/footer';
+
+export default function SearchResultsPage() {
+    const searchParams = useSearchParams();
+    const initialQuery = searchParams.get('q') || 'machine learning';
+    const [query, setQuery] = useState(initialQuery);
+
+    const [selectedType, setSelectedType] = useState('All');
+    const [selectedDept, setSelectedDept] = useState('All Departments');
+    const [selectedYear, setSelectedYear] = useState('All Years');
+    const router = useRouter();
+
+    const handleSearch = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (query.trim()) {
+            router.push(`/student/search?q=${encodeURIComponent(query)}`);
+        }
+    };
+
+    const results = [
+        {
+            id: '1',
+            title: 'Introduction to Machine Learning - Lecture Notes',
+            type: 'Lecture Notes',
+            badgeBg: '#FF4869',
+            lightBg: 'rgba(255, 72, 105, 0.09)',
+            icon: BookMarked,
+            size: '2.4 MB',
+            year: '2023',
+            downloads: '125',
+            desc: 'Comprehensive lecture notes covering the basic concepts of machine learning, including supervised and unsupervised learning and practical examples.',
+        },
+        {
+            id: '2',
+            title: 'Machine Learning Past Questions (2020 - 2023)',
+            type: 'Past Questions',
+            badgeBg: '#FF7148',
+            lightBg: 'rgba(255, 113, 72, 0.09)',
+            icon: FileText,
+            size: '1.8 MB',
+            year: '2020 - 2023',
+            downloads: '340',
+            desc: 'A collection of past examination questions covering core topics, algorithms and practical applications of machine learning.',
+        },
+        {
+            id: '3',
+            title: 'Student Project: ML-Based Image Classifier',
+            type: 'Project',
+            badgeBg: '#00C58A',
+            lightBg: 'rgba(0, 197, 138, 0.09)',
+            icon: FolderGit2,
+            size: '5.6 MB',
+            year: '2023',
+            downloads: '86',
+            desc: 'An image classification project using machine learning techniques, complete with source code, implementation details and results.',
+        },
+        {
+            id: '4',
+            title: 'Python Implementation of ML Algorithms',
+            type: 'Code Samples',
+            badgeBg: '#AB4AFF',
+            lightBg: 'rgba(171, 74, 255, 0.09)',
+            icon: Code,
+            size: '1.2 MB',
+            year: '2023',
+            downloads: '210',
+            desc: 'Practical Python implementations of popular machine learning algorithms, with clear explanations and examples.',
+        },
+    ];
+
+    return (
+        <div className="w-full min-h-screen bg-[#F6F8FF] flex font-sans text-[#0B123D]">
+
+            {/* 1. REUSABLE SIDEBAR */}
+            <Sidebar userRole="student" userName="John Doe" userCode="Student" />
+
+            {/* MAIN CONTENT AREA */}
+            <div className="flex-1 flex flex-col min-w-0">
+
+                {/* HEADER BAR */}
+                <header className="h-[76px] bg-white border-b border-[#E1E6F3] px-6 sm:px-8 flex items-center justify-between sticky top-0 z-30">
+                    <form onSubmit={handleSearch} className="w-full max-w-[620px]">
+                        <div className="h-[43px] px-4 bg-white rounded-[8px] border border-[#E1E6F3] flex items-center gap-3 focus-within:ring-2 focus-within:ring-[#245CFF]">
+                            <Search className="text-[#64708C] w-[18px] h-[18px]" />
+                            <input
+                                type="text"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                placeholder="Search for resources, topics, or keywords..."
+                                className="w-full bg-transparent text-[14px] text-[#0B123D] placeholder-[#64708C] focus:outline-none"
+                            />
+                        </div>
+                    </form>
+
+                    <div className="flex items-center gap-4">
+                        <button className="p-2 text-[#0B123D] hover:bg-slate-50 rounded-lg">
+                            <Bell className="w-[20px] h-[20px]" />
+                        </button>
+                        <div className="flex items-center gap-3 border-l border-[#E1E6F3] pl-4">
+                            <div className="w-[38px] h-[40px] rounded-[22px] bg-[#245CFF]/10 text-[#245CFF] font-bold flex items-center justify-center text-sm">
+                                JD
+                            </div>
+                            <div className="hidden sm:flex flex-col">
+                                <span className="text-[14px] font-bold text-[#0B123D]">John Doe</span>
+                                <span className="text-[12px] text-[#64708C]">Student</span>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                {/* BODY CONTAINER (FILTERS COLUMN + RESULTS FEED) */}
+                <main className="p-6 sm:p-[32px] flex-1 flex flex-col xl:flex-row gap-[26px]">
+
+                    {/* 2. FILTERS COLUMN */}
+                    <div className="w-full xl:w-[233px] p-[18px] bg-white rounded-[16px] border border-[#E1E6F3] flex-shrink-0 space-y-[27px]">
+                        <div className="text-[20px] font-bold text-[#0B123D] border-b border-[#E1E6F3] pb-3 flex items-center justify-between">
+                            <span>Filters</span>
+                            <span className="text-sm font-normal text-[#64708C]">↔</span>
+                        </div>
+
+                        {/* Filter Group: Resource Type */}
+                        <div className="space-y-3">
+                            <h3 className="text-[16px] font-bold text-[#0B123D]">Resource Type</h3>
+                            {['All', 'Past Questions', 'Projects', 'Lecture Notes', 'Code Samples'].map((type) => (
+                                <label key={type} className="flex items-center gap-3 cursor-pointer text-[14px] text-[#64708C]">
+                                    <input
+                                        type="radio"
+                                        name="resourceType"
+                                        checked={selectedType === type}
+                                        onChange={() => setSelectedType(type)}
+                                        className="w-[18px] h-[18px] accent-[#245CFF]"
+                                    />
+                                    <span>{type}</span>
+                                </label>
+                            ))}
+                        </div>
+
+                        {/* Filter Group: Department */}
+                        <div className="space-y-3">
+                            <h3 className="text-[16px] font-bold text-[#0B123D]">Department</h3>
+                            {['All Departments', 'Artificial Intelligence', 'Software Engineering', 'Computer Networks', 'Database Systems'].map((dept) => (
+                                <label key={dept} className="flex items-center gap-3 cursor-pointer text-[14px] text-[#64708C]">
+                                    <input
+                                        type="radio"
+                                        name="department"
+                                        checked={selectedDept === dept}
+                                        onChange={() => setSelectedDept(dept)}
+                                        className="w-[18px] h-[18px] accent-[#245CFF]"
+                                    />
+                                    <span>{dept}</span>
+                                </label>
+                            ))}
+                        </div>
+
+                        {/* Filter Group: Year */}
+                        <div className="space-y-3">
+                            <h3 className="text-[16px] font-bold text-[#0B123D]">Year</h3>
+                            {['All Years', '2023', '2022', '2021', '2020', '2019'].map((yr) => (
+                                <label key={yr} className="flex items-center gap-3 cursor-pointer text-[14px] text-[#64708C]">
+                                    <input
+                                        type="radio"
+                                        name="year"
+                                        checked={selectedYear === yr}
+                                        onChange={() => setSelectedYear(yr)}
+                                        className="w-[18px] h-[18px] accent-[#245CFF]"
+                                    />
+                                    <span>{yr}</span>
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* 3. SEARCH RESULTS LIST */}
+                    <div className="flex-1 space-y-[18px]">
+
+                        {/* Title & Count Header */}
+                        <div className="space-y-2">
+                            <h1 className="text-[23px] sm:text-[27px] font-bold leading-[39.15px] text-[#0B123D]">
+                                Search Results for ”{query}“
+                            </h1>
+
+                            <div className="flex items-center justify-between text-[14px] sm:text-[15px] text-[#64708C]">
+                                <span>Found 124 results</span>
+                                <div className="flex items-center gap-3">
+                                    <span>Sort by:</span>
+                                    <div className="px-4 py-2 bg-white rounded-[7px] border border-[#E1E6F3] text-[#0B123D] font-normal cursor-pointer text-sm">
+                                        Relevance ⌄
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Results Feed */}
+                        <div className="space-y-[16px]">
+                            {results.map((item) => (
+                                <div
+                                    key={item.id}
+                                    className="p-5 sm:p-[20px] bg-white rounded-[16px] border border-[#E1E6F3]/60 shadow-[0px_5px_18px_rgba(39,63,121,0.04)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-[#245CFF] transition-all group"
+                                >
+                                    <div className="flex items-start gap-4 flex-1">
+                                        {/* Icon Badge */}
+                                        <div
+                                            style={{ backgroundColor: item.lightBg }}
+                                            className="w-[66px] h-[71px] rounded-[14px] flex items-center justify-center flex-shrink-0"
+                                        >
+                                            <div
+                                                style={{ backgroundColor: item.badgeBg }}
+                                                className="w-[43px] h-[51px] rounded-[7px] flex items-center justify-center text-white"
+                                            >
+                                                <item.icon className="w-[26px] h-[26px]" />
+                                            </div>
+                                        </div>
+
+                                        {/* Metadata & Summary */}
+                                        <div className="space-y-2 flex-1">
+                                            <h3 className="text-[18px] font-bold leading-[26.1px] text-[#0B123D] group-hover:text-[#245CFF] transition-colors">
+                                                {item.title}
+                                            </h3>
+
+                                            <div className="text-[12px] sm:text-[13px] text-[#64708C] flex flex-wrap items-center gap-2 font-normal">
+                                                <span>{item.type}</span>
+                                                <span>•</span>
+                                                <span>{item.size}</span>
+                                                <span>•</span>
+                                                <span>{item.year}</span>
+                                                <span>•</span>
+                                                <span>{item.downloads} downloads</span>
+                                            </div>
+
+                                            <p className="text-[13px] sm:text-[14px] text-[#64708C] leading-[20.3px] line-clamp-2">
+                                                {item.desc}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {/* Gradient View Button matching Figma */}
+                                    <button className="w-full sm:w-auto h-[48px] px-6 bg-gradient-to-r from-[#7148FF] to-[#245CFF] rounded-[8px] text-white text-[16px] font-semibold flex items-center justify-center hover:opacity-95 transition-opacity shadow-sm">
+                                        View
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+
+                    </div>
+
+                </main>
+
+                <Footer />
+
+            </div>
+        </div>
+    );
+}
+```
+
+---
+
+# Section: Staff / Lecturer Portal
+
+## 17. Staff Dashboard
+
+- **Route**: `/staff/dashboard`
+- **File**: `frontend/src/app/staff/dashboard/page.tsx`
+- **Category**: Staff / Lecturer Portal
+- **Description**: Lecturer portal displaying upload metrics, student engagement stats, recent uploads, and quick action shortcuts.
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import Sidebar from '@/components/layout/Sidebar';
+import {
+    Search,
+    FileText,
+    Clock,
+    Download,
+    Users,
+    Bell
+} from 'lucide-react';
+import Footer from '@/components/layout/footer';
+
+export default function StaffDashboardPage() {
+    const [query, setQuery] = useState('');
+
+    const metrics = [
+        { label: 'Total Resources', count: '320', bgColor: 'rgba(0, 197, 138, 0.09)', iconColor: '#00C58A', icon: FileText },
+        { label: 'Pending Review', count: '28', bgColor: 'rgba(255, 146, 53, 0.09)', iconColor: '#FF9235', icon: Clock },
+        { label: 'Total Downloads', count: '1,250', bgColor: 'rgba(36, 92, 255, 0.09)', iconColor: '#245CFF', icon: Download },
+        { label: 'Active Users', count: '85', bgColor: 'rgba(113, 72, 255, 0.09)', iconColor: '#7148FF', icon: Users },
+    ];
+
+    return (
+        <div className="w-full min-h-screen bg-[#F6F8FF] flex font-sans text-[#0B123D]">
+
+            {/* SIDEBAR */}
+            <Sidebar userRole="staff" userName="Dr. Smith" userCode="Staff" />
+
+            {/* MAIN CONTAINER */}
+            <div className="flex-1 flex flex-col min-w-0">
+
+                {/* HEADER APP BAR */}
+                <header className="h-[76px] bg-white border-b border-[#E1E6F3] px-6 sm:px-8 flex items-center justify-between sticky top-0 z-30">
+                    <div className="w-full max-w-[620px]">
+                        <div className="h-[44px] px-3 bg-white rounded-[8px] border border-[#E1E6F3] flex items-center gap-[10px] focus-within:ring-2 focus-within:ring-[#245CFF]">
+                            <Search className="w-[18px] h-[18px] text-[#64708C]" />
+                            <input
+                                type="text"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                placeholder="Search for resources, topics, or keywords..."
+                                className="w-full bg-transparent text-[12px] sm:text-[14px] text-[#0B123D] placeholder-[#64708C] focus:outline-none"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        <button className="p-2 text-[#0B123D] hover:bg-slate-50 rounded-lg">
+                            <Bell className="w-[20px] h-[20px]" />
+                        </button>
+                        <div className="flex items-center gap-3 border-l border-[#E1E6F3] pl-4">
+                            <div className="w-[32px] h-[34px] rounded-[22px] bg-[#245CFF]/10 text-[#245CFF] font-bold flex items-center justify-center text-xs">
+                                DS
+                            </div>
+                            <div className="hidden sm:flex flex-col">
+                                <span className="text-[12px] font-bold text-[#0B123D]">Dr. Smith</span>
+                                <span className="text-[11px] text-[#64708C]">Staff</span>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                {/* DASHBOARD CONTENT */}
+                <main className="p-6 sm:p-[32px] space-y-[26px] flex-1">
+
+                    {/* WELCOME BANNER */}
+                    <div className="relative p-8 sm:p-[36px] bg-gradient-to-br from-[#DDF7FE] via-[#E7DCFF] to-[#D6F6FF] rounded-[16px] flex flex-col gap-2 overflow-hidden border border-[#E1E6F3]/50">
+                        <h1 className="text-[26px] sm:text-[31px] font-bold leading-[44.95px] text-[#0B123D]">
+                            Welcome, Dr. Smith!
+                        </h1>
+                        <p className="text-[16px] sm:text-[18px] font-normal text-[#0B123D]">
+                            Manage and contribute to the CSE Resource Hub
+                        </p>
+                    </div>
+
+                    {/* METRIC CARDS */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[18px]">
+                        {metrics.map((item, idx) => (
+                            <div
+                                key={idx}
+                                className="h-[123px] p-[22px] bg-white rounded-[16px] shadow-[0px_5px_18px_rgba(39,63,121,0.06)] border border-[#E1E6F3]/50 flex items-center gap-[18px]"
+                            >
+                                <div
+                                    style={{ backgroundColor: item.bgColor }}
+                                    className="w-[56px] h-[58px] rounded-[14px] flex items-center justify-center flex-shrink-0"
+                                >
+                                    <item.icon style={{ color: item.iconColor }} className="w-[29px] h-[29px]" />
+                                </div>
+                                <div className="flex flex-col gap-0.5">
+                                    <span className="text-[30px] font-bold leading-[43.5px] text-[#0B123D]">{item.count}</span>
+                                    <span className="text-[14px] text-[#64708C] font-normal">{item.label}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                </main>
+
+                {/* FOOTER LINKS */}
+                <Footer />
+
+            </div>
+        </div>
+    );
+}
+```
+
+---
+
+## 18. Staff Resource Upload
+
+- **Route**: `/staff/upload`
+- **File**: `frontend/src/app/staff/upload/page.tsx`
+- **Category**: Staff / Lecturer Portal
+- **Description**: Resource publishing portal for lecturers to upload course lecture notes, past questions, syllabus, and assignment files.
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import Sidebar from '@/components/layout/Sidebar';
+import {
+    Check,
+    RotateCw,
+    ChevronDown,
+    X,
+    FileCheck2,
+    Send,
+    HelpCircle,
+    Bell,
+    Search
+} from 'lucide-react';
+import Footer from '@/components/layout/footer';
+
+export default function UploadResourcePage() {
+    const [title, setTitle] = useState('Introduction to Algorithms — Lecture Notes 2024');
+    const [description, setDescription] = useState(
+        'Comprehensive lecture notes covering sorting, graph algorithms, dynamic programming, and complexity analysis for Year 2 CS students.'
+    );
+    const [course, setCourse] = useState('CS201 — Data Structures & Algorithms');
+    const [category, setCategory] = useState('Lecture Notes');
+    const [academicYear, setAcademicYear] = useState('2024 / 2025');
+    const [resourceType, setResourceType] = useState('Document');
+    const [tags, setTags] = useState(['algorithms', 'data-structures', 'CS201', 'Year 2']);
+    const [tagInput, setTagInput] = useState('');
+    const [visibility, setVisibility] = useState<'public' | 'course' | 'staff'>('public');
+
+    const removeTag = (tagToRemove: string) => {
+        setTags(tags.filter((t) => t !== tagToRemove));
+    };
+
+    const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if ((e.key === 'Enter' || e.key === ',') && tagInput.trim()) {
+            e.preventDefault();
+            const newTag = tagInput.trim().replace(',', '');
+            if (!tags.includes(newTag) && tags.length < 10) {
+                setTags([...tags, newTag]);
+            }
+            setTagInput('');
+        }
+    };
+
+    return (
+        <div className="w-full min-h-screen bg-[#F6F8FF] flex font-sans text-[#0B123D]">
+
+            {/* SIDEBAR */}
+            <Sidebar userRole="staff" userName="Dr. Smith" userCode="Staff" />
+
+            {/* MAIN CONTAINER */}
+            <div className="flex-1 flex flex-col min-w-0">
+
+                {/* HEADER */}
+                <header className="h-[76px] bg-white border-b border-[#E1E6F3] px-6 sm:px-8 flex items-center justify-between sticky top-0 z-30">
+                    <div className="w-full max-w-[620px]">
+                        <div className="h-[44px] px-3 bg-white rounded-[8px] border border-[#E1E6F3] flex items-center gap-[10px]">
+                            <Search className="w-[18px] h-[18px] text-[#64708C]" />
+                            <input
+                                type="text"
+                                placeholder="Search for resources, topics, or keywords..."
+                                className="w-full bg-transparent text-[12px] sm:text-[14px] text-[#0B123D] placeholder-[#64708C] focus:outline-none"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                        <button className="p-2 text-[#0B123D] hover:bg-slate-50 rounded-lg">
+                            <Bell className="w-[20px] h-[20px]" />
+                        </button>
+                        <div className="flex items-center gap-3 border-l border-[#E1E6F3] pl-4">
+                            <div className="w-[32px] h-[34px] rounded-[22px] bg-[#245CFF]/10 text-[#245CFF] font-bold flex items-center justify-center text-xs">
+                                DS
+                            </div>
+                            <div className="hidden sm:flex flex-col">
+                                <span className="text-[12px] font-bold text-[#0B123D]">Dr. Smith</span>
+                                <span className="text-[11px] text-[#64708C]">Staff</span>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                {/* UPLOADER PAGE LAYOUT */}
+                <main className="p-6 sm:p-[32px] space-y-[26px] flex-1">
+
+                    {/* TOP PAGE TITLE & STEPPER */}
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <h1 className="text-[26px] font-bold text-[#0B123D]">Upload New Resource</h1>
+
+                        {/* Stepper Pills */}
+                        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                            <div className="flex items-center gap-1.5 text-[#245CFF] text-[13px] font-semibold">
+                                <div className="w-7 h-7 bg-[#245CFF] rounded-full flex items-center justify-center text-white text-xs">
+                                    <Check className="w-3.5 h-3.5" />
+                                </div>
+                                <span>Upload File</span>
+                            </div>
+                            <div className="w-8 h-[2px] bg-[#245CFF]" />
+
+                            <div className="flex items-center gap-1.5 text-[#245CFF] text-[13px] font-semibold">
+                                <div className="w-7 h-7 bg-[#245CFF] rounded-full flex items-center justify-center text-white text-xs font-bold">
+                                    2
+                                </div>
+                                <span>Resource Details</span>
+                            </div>
+                            <div className="w-8 h-[2px] bg-[#C5CEED]" />
+
+                            <div className="flex items-center gap-1.5 text-[#64708C] text-[13px] font-semibold">
+                                <div className="w-7 h-7 bg-[#E1E6F3] rounded-full flex items-center justify-center text-[#64708C] text-xs font-bold">
+                                    3
+                                </div>
+                                <span>Review & Submit</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* CONTENT GRID: MAIN FORM (LEFT) + SIDE GUIDELINES (RIGHT) */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-[20px] items-start">
+
+                        {/* FORM COLUMN (LEFT 8 COLUMNS) */}
+                        <div className="lg:col-span-8 space-y-[20px]">
+
+                            {/* FILE UPLOADED CARD */}
+                            <div className="p-5 bg-white rounded-[8px] border border-[#245CFF] flex flex-col gap-[12px]">
+                                <div className="flex items-center justify-between flex-wrap gap-2">
+                                    <div className="flex items-center gap-3">
+                                        <span className="px-2.5 py-1 bg-[#E9EDFF] text-[#245CFF] text-[12px] font-bold rounded-[6px]">
+                                            PDF
+                                        </span>
+                                        <div className="flex flex-col">
+                                            <span className="text-[14px] font-semibold text-[#0B123D]">Introduction_to_Algorithms_2024.pdf</span>
+                                            <span className="text-[12px] text-[#64708C]">3.4 MB · Uploaded successfully</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="px-3 py-1 bg-[#E6FAF4] text-[#00C58A] rounded-full text-[12px] font-semibold flex items-center gap-1.5">
+                                        <Check className="w-3.5 h-3.5" />
+                                        <span>File Ready</span>
+                                    </div>
+                                </div>
+
+                                {/* Progress bar */}
+                                <div className="w-full h-[6px] bg-[#E9EDFF] rounded-full overflow-hidden">
+                                    <div className="w-full h-full bg-[#245CFF]" />
+                                </div>
+
+                                <div className="flex items-center gap-2 text-[13px]">
+                                    <RotateCw className="w-3.5 h-3.5 text-[#64708C]" />
+                                    <span className="text-[#64708C]">Wrong file?</span>
+                                    <button type="button" className="text-[#245CFF] font-semibold hover:underline">
+                                        Replace file
+                                    </button>
+                                    <span className="text-[#64708C]">· Supported: PDF, DOC, DOCX, PPT, ZIP, RAR, JPG, PNG (Max 20MB)</span>
+                                </div>
+                            </div>
+
+                            {/* RESOURCE DETAILS CARD */}
+                            <div className="p-[24px] bg-white rounded-[12px] border border-[#E1E6F3] flex flex-col gap-[18px]">
+                                <h2 className="text-[16px] font-bold text-[#0B123D]">Resource Details</h2>
+
+                                {/* Title */}
+                                <div className="flex flex-col gap-[6px]">
+                                    <label className="text-[13px] font-bold text-[#0B123D] flex items-center gap-1">
+                                        Title <span className="text-[#245CFF]">*</span>
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={title}
+                                        onChange={(e) => setTitle(e.target.value)}
+                                        className="w-full h-[43px] px-3.5 bg-white rounded-[8px] border border-[#E1E6F3] text-[14px] text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
+                                    />
+                                </div>
+
+                                {/* Description */}
+                                <div className="flex flex-col gap-[6px]">
+                                    <label className="text-[13px] font-bold text-[#0B123D] flex items-center gap-1">
+                                        Description <span className="text-[#245CFF]">*</span>
+                                    </label>
+                                    <textarea
+                                        rows={3}
+                                        value={description}
+                                        onChange={(e) => setDescription(e.target.value)}
+                                        className="w-full p-3.5 bg-white rounded-[8px] border border-[#E1E6F3] text-[14px] text-[#0B123D] focus:outline-none focus:border-[#245CFF] resize-none"
+                                    />
+                                    <span className="text-[12px] text-[#64708C] self-end">{description.length} / 500 characters</span>
+                                </div>
+
+                                {/* Select Inputs Row 1 */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
+                                    <div className="flex flex-col gap-[6px]">
+                                        <label className="text-[13px] font-bold text-[#0B123D] flex items-center gap-1">
+                                            Course <span className="text-[#245CFF]">*</span>
+                                        </label>
+                                        <div className="relative">
+                                            <select
+                                                value={course}
+                                                onChange={(e) => setCourse(e.target.value)}
+                                                className="w-full h-[43px] px-3.5 bg-white rounded-[8px] border border-[#E1E6F3] text-[14px] text-[#0B123D] appearance-none focus:outline-none focus:border-[#245CFF]"
+                                            >
+                                                <option>CS201 — Data Structures & Algorithms</option>
+                                                <option>CS301 — Database Systems</option>
+                                            </select>
+                                            <ChevronDown className="w-4 h-4 text-[#64708C] absolute right-3 top-3.5 pointer-events-none" />
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col gap-[6px]">
+                                        <label className="text-[13px] font-bold text-[#0B123D] flex items-center gap-1">
+                                            Category <span className="text-[#245CFF]">*</span>
+                                        </label>
+                                        <div className="relative">
+                                            <select
+                                                value={category}
+                                                onChange={(e) => setCategory(e.target.value)}
+                                                className="w-full h-[43px] px-3.5 bg-white rounded-[8px] border border-[#E1E6F3] text-[14px] text-[#0B123D] appearance-none focus:outline-none focus:border-[#245CFF]"
+                                            >
+                                                <option>Lecture Notes</option>
+                                                <option>Past Questions</option>
+                                                <option>Projects</option>
+                                                <option>Code Samples</option>
+                                            </select>
+                                            <ChevronDown className="w-4 h-4 text-[#64708C] absolute right-3 top-3.5 pointer-events-none" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Select Inputs Row 2 */}
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-[16px]">
+                                    <div className="flex flex-col gap-[6px]">
+                                        <label className="text-[13px] font-bold text-[#0B123D]">Academic Year</label>
+                                        <div className="relative">
+                                            <select
+                                                value={academicYear}
+                                                onChange={(e) => setAcademicYear(e.target.value)}
+                                                className="w-full h-[43px] px-3.5 bg-white rounded-[8px] border border-[#E1E6F3] text-[14px] text-[#0B123D] appearance-none focus:outline-none focus:border-[#245CFF]"
+                                            >
+                                                <option>2024 / 2025</option>
+                                                <option>2023 / 2024</option>
+                                            </select>
+                                            <ChevronDown className="w-4 h-4 text-[#64708C] absolute right-3 top-3.5 pointer-events-none" />
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col gap-[6px]">
+                                        <label className="text-[13px] font-bold text-[#0B123D]">Resource Type</label>
+                                        <div className="relative">
+                                            <select
+                                                value={resourceType}
+                                                onChange={(e) => setResourceType(e.target.value)}
+                                                className="w-full h-[43px] px-3.5 bg-white rounded-[8px] border border-[#E1E6F3] text-[14px] text-[#0B123D] appearance-none focus:outline-none focus:border-[#245CFF]"
+                                            >
+                                                <option>Document</option>
+                                                <option>Archive</option>
+                                                <option>Source Code</option>
+                                            </select>
+                                            <ChevronDown className="w-4 h-4 text-[#64708C] absolute right-3 top-3.5 pointer-events-none" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Tags Field */}
+                                <div className="flex flex-col gap-[8px]">
+                                    <label className="text-[13px] font-bold text-[#0B123D] flex items-center gap-1">
+                                        Tags <span className="text-[#64708C] font-normal">(optional)</span>
+                                    </label>
+                                    <div className="min-h-[43px] p-2 bg-white rounded-[8px] border border-[#E1E6F3] flex flex-wrap items-center gap-2">
+                                        {tags.map((tag) => (
+                                            <span
+                                                key={tag}
+                                                className="px-2.5 py-1 bg-[#E9EDFF] text-[#245CFF] text-[12px] font-semibold rounded-full flex items-center gap-1.5"
+                                            >
+                                                {tag}
+                                                <button type="button" onClick={() => removeTag(tag)}>
+                                                    <X className="w-3 h-3 hover:text-blue-800" />
+                                                </button>
+                                            </span>
+                                        ))}
+                                        <input
+                                            type="text"
+                                            value={tagInput}
+                                            onChange={(e) => setTagInput(e.target.value)}
+                                            onKeyDown={handleAddTag}
+                                            placeholder="Add tag..."
+                                            className="bg-transparent text-[13px] text-[#0B123D] placeholder-[#64708C] focus:outline-none flex-1 min-w-[100px]"
+                                        />
+                                    </div>
+                                    <span className="text-[12px] text-[#64708C]">Press Enter or comma to add a tag. Max 10 tags.</span>
+                                </div>
+
+                                {/* Visibility Settings */}
+                                <div className="flex flex-col gap-[10px]">
+                                    <label className="text-[13px] font-bold text-[#0B123D]">Visibility</label>
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-[12px]">
+                                        <div
+                                            onClick={() => setVisibility('public')}
+                                            className={`p-3.5 rounded-[8px] border cursor-pointer flex items-start gap-2.5 transition-all ${visibility === 'public'
+                                                ? 'bg-[#F0F3FF] border-[#245CFF]'
+                                                : 'bg-white border-[#E1E6F3]'
+                                                }`}
+                                        >
+                                            <div className={`w-[18px] h-[18px] rounded-full border flex items-center justify-center mt-0.5 ${visibility === 'public' ? 'border-[#245CFF] bg-[#245CFF]' : 'border-[#C5CEED]'
+                                                }`}>
+                                                {visibility === 'public' && <div className="w-2 h-2 bg-white rounded-full" />}
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-[13px] font-semibold text-[#0B123D]">Public</span>
+                                                <span className="text-[12px] text-[#64708C]">Visible to all registered students & staff</span>
+                                            </div>
+                                        </div>
+
+                                        <div
+                                            onClick={() => setVisibility('course')}
+                                            className={`p-3.5 rounded-[8px] border cursor-pointer flex items-start gap-2.5 transition-all ${visibility === 'course'
+                                                ? 'bg-[#F0F3FF] border-[#245CFF]'
+                                                : 'bg-white border-[#E1E6F3]'
+                                                }`}
+                                        >
+                                            <div className={`w-[18px] h-[18px] rounded-full border flex items-center justify-center mt-0.5 ${visibility === 'course' ? 'border-[#245CFF] bg-[#245CFF]' : 'border-[#C5CEED]'
+                                                }`}>
+                                                {visibility === 'course' && <div className="w-2 h-2 bg-white rounded-full" />}
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-[13px] font-semibold text-[#0B123D]">Course Only</span>
+                                                <span className="text-[12px] text-[#64708C]">Only enrolled CS201 students</span>
+                                            </div>
+                                        </div>
+
+                                        <div
+                                            onClick={() => setVisibility('staff')}
+                                            className={`p-3.5 rounded-[8px] border cursor-pointer flex items-start gap-2.5 transition-all ${visibility === 'staff'
+                                                ? 'bg-[#F0F3FF] border-[#245CFF]'
+                                                : 'bg-white border-[#E1E6F3]'
+                                                }`}
+                                        >
+                                            <div className={`w-[18px] h-[18px] rounded-full border flex items-center justify-center mt-0.5 ${visibility === 'staff' ? 'border-[#245CFF] bg-[#245CFF]' : 'border-[#C5CEED]'
+                                                }`}>
+                                                {visibility === 'staff' && <div className="w-2 h-2 bg-white rounded-full" />}
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-[13px] font-semibold text-[#0B123D]">Staff Only</span>
+                                                <span className="text-[12px] text-[#64708C]">Only staff members</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                            {/* REVIEW SUMMARY SECTION */}
+                            <div className="p-[24px] bg-white rounded-[12px] border border-[#E1E6F3] flex flex-col gap-[16px]">
+                                <div className="flex items-center gap-2 text-[16px] font-bold text-[#0B123D]">
+                                    <FileCheck2 className="w-[18px] h-[18px] text-[#245CFF]" />
+                                    <span>Review & Submit</span>
+                                </div>
+                                <div className="h-[1px] bg-[#E1E6F3]" />
+
+                                <div className="space-y-[12px] text-[13px]">
+                                    <div className="flex justify-between py-1 border-b border-[#F0F3FF]">
+                                        <span className="w-36 text-[#64708C] font-semibold">File</span>
+                                        <span className="flex-1 text-[#0B123D]">Introduction_to_Algorithms_2024.pdf (3.4 MB)</span>
+                                    </div>
+                                    <div className="flex justify-between py-1 border-b border-[#F0F3FF]">
+                                        <span className="w-36 text-[#64708C] font-semibold">Title</span>
+                                        <span className="flex-1 text-[#0B123D]">{title}</span>
+                                    </div>
+                                    <div className="flex justify-between py-1 border-b border-[#F0F3FF]">
+                                        <span className="w-36 text-[#64708C] font-semibold">Course</span>
+                                        <span className="flex-1 text-[#0B123D]">{course}</span>
+                                    </div>
+                                    <div className="flex justify-between py-1 border-b border-[#F0F3FF]">
+                                        <span className="w-36 text-[#64708C] font-semibold">Category</span>
+                                        <span className="flex-1 text-[#0B123D]">{category}</span>
+                                    </div>
+                                    <div className="flex justify-between py-1 border-b border-[#F0F3FF]">
+                                        <span className="w-36 text-[#64708C] font-semibold">Academic Year</span>
+                                        <span className="flex-1 text-[#0B123D]">{academicYear}</span>
+                                    </div>
+                                    <div className="flex justify-between py-1 border-b border-[#F0F3FF]">
+                                        <span className="w-36 text-[#64708C] font-semibold">Tags</span>
+                                        <div className="flex-1 flex flex-wrap gap-1.5">
+                                            {tags.map((t) => (
+                                                <span key={t} className="px-2 py-0.5 bg-[#E9EDFF] text-[#245CFF] text-[11px] font-semibold rounded-full">
+                                                    {t}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between py-1">
+                                        <span className="w-36 text-[#64708C] font-semibold">Visibility</span>
+                                        <span className="px-2.5 py-0.5 bg-[#E6FAF4] text-[#00C58A] text-[12px] font-semibold rounded-full">
+                                            {visibility.toUpperCase()}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div className="p-3 bg-[#F0F3FF] rounded-[8px] flex items-start gap-2.5 text-[#245CFF] text-[13px]">
+                                    <HelpCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                                    <span>
+                                        All required fields are complete. Your submission will be queued for staff review before being published to students.
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* ACTION BUTTONS */}
+                            <div className="flex items-center justify-between gap-3 pt-2">
+                                <div className="flex items-center gap-3">
+                                    <button type="button" className="h-[48px] px-6 bg-white rounded-[8px] border border-[#E1E6F3] text-[#64708C] font-semibold text-[15px] hover:bg-slate-50">
+                                        Cancel
+                                    </button>
+                                    <button type="button" className="h-[48px] px-6 bg-white rounded-[8px] border border-[#245CFF] text-[#245CFF] font-semibold text-[15px] hover:bg-blue-50">
+                                        Save as Draft
+                                    </button>
+                                </div>
+                                <button type="button" className="h-[48px] px-8 bg-[#245CFF] rounded-[8px] text-white font-bold text-[15px] flex items-center gap-2 hover:bg-blue-700">
+                                    <Send className="w-4 h-4" />
+                                    <span>Submit for Review</span>
+                                </button>
+                            </div>
+
+                        </div>
+
+                        {/* SIDE GUIDELINES & WORKFLOW COLUMN (RIGHT 4 COLUMNS) */}
+                        <div className="lg:col-span-4 space-y-[16px]">
+
+                            {/* GUIDELINES CARD */}
+                            <div className="p-5 bg-white rounded-[12px] border border-[#E1E6F3] space-y-3.5">
+                                <div className="flex items-center gap-2 text-[14px] font-bold text-[#0B123D] border-b border-[#F0F3FF] pb-3">
+                                    <div className="w-8 h-8 bg-[#E9EDFF] rounded-[8px] flex items-center justify-center text-[#245CFF]">
+                                        <HelpCircle className="w-4 h-4" />
+                                    </div>
+                                    <span>Upload Guidelines</span>
+                                </div>
+
+                                <ul className="space-y-2.5 text-[13px] text-[#64708C]">
+                                    <li className="flex items-start gap-2">
+                                        <span className="w-1.5 h-1.5 bg-[#245CFF] rounded-full mt-2 flex-shrink-0" />
+                                        <span>Maximum file size is 20 MB per upload.</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="w-1.5 h-1.5 bg-[#245CFF] rounded-full mt-2 flex-shrink-0" />
+                                        <span>Accepted formats: PDF, DOC, DOCX, PPT, ZIP, RAR, JPG, PNG.</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="w-1.5 h-1.5 bg-[#245CFF] rounded-full mt-2 flex-shrink-0" />
+                                        <span>Ensure files are free of sensitive personal data before uploading.</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="w-1.5 h-1.5 bg-[#245CFF] rounded-full mt-2 flex-shrink-0" />
+                                        <span>All resources are reviewed by an administrator before publication.</span>
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="w-1.5 h-1.5 bg-[#245CFF] rounded-full mt-2 flex-shrink-0" />
+                                        <span>Use descriptive titles and accurate tags to improve discoverability.</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            {/* APPROVAL WORKFLOW CARD */}
+                            <div className="p-5 bg-white rounded-[12px] border border-[#E1E6F3] space-y-4">
+                                <h3 className="text-[14px] font-bold text-[#0B123D] border-b border-[#F0F3FF] pb-2">
+                                    Approval Workflow
+                                </h3>
+
+                                <div className="space-y-3">
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-6 h-6 bg-[#245CFF] text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
+                                            1
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[13px] font-semibold text-[#0B123D]">Submit for Review</span>
+                                            <span className="text-[12px] text-[#64708C]">Your resource is queued for admin approval.</span>
+                                        </div>
+                                    </div>
+                                    <div className="ml-3 w-[2px] h-4 bg-[#C5CEED]" />
+
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-6 h-6 bg-[#FF9235] text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
+                                            2
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[13px] font-semibold text-[#0B123D]">Under Review</span>
+                                            <span className="text-[12px] text-[#64708C]">Admin checks content and compliance (1–2 days).</span>
+                                        </div>
+                                    </div>
+                                    <div className="ml-3 w-[2px] h-4 bg-[#C5CEED]" />
+
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-6 h-6 bg-[#00C58A] text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">
+                                            3
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[13px] font-semibold text-[#0B123D]">Published</span>
+                                            <span className="text-[12px] text-[#64708C]">Resource is live and discoverable by students.</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* NEED HELP CARD */}
+                            <div className="p-5 bg-gradient-to-br from-[#E9EDFF] to-[#F0EBFF] rounded-[12px] flex flex-col gap-2.5">
+                                <h4 className="text-[14px] font-bold text-[#0B123D]">Need Help?</h4>
+                                <p className="text-[13px] text-[#64708C]">
+                                    Contact the platform team for support with uploads, permissions, or technical issues.
+                                </p>
+                                <button type="button" className="w-full py-2 bg-[#245CFF] text-white text-[13px] font-semibold rounded-[8px] hover:bg-blue-700">
+                                    Contact Support
+                                </button>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </main>
+
+                {/* FOOTER */}
+                <Footer />
+
+            </div>
+        </div>
+    );
+}
+```
+
+---
+
+## 19. Staff Resource Management
+
+- **Route**: `/staff/manage-resources`
+- **File**: `frontend/src/app/staff/manage-resources/page.tsx`
+- **Category**: Staff / Lecturer Portal
+- **Description**: Management interface for lecturers to view, edit, archive, or delete previously published course materials.
+
+```tsx
+"use client";
+
+import React, { useState } from "react";
+import Link from "next/link";
+import Navbar from "@/components/layout/Navbar";
+import Sidebar from "@/components/layout/Sidebar";
+import Footer from "@/components/layout/footer";
+import {
+    Search,
+    ChevronDown,
+    Plus,
+    FileText,
+    CheckCircle2,
+    Clock,
+    Download,
+    Edit2,
+    Archive,
+    RotateCcw,
+    MoreHorizontal,
+    ChevronLeft,
+    ChevronRight,
+} from "lucide-react";
+
+interface Resource {
+    id: string;
+    title: string;
+    fileType: string;
+    fileSize: string;
+    course: string;
+    category: string;
+    status: "Published" | "Draft" | "Pending" | "Archived";
+    updatedDate: string;
+    downloads: number;
+}
+
+const mockResources: Resource[] = [
+    {
+        id: "1",
+        title: "Introduction to Algorithms — Lecture Notes 2024",
+        fileType: "PDF",
+        fileSize: "3.4 MB",
+        course: "CS201",
+        category: "Document",
+        status: "Published",
+        updatedDate: "24 Oct 2026",
+        downloads: 248,
+    },
+    {
+        id: "2",
+        title: "Introduction to Machine Learning",
+        fileType: "PDF",
+        fileSize: "2.4 MB",
+        course: "CSC 401",
+        category: "Document",
+        status: "Published",
+        updatedDate: "22 Oct 2026",
+        downloads: 125,
+    },
+    {
+        id: "3",
+        title: "Graph Algorithms — Worked Examples",
+        fileType: "PPT",
+        fileSize: "5.1 MB",
+        course: "CS201",
+        category: "Slides",
+        status: "Draft",
+        updatedDate: "21 Oct 2026",
+        downloads: 0,
+    },
+    {
+        id: "4",
+        title: "Binary Tree Traversal — Python",
+        fileType: "ZIP",
+        fileSize: "840 KB",
+        course: "CS201",
+        category: "Code",
+        status: "Pending",
+        updatedDate: "20 Oct 2026",
+        downloads: 0,
+    },
+    {
+        id: "5",
+        title: "Operating Systems — Lecture 7",
+        fileType: "PDF",
+        fileSize: "1.8 MB",
+        course: "CS301",
+        category: "Document",
+        status: "Published",
+        updatedDate: "18 Oct 2026",
+        downloads: 184,
+    },
+    {
+        id: "6",
+        title: "Computer Networks — Final Exam 2023",
+        fileType: "PDF",
+        fileSize: "1.1 MB",
+        course: "CS302",
+        category: "Document",
+        status: "Archived",
+        updatedDate: "16 Oct 2026",
+        downloads: 92,
+    },
+    {
+        id: "7",
+        title: "Database Normalisation — Practice Set",
+        fileType: "PDF",
+        fileSize: "920 KB",
+        course: "CS204",
+        category: "Document",
+        status: "Pending",
+        updatedDate: "15 Oct 2026",
+        downloads: 0,
+    },
+    {
+        id: "8",
+        title: "Sorting Algorithms — C++ Implementations",
+        fileType: "ZIP",
+        fileSize: "1.2 MB",
+        course: "CS201",
+        category: "Code",
+        status: "Published",
+        updatedDate: "12 Oct 2026",
+        downloads: 156,
+    },
+];
+
+export default function ManageResourcesPage() {
+    const [selectedIds, setSelectedIds] = useState<string[]>(["1", "3"]);
+    const [searchTerm, setSearchTerm] = useState("");
+
+    const toggleSelectAll = () => {
+        if (selectedIds.length === mockResources.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(mockResources.map((r) => r.id));
+        }
+    };
+
+    const toggleSelect = (id: string) => {
+        setSelectedIds((prev) =>
+            prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+        );
+    };
+
+    const getStatusBadge = (status: Resource["status"]) => {
+        switch (status) {
+            case "Published":
+                return (
+                    <span className="px-2.5 py-1 bg-[#E6FAF4] text-[#009F75] text-xs font-semibold rounded-full inline-flex items-center">
+                        Published
+                    </span>
+                );
+            case "Draft":
+                return (
+                    <span className="px-2.5 py-1 bg-[#F6F8FF] text-[#64708C] text-xs font-semibold rounded-full inline-flex items-center">
+                        Draft
+                    </span>
+                );
+            case "Pending":
+                return (
+                    <span className="px-2.5 py-1 bg-[#FFF5EB] text-[#B86A17] text-xs font-semibold rounded-full inline-flex items-center">
+                        Pending
+                    </span>
+                );
+            case "Archived":
+                return (
+                    <span className="px-2.5 py-1 bg-[#F6F8FF] text-[#64708C] text-xs font-semibold rounded-full inline-flex items-center">
+                        Archived
+                    </span>
+                );
+        }
+    };
+
+    return (
+        <div className="min-h-screen w-full bg-[#F6F8FF] flex flex-col font-sans text-[#0B123D]">
+            {/* Top Navigation */}
+            <Navbar userRole="staff" userName="Dr. Smith" userRoleTitle="Staff" />
+
+            {/* Main Content Layout */}
+            <div className="flex-1 flex flex-col md:flex-row">
+                {/* Left Sidebar */}
+                <Sidebar userRole="staff" userName="Dr. Smith" userCode="Staff" />
+
+                {/* Main Body */}
+                <main className="flex-1 p-4 md:p-8 space-y-6 overflow-x-hidden flex flex-col justify-between">
+                    <div className="space-y-6">
+                        {/* Page Header */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <h1 className="text-2xl md:text-3xl font-bold text-[#0B123D]">
+                                    Manage Resources
+                                </h1>
+                                <p className="text-sm text-[#64708C]">
+                                    Organise, update and track your contributions to CSE Hub.
+                                </p>
+                            </div>
+                            <Link
+                                href="/staff/upload"
+                                className="h-11 px-5 bg-gradient-to-r from-[#7148FF] to-[#245CFF] text-white text-sm font-semibold rounded-lg flex items-center justify-center gap-2 hover:opacity-95 transition-opacity shadow-sm self-start sm:self-auto"
+                            >
+                                <Plus className="w-4 h-4" />
+                                <span>Upload Resource</span>
+                            </Link>
+                        </div>
+
+                        {/* Metrics */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div className="bg-white p-5 rounded-2xl border border-[#E1E6F3] shadow-[0px_5px_18px_rgba(39,63,121,0.06)] flex items-center gap-4">
+                                <div className="w-[50px] h-[54px] bg-[rgba(36,92,255,0.09)] rounded-xl flex items-center justify-center">
+                                    <FileText className="w-6 h-6 text-[#245CFF]" />
+                                </div>
+                                <div>
+                                    <div className="text-2xl font-bold text-[#0B123D]">320</div>
+                                    <div className="text-xs text-[#64708C]">Your resources</div>
+                                </div>
+                            </div>
+
+                            <div className="bg-white p-5 rounded-2xl border border-[#E1E6F3] shadow-[0px_5px_18px_rgba(39,63,121,0.06)] flex items-center gap-4">
+                                <div className="w-[50px] h-[54px] bg-[rgba(0,159,117,0.09)] rounded-xl flex items-center justify-center">
+                                    <CheckCircle2 className="w-6 h-6 text-[#009F75]" />
+                                </div>
+                                <div>
+                                    <div className="text-2xl font-bold text-[#0B123D]">264</div>
+                                    <div className="text-xs text-[#64708C]">Published</div>
+                                </div>
+                            </div>
+
+                            <div className="bg-white p-5 rounded-2xl border border-[#E1E6F3] shadow-[0px_5px_18px_rgba(39,63,121,0.06)] flex items-center gap-4">
+                                <div className="w-[50px] h-[54px] bg-[rgba(184,106,23,0.09)] rounded-xl flex items-center justify-center">
+                                    <Clock className="w-6 h-6 text-[#B86A17]" />
+                                </div>
+                                <div>
+                                    <div className="text-2xl font-bold text-[#0B123D]">28</div>
+                                    <div className="text-xs text-[#64708C]">Pending review</div>
+                                </div>
+                            </div>
+
+                            <div className="bg-white p-5 rounded-2xl border border-[#E1E6F3] shadow-[0px_5px_18px_rgba(39,63,121,0.06)] flex items-center gap-4">
+                                <div className="w-[50px] h-[54px] bg-[rgba(113,72,255,0.09)] rounded-xl flex items-center justify-center">
+                                    <Download className="w-6 h-6 text-[#7148FF]" />
+                                </div>
+                                <div>
+                                    <div className="text-2xl font-bold text-[#0B123D]">1,250</div>
+                                    <div className="text-xs text-[#64708C]">Total downloads</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Filters */}
+                        <div className="bg-white p-5 rounded-xl border border-[#E1E6F3] space-y-4">
+                            <div className="flex flex-col md:flex-row gap-4">
+                                <div className="flex-1 flex items-center gap-3 px-4 h-11 bg-white border border-[#E1E6F3] rounded-lg">
+                                    <Search className="w-4 h-4 text-[#64708C]" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search your resources by title or keyword..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="w-full bg-transparent text-sm text-[#0B123D] placeholder-[#64708C] focus:outline-none"
+                                    />
+                                </div>
+
+                                <div className="w-full md:w-[180px] h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg flex items-center justify-between text-sm text-[#0B123D]">
+                                    <span>Newest updated</span>
+                                    <ChevronDown className="w-4 h-4 text-[#64708C]" />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                                <div className="h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg flex items-center justify-between text-sm text-[#0B123D]">
+                                    <span>All courses</span>
+                                    <ChevronDown className="w-4 h-4 text-[#64708C]" />
+                                </div>
+                                <div className="h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg flex items-center justify-between text-sm text-[#0B123D]">
+                                    <span>All types</span>
+                                    <ChevronDown className="w-4 h-4 text-[#64708C]" />
+                                </div>
+                                <div className="h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg flex items-center justify-between text-sm text-[#0B123D]">
+                                    <span>All categories</span>
+                                    <ChevronDown className="w-4 h-4 text-[#64708C]" />
+                                </div>
+                                <div className="h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg flex items-center justify-between text-sm text-[#0B123D]">
+                                    <span>All statuses</span>
+                                    <ChevronDown className="w-4 h-4 text-[#64708C]" />
+                                </div>
+                                <button className="col-span-2 md:col-span-1 h-11 px-4 bg-white border border-[#E1E6F3] rounded-lg text-[#245CFF] text-xs font-semibold hover:bg-slate-50 transition-colors">
+                                    Reset filters
+                                </button>
+                            </div>
+
+                            <div className="flex flex-wrap gap-2 pt-1">
+                                <span className="px-2.5 py-1 bg-[#E6FAF4] text-[#009F75] text-xs font-semibold rounded-full">
+                                    Published 264
+                                </span>
+                                <span className="px-2.5 py-1 bg-[#F6F8FF] text-[#64708C] text-xs font-semibold rounded-full">
+                                    Draft 16
+                                </span>
+                                <span className="px-2.5 py-1 bg-[#FFF5EB] text-[#B86A17] text-xs font-semibold rounded-full">
+                                    Pending 28
+                                </span>
+                                <span className="px-2.5 py-1 bg-[#F6F8FF] text-[#64708C] text-xs font-semibold rounded-full">
+                                    Archived 12
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Resources Table */}
+                        <div className="bg-white rounded-xl border border-[#E1E6F3] overflow-hidden">
+                            {selectedIds.length > 0 && (
+                                <div className="px-5 py-3.5 bg-[#E9EDFF] flex flex-wrap items-center justify-between gap-3 border-b border-[#E1E6F3]">
+                                    <div className="text-sm font-semibold text-[#245CFF]">
+                                        {selectedIds.length} resources selected
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <button className="h-9 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs font-semibold text-[#245CFF] hover:bg-slate-50">
+                                            Change visibility
+                                        </button>
+                                        <button className="h-9 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs font-semibold text-[#245CFF] flex items-center gap-2 hover:bg-slate-50">
+                                            <Archive className="w-3.5 h-3.5" />
+                                            Archive selected
+                                        </button>
+                                        <button
+                                            onClick={() => setSelectedIds([])}
+                                            className="text-xs text-[#245CFF] underline hover:text-blue-700 ml-2"
+                                        >
+                                            Clear selection
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="hidden md:block overflow-x-auto">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-[#F6F8FF] border-b border-[#E1E6F3] text-xs font-semibold text-[#64708C]">
+                                            <th className="p-4 w-12 text-center">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedIds.length === mockResources.length}
+                                                    onChange={toggleSelectAll}
+                                                    className="rounded border-gray-300 text-[#245CFF] focus:ring-[#245CFF]"
+                                                />
+                                            </th>
+                                            <th className="p-4 text-xs font-semibold">Resource title ↑</th>
+                                            <th className="p-4 text-xs font-semibold">Course</th>
+                                            <th className="p-4 text-xs font-semibold">Type</th>
+                                            <th className="p-4 text-xs font-semibold">Status</th>
+                                            <th className="p-4 text-xs font-semibold">Updated</th>
+                                            <th className="p-4 text-xs font-semibold text-right">Downloads</th>
+                                            <th className="p-4 text-xs font-semibold text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-[#E1E6F3]">
+                                        {mockResources.map((item) => {
+                                            const isSelected = selectedIds.includes(item.id);
+                                            return (
+                                                <tr
+                                                    key={item.id}
+                                                    className={`hover:bg-[#F9FAFF] transition-colors ${isSelected ? "bg-[#F0F3FF]" : "bg-white"
+                                                        }`}
+                                                >
+                                                    <td className="p-4 text-center">
+                                                        <input
+                                                            type="checkbox"
+                                                            checked={isSelected}
+                                                            onChange={() => toggleSelect(item.id)}
+                                                            className="rounded border-gray-300 text-[#245CFF] focus:ring-[#245CFF]"
+                                                        />
+                                                    </td>
+                                                    <td className="p-4">
+                                                        <div className="font-semibold text-xs text-[#0B123D]">
+                                                            {item.title}
+                                                        </div>
+                                                        <div className="text-xs text-[#64708C]">
+                                                            {item.fileType} · {item.fileSize}
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-4 text-xs text-[#0B123D]">{item.course}</td>
+                                                    <td className="p-4 text-xs text-[#0B123D]">{item.category}</td>
+                                                    <td className="p-4">{getStatusBadge(item.status)}</td>
+                                                    <td className="p-4 text-xs text-[#64708C]">{item.updatedDate}</td>
+                                                    <td className="p-4 text-xs text-[#0B123D] text-right">
+                                                        {item.downloads}
+                                                    </td>
+                                                    <td className="p-4 text-right">
+                                                        <div className="flex items-center justify-end gap-3 text-[#64708C]">
+                                                            <button title="Edit" className="text-[#245CFF] hover:opacity-80">
+                                                                <Edit2 className="w-4 h-4" />
+                                                            </button>
+                                                            <button title="Archive/Restore" className="hover:text-[#0B123D]">
+                                                                {item.status === "Archived" ? (
+                                                                    <RotateCcw className="w-4 h-4 text-[#245CFF]" />
+                                                                ) : (
+                                                                    <Archive className="w-4 h-4" />
+                                                                )}
+                                                            </button>
+                                                            <button title="More" className="hover:text-[#0B123D]">
+                                                                <MoreHorizontal className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Pagination */}
+                            <div className="p-4 border-t border-[#E1E6F3] flex flex-col sm:flex-row items-center justify-between gap-4">
+                                <span className="text-xs text-[#64708C]">
+                                    Showing 1–8 of 320 resources
+                                </span>
+                                <div className="flex items-center gap-1.5">
+                                    <button className="h-9 px-3 bg-white border border-[#E1E6F3] rounded-lg text-xs font-semibold text-[#245CFF] flex items-center gap-1 hover:bg-slate-50">
+                                        <ChevronLeft className="w-4 h-4" />
+                                        <span>Previous</span>
+                                    </button>
+                                    <button className="w-8 h-8 rounded-md bg-[#245CFF] text-white text-xs font-medium">
+                                        1
+                                    </button>
+                                    <button className="w-8 h-8 rounded-md bg-white border border-[#E1E6F3] text-[#64708C] text-xs font-medium hover:bg-slate-50">
+                                        2
+                                    </button>
+                                    <button className="w-8 h-8 rounded-md bg-white border border-[#E1E6F3] text-[#64708C] text-xs font-medium hover:bg-slate-50">
+                                        3
+                                    </button>
+                                    <span className="px-1 text-xs text-[#64708C]">…</span>
+                                    <button className="w-8 h-8 rounded-md bg-white border border-[#E1E6F3] text-[#64708C] text-xs font-medium hover:bg-slate-50">
+                                        40
+                                    </button>
+                                    <button className="h-9 px-3 bg-white border border-[#E1E6F3] rounded-lg text-xs font-semibold text-[#245CFF] flex items-center gap-1 hover:bg-slate-50">
+                                        <span>Next</span>
+                                        <ChevronRight className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="text-xs text-[#64708C] pt-2">
+                            Archived resources are hidden from students. You can restore them at any time.
+                        </div>
+                    </div>
+
+                    <Footer />
+                </main>
+            </div>
+        </div>
+    );
+}
+```
+
+---
+
+## 20. Staff Edit Resource Metadata
+
+- **Route**: `/staff/edit-resource-metadata`
+- **File**: `frontend/src/app/staff/edit-resource-metadata/page.tsx`
+- **Category**: Staff / Lecturer Portal
+- **Description**: Form interface to edit and update resource titles, course tags, academic sessions, and descriptions.
+
+```tsx
+"use client";
+
+import React, { useState } from "react";
+import Link from "next/link";
+import Navbar from "@/components/layout/Navbar";
+import Sidebar from "@/components/layout/Sidebar";
+import Footer from "@/components/layout/footer";
+import {
+    ChevronLeft,
+    AlertTriangle,
+    FileText,
+    UploadCloud,
+    ChevronDown,
+    X,
+    Check,
+    Info,
+    Download,
+    ExternalLink,
+    Save,
+} from "lucide-react";
+
+export default function EditResourceMetadataPage() {
+    // Form State
+    const [title, setTitle] = useState(
+        "Introduction to Algorithms — Lecture Notes 2024 (Revised)"
+    );
+    const [description, setDescription] = useState(
+        "Comprehensive lecture notes covering sorting, graph algorithms, dynamic programming and complexity analysis. Revised with worked examples and source citations for Year 2 students."
+    );
+    const [course, setCourse] = useState("CS201 — Data Structures & Algorithms");
+    const [category, setCategory] = useState("Lecture Notes");
+    const [academicYear, setAcademicYear] = useState("2024 / 2025");
+    const [resourceType, setResourceType] = useState("Document");
+    const [tags, setTags] = useState([
+        "algorithms",
+        "data-structures",
+        "CS201",
+        "Year 2",
+    ]);
+    const [tagInput, setTagInput] = useState("");
+    const [visibility, setVisibility] = useState<
+        "public" | "course" | "staff"
+    >("public");
+    const [notifyStudents, setNotifyStudents] = useState(true);
+    const [isDirty, setIsDirty] = useState(true);
+
+    // Tag Handlers
+    const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if ((e.key === "Enter" || e.key === ",") && tagInput.trim()) {
+            e.preventDefault();
+            const newTag = tagInput.trim().replace(/^#/, "");
+            if (tags.length < 10 && !tags.includes(newTag)) {
+                setTags([...tags, newTag]);
+                setTagInput("");
+                setIsDirty(true);
+            }
+        }
+    };
+
+    const handleRemoveTag = (tagToRemove: string) => {
+        setTags(tags.filter((t) => t !== tagToRemove));
+        setIsDirty(true);
+    };
+
+    const handleSave = (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsDirty(false);
+        alert("Resource metadata successfully saved!");
+    };
+
+    return (
+        <div className="min-h-screen w-full bg-[#F6F8FF] flex flex-col font-sans text-[#0B123D]">
+            {/* Shared Navbar */}
+            <Navbar userRole="staff" userName="Dr. Smith" userRoleTitle="Staff" />
+
+            {/* Main Container */}
+            <div className="flex-1 flex flex-col md:flex-row">
+                {/* Shared Sidebar */}
+                <Sidebar userRole="staff" userName="Dr. Smith" userCode="Staff" />
+
+                {/* Main Content Workspace */}
+                <main className="flex-1 p-4 md:p-8 space-y-6 overflow-x-hidden flex flex-col justify-between">
+                    <div className="space-y-6">
+                        {/* Back Navigation */}
+                        <Link
+                            href="/staff/manage-resources"
+                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#245CFF] hover:underline"
+                        >
+                            <ChevronLeft className="w-4 h-4" />
+                            <span>Back to Manage Resources</span>
+                        </Link>
+
+                        {/* Page Header */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                                <h1 className="text-2xl md:text-3xl font-bold text-[#0B123D]">
+                                    Edit Resource Metadata
+                                </h1>
+                                <p className="text-sm text-[#64708C] mt-1">
+                                    Update resource details without losing its download history or saved links.
+                                </p>
+                            </div>
+
+                            {isDirty && (
+                                <span className="px-3 py-1 bg-[#FFF5EB] text-[#B86A17] text-xs font-semibold rounded-full self-start sm:self-auto">
+                                    Unsaved changes
+                                </span>
+                            )}
+                        </div>
+
+                        {/* Unsaved Changes Banner */}
+                        {isDirty && (
+                            <div className="p-3.5 bg-[#FFF5EB] rounded-lg border border-[#FFE3C6] flex items-start gap-2.5">
+                                <AlertTriangle className="w-4 h-4 text-[#B86A17] shrink-0 mt-0.5" />
+                                <p className="text-xs text-[#B86A17] leading-relaxed">
+                                    You have unsaved changes to the title and description. Save your changes before leaving this page.
+                                </p>
+                            </div>
+                        )}
+
+                        {/* Layout Grid: Main Form (Left) + Sidebar Context (Right) */}
+                        <div className="flex flex-col lg:flex-row items-start gap-6">
+                            {/* Left Column: Form Controls */}
+                            <form onSubmit={handleSave} className="flex-1 w-full space-y-6">
+                                {/* File Card & Version Status */}
+                                <div className="bg-white p-6 rounded-xl border border-[#E1E6F3] space-y-4">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-14 bg-[#E6FAF4] rounded-lg flex items-center justify-center shrink-0">
+                                            <FileText className="w-6 h-6 text-[#009F75]" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="text-sm font-semibold text-[#0B123D] truncate">
+                                                Introduction_to_Algorithms_2024.pdf
+                                            </h3>
+                                            <p className="text-xs text-[#64708C] mt-0.5">
+                                                PDF · 3.4 MB · 24 pages · Version 2
+                                            </p>
+                                        </div>
+                                        <span className="px-2.5 py-1 bg-[#E6FAF4] text-[#009F75] text-xs font-semibold rounded-full shrink-0">
+                                            Published
+                                        </span>
+                                    </div>
+
+                                    <hr className="border-[#E1E6F3]" />
+
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                                        <span className="text-[#64708C]">
+                                            Replacing the file creates a new version.
+                                        </span>
+                                        <button
+                                            type="button"
+                                            className="h-9 px-3.5 bg-white border border-[#E1E6F3] text-[#245CFF] font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors self-start sm:self-auto"
+                                        >
+                                            <UploadCloud className="w-4 h-4" />
+                                            <span>Replace file</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Resource Details Form */}
+                                <div className="bg-white p-6 rounded-xl border border-[#E1E6F3] space-y-5">
+                                    <h2 className="text-lg font-bold text-[#0B123D]">
+                                        Resource Details
+                                    </h2>
+
+                                    {/* Title Field */}
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-semibold text-[#0B123D]">
+                                            Title *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={title}
+                                            onChange={(e) => {
+                                                setTitle(e.target.value);
+                                                setIsDirty(true);
+                                            }}
+                                            required
+                                            className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
+                                        />
+                                    </div>
+
+                                    {/* Description Field */}
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-semibold text-[#0B123D]">
+                                            Description *
+                                        </label>
+                                        <textarea
+                                            rows={4}
+                                            value={description}
+                                            onChange={(e) => {
+                                                setDescription(e.target.value);
+                                                setIsDirty(true);
+                                            }}
+                                            maxLength={500}
+                                            required
+                                            className="w-full p-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] leading-relaxed focus:outline-none focus:border-[#245CFF]"
+                                        />
+                                        <div className="text-[11px] text-[#64708C]">
+                                            {description.length} / 500 characters
+                                        </div>
+                                    </div>
+
+                                    {/* Course & Category Dropdowns */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-semibold text-[#0B123D]">
+                                                Course *
+                                            </label>
+                                            <div className="relative">
+                                                <select
+                                                    value={course}
+                                                    onChange={(e) => {
+                                                        setCourse(e.target.value);
+                                                        setIsDirty(true);
+                                                    }}
+                                                    className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] appearance-none focus:outline-none focus:border-[#245CFF] pr-8"
+                                                >
+                                                    <option>CS201 — Data Structures & Algorithms</option>
+                                                    <option>CS204 — Database Management Systems</option>
+                                                    <option>CS302 — Computer Networks</option>
+                                                </select>
+                                                <ChevronDown className="w-4 h-4 text-[#64708C] absolute right-3 top-3.5 pointer-events-none" />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-semibold text-[#0B123D]">
+                                                Category *
+                                            </label>
+                                            <div className="relative">
+                                                <select
+                                                    value={category}
+                                                    onChange={(e) => {
+                                                        setCategory(e.target.value);
+                                                        setIsDirty(true);
+                                                    }}
+                                                    className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] appearance-none focus:outline-none focus:border-[#245CFF] pr-8"
+                                                >
+                                                    <option>Lecture Notes</option>
+                                                    <option>Practice Set</option>
+                                                    <option>Code Samples</option>
+                                                    <option>Revision Guide</option>
+                                                </select>
+                                                <ChevronDown className="w-4 h-4 text-[#64708C] absolute right-3 top-3.5 pointer-events-none" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Academic Year & Resource Type */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-semibold text-[#0B123D]">
+                                                Academic Year
+                                            </label>
+                                            <div className="relative">
+                                                <select
+                                                    value={academicYear}
+                                                    onChange={(e) => {
+                                                        setAcademicYear(e.target.value);
+                                                        setIsDirty(true);
+                                                    }}
+                                                    className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] appearance-none focus:outline-none focus:border-[#245CFF] pr-8"
+                                                >
+                                                    <option>2024 / 2025</option>
+                                                    <option>2025 / 2026</option>
+                                                </select>
+                                                <ChevronDown className="w-4 h-4 text-[#64708C] absolute right-3 top-3.5 pointer-events-none" />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-semibold text-[#0B123D]">
+                                                Resource Type
+                                            </label>
+                                            <div className="relative">
+                                                <select
+                                                    value={resourceType}
+                                                    onChange={(e) => {
+                                                        setResourceType(e.target.value);
+                                                        setIsDirty(true);
+                                                    }}
+                                                    className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] appearance-none focus:outline-none focus:border-[#245CFF] pr-8"
+                                                >
+                                                    <option>Document</option>
+                                                    <option>Code Archive</option>
+                                                    <option>Presentation</option>
+                                                </select>
+                                                <ChevronDown className="w-4 h-4 text-[#64708C] absolute right-3 top-3.5 pointer-events-none" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Tags Input */}
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-semibold text-[#0B123D]">
+                                            Tags
+                                        </label>
+                                        <div className="p-2.5 bg-white border border-[#E1E6F3] rounded-lg flex flex-wrap items-center gap-2 min-h-[44px]">
+                                            {tags.map((tag) => (
+                                                <span
+                                                    key={tag}
+                                                    className="px-2.5 py-1 bg-[#E9EDFF] text-[#245CFF] text-xs font-semibold rounded-full flex items-center gap-1"
+                                                >
+                                                    {tag}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleRemoveTag(tag)}
+                                                        className="hover:text-[#0B123D]"
+                                                    >
+                                                        <X className="w-3 h-3" />
+                                                    </button>
+                                                </span>
+                                            ))}
+                                            <input
+                                                type="text"
+                                                placeholder={tags.length < 10 ? "Add tag..." : "Max tags reached"}
+                                                value={tagInput}
+                                                onChange={(e) => setTagInput(e.target.value)}
+                                                onKeyDown={handleAddTag}
+                                                disabled={tags.length >= 10}
+                                                className="bg-transparent text-xs text-[#0B123D] placeholder-[#64708C] focus:outline-none flex-1 min-w-[100px]"
+                                            />
+                                        </div>
+                                        <p className="text-[11px] text-[#64708C]">
+                                            Press Enter or comma to add a tag. Max 10 tags.
+                                        </p>
+                                    </div>
+
+                                    {/* Visibility Selectors */}
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-semibold text-[#0B123D]">
+                                            Visibility
+                                        </label>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                            <div
+                                                onClick={() => {
+                                                    setVisibility("public");
+                                                    setIsDirty(true);
+                                                }}
+                                                className={`p-3 rounded-lg border cursor-pointer transition-colors space-y-1 ${visibility === "public"
+                                                    ? "bg-[#F0F3FF] border-[#245CFF]"
+                                                    : "bg-white border-[#E1E6F3] hover:bg-slate-50"
+                                                    }`}
+                                            >
+                                                <div
+                                                    className={`text-xs font-semibold flex items-center gap-1.5 ${visibility === "public"
+                                                        ? "text-[#245CFF]"
+                                                        : "text-[#0B123D]"
+                                                        }`}
+                                                >
+                                                    <span>{visibility === "public" ? "◉" : "○"}</span>
+                                                    <span>Public</span>
+                                                </div>
+                                                <p className="text-[11px] text-[#64708C]">
+                                                    All registered users
+                                                </p>
+                                            </div>
+
+                                            <div
+                                                onClick={() => {
+                                                    setVisibility("course");
+                                                    setIsDirty(true);
+                                                }}
+                                                className={`p-3 rounded-lg border cursor-pointer transition-colors space-y-1 ${visibility === "course"
+                                                    ? "bg-[#F0F3FF] border-[#245CFF]"
+                                                    : "bg-white border-[#E1E6F3] hover:bg-slate-50"
+                                                    }`}
+                                            >
+                                                <div
+                                                    className={`text-xs font-semibold flex items-center gap-1.5 ${visibility === "course"
+                                                        ? "text-[#245CFF]"
+                                                        : "text-[#0B123D]"
+                                                        }`}
+                                                >
+                                                    <span>{visibility === "course" ? "◉" : "○"}</span>
+                                                    <span>Course Only</span>
+                                                </div>
+                                                <p className="text-[11px] text-[#64708C]">
+                                                    Enrolled in CS201
+                                                </p>
+                                            </div>
+
+                                            <div
+                                                onClick={() => {
+                                                    setVisibility("staff");
+                                                    setIsDirty(true);
+                                                }}
+                                                className={`p-3 rounded-lg border cursor-pointer transition-colors space-y-1 ${visibility === "staff"
+                                                    ? "bg-[#F0F3FF] border-[#245CFF]"
+                                                    : "bg-white border-[#E1E6F3] hover:bg-slate-50"
+                                                    }`}
+                                            >
+                                                <div
+                                                    className={`text-xs font-semibold flex items-center gap-1.5 ${visibility === "staff"
+                                                        ? "text-[#245CFF]"
+                                                        : "text-[#0B123D]"
+                                                        }`}
+                                                >
+                                                    <span>{visibility === "staff" ? "◉" : "○"}</span>
+                                                    <span>Staff Only</span>
+                                                </div>
+                                                <p className="text-[11px] text-[#64708C]">
+                                                    Staff members only
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Notification Checkbox */}
+                                    <label className="flex items-center gap-3 cursor-pointer text-xs text-[#0B123D] pt-1">
+                                        <input
+                                            type="checkbox"
+                                            checked={notifyStudents}
+                                            onChange={() => {
+                                                setNotifyStudents(!notifyStudents);
+                                                setIsDirty(true);
+                                            }}
+                                            className="w-4 h-4 rounded border-gray-300 text-[#245CFF] focus:ring-[#245CFF]"
+                                        />
+                                        <span>
+                                            Notify students who saved this resource about the update
+                                        </span>
+                                    </label>
+                                </div>
+
+                                {/* Form Action Controls */}
+                                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                                    <span className="text-xs text-[#64708C]">
+                                        Last saved 24 Oct 2026 at 10:42 AM
+                                    </span>
+                                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                                        <Link
+                                            href="/staff/manage-resources"
+                                            className="flex-1 sm:flex-none h-11 px-5 bg-white border border-[#E1E6F3] text-[#245CFF] text-xs font-semibold rounded-lg flex items-center justify-center hover:bg-slate-50 transition-colors"
+                                        >
+                                            Cancel
+                                        </Link>
+                                        <button
+                                            type="submit"
+                                            className="flex-1 sm:flex-none h-11 px-6 bg-gradient-to-r from-[#7148FF] to-[#245CFF] text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:opacity-95 shadow-sm"
+                                        >
+                                            <Save className="w-4 h-4" />
+                                            <span>Save Changes</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+
+                            {/* Right Column: Publication & Version Sidebars */}
+                            <div className="w-full lg:w-[292px] shrink-0 space-y-6">
+                                {/* Publication Details */}
+                                <div className="bg-white p-5 rounded-xl border border-[#E1E6F3] space-y-4">
+                                    <h3 className="text-base font-bold text-[#0B123D]">
+                                        Publication
+                                    </h3>
+
+                                    <div className="divide-y divide-[#E1E6F3] text-xs">
+                                        <div className="py-2.5 flex justify-between">
+                                            <span className="text-[#64708C]">Owner</span>
+                                            <span className="font-medium text-[#0B123D]">
+                                                Dr. Smith
+                                            </span>
+                                        </div>
+
+                                        <div className="py-2.5 flex justify-between">
+                                            <span className="text-[#64708C]">Created</span>
+                                            <span className="font-medium text-[#0B123D]">
+                                                12 Sep 2024
+                                            </span>
+                                        </div>
+
+                                        <div className="py-2.5 flex justify-between">
+                                            <span className="text-[#64708C]">Updated</span>
+                                            <span className="font-medium text-[#0B123D]">
+                                                24 Oct 2026
+                                            </span>
+                                        </div>
+
+                                        <div className="py-2.5 flex justify-between">
+                                            <span className="text-[#64708C]">Downloads</span>
+                                            <span className="font-medium text-[#0B123D]">
+                                                248 total
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <p className="text-xs text-[#64708C] leading-relaxed">
+                                        Metadata updates are applied immediately. Replaced files are reviewed before the new version is published.
+                                    </p>
+
+                                    <button
+                                        type="button"
+                                        className="w-full h-9 px-3.5 bg-white border border-[#E1E6F3] text-[#245CFF] text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors"
+                                    >
+                                        <ExternalLink className="w-4 h-4" />
+                                        <span>View resource</span>
+                                    </button>
+                                </div>
+
+                                {/* Version History Side-Card */}
+                                <div className="bg-white p-5 rounded-xl border border-[#E1E6F3] space-y-4">
+                                    <h3 className="text-base font-bold text-[#0B123D]">
+                                        Version history
+                                    </h3>
+
+                                    {/* Version 2 */}
+                                    <div className="space-y-2">
+                                        <span className="px-2.5 py-1 bg-[#E6FAF4] text-[#009F75] text-[10px] font-semibold rounded-full inline-block">
+                                            Version 2 · Current
+                                        </span>
+                                        <div className="text-xs font-semibold text-[#0B123D]">
+                                            24 Oct 2026 · Dr. Smith
+                                        </div>
+                                        <p className="text-xs text-[#64708C] leading-relaxed">
+                                            Improved diagrams and added graph algorithm examples.
+                                        </p>
+                                        <div className="text-[11px] text-[#64708C]">
+                                            PDF · 3.4 MB
+                                        </div>
+                                        <button
+                                            type="button"
+                                            className="w-full h-9 bg-white border border-[#E1E6F3] text-[#245CFF] text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors"
+                                        >
+                                            <Download className="w-3.5 h-3.5" />
+                                            <span>Download v2</span>
+                                        </button>
+                                    </div>
+
+                                    <hr className="border-[#E1E6F3]" />
+
+                                    {/* Version 1 */}
+                                    <div className="space-y-2">
+                                        <div className="text-xs font-semibold text-[#0B123D]">
+                                            Version 1
+                                        </div>
+                                        <div className="text-[11px] text-[#64708C]">
+                                            12 Sep 2024 · Dr. Smith
+                                        </div>
+                                        <p className="text-xs text-[#64708C] leading-relaxed">
+                                            Original lecture notes.
+                                        </p>
+                                        <div className="text-[11px] text-[#64708C]">
+                                            PDF · 2.8 MB
+                                        </div>
+                                        <button
+                                            type="button"
+                                            className="w-full h-9 bg-white border border-[#E1E6F3] text-[#245CFF] text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors"
+                                        >
+                                            <Download className="w-3.5 h-3.5" />
+                                            <span>Download v1</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Information Banner */}
+                                <div className="p-3.5 bg-[#F0F3FF] rounded-lg border border-[#D9E2FF] flex items-start gap-2.5">
+                                    <Info className="w-4 h-4 text-[#245CFF] shrink-0 mt-0.5" />
+                                    <p className="text-xs text-[#245CFF] leading-relaxed">
+                                        Existing bookmarks and resource links stay the same when you save changes.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Shared Footer */}
+                    <Footer />
+                </main>
+            </div>
+        </div>
+    );
+}
+```
+
+---
+
+## 21. Staff Review Submissions
+
+- **Route**: `/staff/review-submissions`
+- **File**: `frontend/src/app/staff/review-submissions/page.tsx`
+- **Category**: Staff / Lecturer Portal
+- **Description**: Review interface for staff to inspect, approve, or reject student-submitted project materials and resources.
+
+```tsx
+"use client";
+
+import React, { useState } from "react";
+import Navbar from "@/components/layout/Navbar";
+import Sidebar from "@/components/layout/Sidebar";
+import Footer from "@/components/layout/footer";
+import {
+    Search,
+    ChevronDown,
+    Check,
+    AlertTriangle,
+    FileText,
+    User,
+    History,
+    Maximize2,
+    CheckCircle,
+    XCircle,
+    RotateCcw,
+    Clock,
+    ChevronRight,
+    Filter,
+} from "lucide-react";
+
+interface Submission {
+    id: string;
+    title: string;
+    submitterName: string;
+    submitterRole: string;
+    submitterEmail: string;
+    submitterId: string;
+    course: string;
+    courseTitle: string;
+    academicYear: string;
+    category: string;
+    fileType: string;
+    fileName: string;
+    fileSize: string;
+    pageCount: number;
+    visibility: string;
+    tags: string[];
+    submittedDate: string;
+    status: "Pending" | "Approved" | "Rejected" | "Changes Requested";
+    urgent?: boolean;
+}
+
+const mockSubmissions: Submission[] = [
+    {
+        id: "sub-1",
+        title: "Introduction to Algorithms — Lecture Notes 2024",
+        submitterName: "John Doe",
+        submitterRole: "Student",
+        submitterEmail: "john.doe@student.cse.edu.ng",
+        submitterId: "CSE/UG/2023/024",
+        course: "CS201",
+        courseTitle: "Data Structures & Algorithms",
+        academicYear: "2024 / 2025",
+        category: "Lecture Notes",
+        fileType: "Document (PDF)",
+        fileName: "Introduction_to_Algorithms_2024.pdf",
+        fileSize: "3.4 MB",
+        pageCount: 24,
+        visibility: "Public to registered users",
+        tags: ["algorithms", "data-structures", "CS201", "Year 2"],
+        submittedDate: "24 Oct 2026, 10:42 AM",
+        status: "Pending",
+        urgent: true,
+    },
+    {
+        id: "sub-2",
+        title: "Database Normalisation — Practice Set",
+        submitterName: "Zainab Aliyu",
+        submitterRole: "Student",
+        submitterEmail: "zainab.aliyu@student.cse.edu.ng",
+        submitterId: "CSE/UG/2023/089",
+        course: "CS204",
+        courseTitle: "Database Management Systems",
+        academicYear: "2024 / 2025",
+        category: "Practice Set",
+        fileType: "Document (PDF)",
+        fileName: "DB_Normalisation_Practice.pdf",
+        fileSize: "920 KB",
+        pageCount: 12,
+        visibility: "Public to registered users",
+        tags: ["database", "normalisation", "CS204"],
+        submittedDate: "24 Oct 2026, 9:18 AM",
+        status: "Pending",
+    },
+    {
+        id: "sub-3",
+        title: "Binary Tree Traversal — Python",
+        submitterName: "Kwame Mensah",
+        submitterRole: "Student",
+        submitterEmail: "kwame.m@student.cse.edu.ng",
+        submitterId: "CSE/UG/2023/112",
+        course: "CS201",
+        courseTitle: "Data Structures & Algorithms",
+        academicYear: "2024 / 2025",
+        category: "Code Samples",
+        fileType: "Code (ZIP)",
+        fileName: "Tree_Traversal_Python.zip",
+        fileSize: "840 KB",
+        pageCount: 1,
+        visibility: "Public to registered users",
+        tags: ["python", "binary-trees", "CS201"],
+        submittedDate: "23 Oct 2026, 3:45 PM",
+        status: "Pending",
+    },
+    {
+        id: "sub-4",
+        title: "Computer Networks — Revision Guide",
+        submitterName: "Emeka Adeyemi",
+        submitterRole: "Student",
+        submitterEmail: "emeka.a@student.cse.edu.ng",
+        submitterId: "CSE/UG/2022/054",
+        course: "CS302",
+        courseTitle: "Computer Networks",
+        academicYear: "2024 / 2025",
+        category: "Revision Guide",
+        fileType: "Document (PDF)",
+        fileName: "CN_Revision_Guide_2026.pdf",
+        fileSize: "1.8 MB",
+        pageCount: 30,
+        visibility: "Public to registered users",
+        tags: ["networking", "protocols", "CS302"],
+        submittedDate: "23 Oct 2026, 11:20 AM",
+        status: "Pending",
+        urgent: true,
+    },
+    {
+        id: "sub-5",
+        title: "Software Engineering — Project Report",
+        submitterName: "Sarah Okafor",
+        submitterRole: "Student",
+        submitterEmail: "sarah.o@student.cse.edu.ng",
+        submitterId: "CSE/UG/2022/101",
+        course: "CS305",
+        courseTitle: "Software Engineering Principles",
+        academicYear: "2024 / 2025",
+        category: "Project Report",
+        fileType: "Document (PDF)",
+        fileName: "SE_Final_Report_Group4.pdf",
+        fileSize: "4.2 MB",
+        pageCount: 45,
+        visibility: "Public to registered users",
+        tags: ["software-engineering", "agile", "CS305"],
+        submittedDate: "22 Oct 2026, 2:05 PM",
+        status: "Pending",
+    },
+];
+
+export default function ReviewSubmissionsPage() {
+    const [activeTab, setActiveTab] = useState<"pending" | "approved" | "rejected">("pending");
+    const [selectedSubId, setSelectedSubId] = useState<string>("sub-1");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [sortOrder, setSortOrder] = useState("Newest first");
+
+    // Review Checklist State
+    const [checks, setChecks] = useState({
+        relevance: true,
+        fileReadable: true,
+        noDuplicates: true,
+        copyrightVerified: false,
+    });
+
+    // Action Feedback Input State
+    const [feedback, setFeedback] = useState(
+        "Please add the original source and citation for the diagram on page 12 before publication."
+    );
+
+    const selectedSub = mockSubmissions.find((s) => s.id === selectedSubId) || mockSubmissions[0];
+
+    const handleCheckboxChange = (key: keyof typeof checks) => {
+        setChecks((prev) => ({ ...prev, [key]: !prev[key] }));
+    };
+
+    const handleDecision = (action: "approve" | "request-changes" | "reject") => {
+        alert(`Action "${action}" submitted for resource: ${selectedSub.title}`);
+    };
+
+    return (
+        <div className="min-h-screen w-full bg-[#F6F8FF] flex flex-col font-sans text-[#0B123D]">
+            {/* Shared Navbar */}
+            <Navbar userRole="staff" userName="Dr. Smith" userRoleTitle="Staff" />
+
+            {/* Main Content Layout */}
+            <div className="flex-1 flex flex-col md:flex-row">
+                {/* Shared Sidebar */}
+                <Sidebar userRole="staff" userName="Dr. Smith" userCode="Staff" />
+
+                {/* Workspace Area */}
+                <main className="flex-1 p-4 md:p-8 space-y-6 overflow-x-hidden flex flex-col justify-between">
+                    <div className="space-y-6">
+                        {/* Header Title */}
+                        <div>
+                            <h1 className="text-2xl md:text-3xl font-bold text-[#0B123D]">
+                                Review Submissions
+                            </h1>
+                            <p className="text-sm text-[#64708C] mt-1">
+                                Check resource quality and help students share reliable learning materials.
+                            </p>
+                        </div>
+
+                        {/* Queue Filter Tabs */}
+                        <div className="border-b border-[#E1E6F3] flex items-center gap-2 md:gap-8">
+                            <button
+                                onClick={() => setActiveTab("pending")}
+                                className={`py-3 px-2 md:px-4 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 ${activeTab === "pending"
+                                    ? "border-[#245CFF] text-[#245CFF]"
+                                    : "border-transparent text-[#64708C] hover:text-[#0B123D]"
+                                    }`}
+                            >
+                                <span>Pending (28)</span>
+                            </button>
+
+                            <button
+                                onClick={() => setActiveTab("approved")}
+                                className={`py-3 px-2 md:px-4 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 ${activeTab === "approved"
+                                    ? "border-[#245CFF] text-[#245CFF]"
+                                    : "border-transparent text-[#64708C] hover:text-[#0B123D]"
+                                    }`}
+                            >
+                                <span>Approved (184)</span>
+                            </button>
+
+                            <button
+                                onClick={() => setActiveTab("rejected")}
+                                className={`py-3 px-2 md:px-4 text-sm font-semibold border-b-2 transition-colors flex items-center gap-2 ${activeTab === "rejected"
+                                    ? "border-[#245CFF] text-[#245CFF]"
+                                    : "border-transparent text-[#64708C] hover:text-[#0B123D]"
+                                    }`}
+                            >
+                                <span>Rejected (12)</span>
+                            </button>
+                        </div>
+
+                        {/* Split Screen Workspace: Queue List (Left) + Detailed Inspector (Right) */}
+                        <div className="flex flex-col lg:flex-row items-start gap-6">
+                            {/* Left Column: Submissions Queue */}
+                            <div className="w-full lg:w-[320px] shrink-0 space-y-4">
+                                {/* Search & Sort Panel */}
+                                <div className="bg-white p-4 rounded-xl border border-[#E1E6F3] space-y-3">
+                                    <div className="flex items-center gap-2 px-3.5 h-10 bg-white border border-[#E1E6F3] rounded-lg">
+                                        <Search className="w-4 h-4 text-[#64708C]" />
+                                        <input
+                                            type="text"
+                                            placeholder="Search submissions..."
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            className="w-full bg-transparent text-xs text-[#0B123D] placeholder-[#64708C] focus:outline-none"
+                                        />
+                                    </div>
+
+                                    <div className="flex items-center justify-between text-xs">
+                                        <span className="font-semibold text-[#0B123D]">Queue order</span>
+                                        <div className="flex items-center gap-1 text-[#245CFF] font-medium cursor-pointer">
+                                            <span>{sortOrder}</span>
+                                            <ChevronDown className="w-3.5 h-3.5" />
+                                        </div>
+                                    </div>
+
+                                    <div className="text-[11px] text-[#64708C]">
+                                        28 awaiting review
+                                    </div>
+                                </div>
+
+                                {/* Submissions List */}
+                                <div className="bg-white rounded-xl border border-[#E1E6F3] overflow-hidden divide-y divide-[#E1E6F3]">
+                                    {mockSubmissions.map((item) => {
+                                        const isSelected = item.id === selectedSubId;
+                                        return (
+                                            <div
+                                                key={item.id}
+                                                onClick={() => setSelectedSubId(item.id)}
+                                                className={`p-4 cursor-pointer transition-colors space-y-2 border-l-4 ${isSelected
+                                                    ? "bg-[#F0F3FF] border-[#245CFF]"
+                                                    : "bg-white border-transparent hover:bg-slate-50"
+                                                    }`}
+                                            >
+                                                <div className="flex items-center justify-between">
+                                                    <span
+                                                        className={`px-2 py-0.5 text-[10px] font-semibold rounded-full ${isSelected
+                                                            ? "bg-[#FFF5EB] text-[#B86A17]"
+                                                            : "bg-[#FFF5EB] text-[#B86A17]"
+                                                            }`}
+                                                    >
+                                                        {isSelected ? "Selected · Pending" : "Pending"}
+                                                    </span>
+                                                    {item.urgent && (
+                                                        <span className="text-[10px] font-medium text-[#DF365B] flex items-center gap-1">
+                                                            <Clock className="w-3 h-3" /> &gt;48h
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                <h4 className="text-xs font-semibold text-[#0B123D] line-clamp-2 leading-snug">
+                                                    {item.title}
+                                                </h4>
+
+                                                <div className="text-[11px] text-[#64708C] flex items-center justify-between">
+                                                    <span>
+                                                        {item.submitterName} · {item.course}
+                                                    </span>
+                                                </div>
+
+                                                <div className="text-[10px] text-[#64708C]">
+                                                    {item.submittedDate.split(",")[0]}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+
+                                    {/* Pagination Footer */}
+                                    <div className="p-3 bg-white flex items-center justify-between border-t border-[#E1E6F3]">
+                                        <span className="text-[11px] text-[#64708C]">1–5 of 28</span>
+                                        <button className="text-xs font-semibold text-[#245CFF] hover:underline flex items-center gap-1">
+                                            <span>Next 5</span>
+                                            <ChevronRight className="w-3.5 h-3.5" />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* SLA Notice Box */}
+                                <div className="p-3.5 bg-[#F0F3FF] rounded-lg border border-[#D9E2FF] flex items-start gap-2.5">
+                                    <AlertTriangle className="w-4 h-4 text-[#245CFF] shrink-0 mt-0.5" />
+                                    <p className="text-xs text-[#245CFF] leading-relaxed">
+                                        Review target: 1–2 working days. 4 submissions have been waiting over 48 hours.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Right Column: Detailed Review & Inspection Console */}
+                            <div className="flex-1 w-full space-y-6">
+                                {/* Resource Metadata & Preview Container */}
+                                <div className="bg-white p-6 rounded-xl border border-[#E1E6F3] space-y-5">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                        <h2 className="text-lg md:text-xl font-bold text-[#0B123D]">
+                                            {selectedSub.title}
+                                        </h2>
+                                        <span className="px-2.5 py-1 bg-[#FFF5EB] text-[#B86A17] text-xs font-semibold rounded-full self-start sm:self-auto">
+                                            {selectedSub.status}
+                                        </span>
+                                    </div>
+
+                                    <p className="text-xs text-[#64708C]">
+                                        Submitted by{" "}
+                                        <span className="font-semibold text-[#0B123D]">
+                                            {selectedSub.submitterName}
+                                        </span>{" "}
+                                        · {selectedSub.submitterRole} · {selectedSub.submittedDate}
+                                    </p>
+
+                                    {/* Document Bar & Quick Viewer */}
+                                    <div className="p-3 bg-[#F6F8FF] rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border border-[#E1E6F3]">
+                                        <div className="flex items-center gap-2.5">
+                                            <FileText className="w-4 h-4 text-[#245CFF]" />
+                                            <span className="text-xs font-medium text-[#0B123D]">
+                                                {selectedSub.fileName}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex items-center gap-4 text-xs text-[#64708C] self-end sm:self-auto">
+                                            <span>
+                                                1 / {selectedSub.pageCount} pages · 75%
+                                            </span>
+                                            <button className="text-[#245CFF] font-semibold hover:underline flex items-center gap-1">
+                                                <Maximize2 className="w-3.5 h-3.5" />
+                                                <span>Expand</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Simulated PDF Preview Box */}
+                                    <div className="h-[280px] bg-[#EDF0F4] rounded-lg p-4 flex items-center justify-center overflow-hidden border border-[#E1E6F3]">
+                                        <div className="w-full max-w-[420px] bg-[#FFFDFA] p-6 shadow-md border-l-8 border-[#0B123D] rounded space-y-3 text-left">
+                                            <span className="text-[9px] font-semibold text-[#64708C] tracking-wider uppercase">
+                                                DEPARTMENT OF COMPUTER SCIENCE AND ENGINEERING
+                                            </span>
+                                            <h3 className="text-lg font-bold text-[#0B123D] leading-tight">
+                                                {selectedSub.title.split("—")[0]}
+                                            </h3>
+                                            <p className="text-xs font-medium text-[#245CFF]">
+                                                {selectedSub.course} · {selectedSub.category}
+                                            </p>
+                                            <hr className="border-[#E1E6F3]" />
+                                            <div className="space-y-1.5">
+                                                <span className="text-xs font-semibold text-[#0B123D]">
+                                                    1. Algorithm analysis
+                                                </span>
+                                                <p className="text-[11px] text-[#64708C] leading-relaxed">
+                                                    An algorithm is a finite sequence of well-defined steps for solving a problem. We compare algorithms by their time and space complexity.
+                                                </p>
+                                            </div>
+                                            <div className="text-[10px] text-[#64708C] pt-2">
+                                                Topics: {selectedSub.tags.join(" · ")}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Resource Detail Table */}
+                                    <div className="divide-y divide-[#E1E6F3] border-t border-b border-[#E1E6F3] text-xs">
+                                        <div className="py-2.5 flex items-start">
+                                            <span className="w-32 text-[#64708C]">Course / year</span>
+                                            <span className="flex-1 font-medium text-[#0B123D]">
+                                                {selectedSub.course} — {selectedSub.courseTitle} · {selectedSub.academicYear}
+                                            </span>
+                                        </div>
+
+                                        <div className="py-2.5 flex items-start">
+                                            <span className="w-32 text-[#64708C]">Category / type</span>
+                                            <span className="flex-1 font-medium text-[#0B123D]">
+                                                {selectedSub.category} · {selectedSub.fileType}
+                                            </span>
+                                        </div>
+
+                                        <div className="py-2.5 flex items-start">
+                                            <span className="w-32 text-[#64708C]">File / visibility</span>
+                                            <span className="flex-1 font-medium text-[#0B123D]">
+                                                {selectedSub.fileSize} · {selectedSub.pageCount} pages · {selectedSub.visibility}
+                                            </span>
+                                        </div>
+
+                                        <div className="py-2.5 flex items-start">
+                                            <span className="w-32 text-[#64708C]">Tags</span>
+                                            <span className="flex-1 font-medium text-[#0B123D]">
+                                                {selectedSub.tags.join(", ")}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Submitter Info Card */}
+                                    <div className="p-3.5 bg-[#F6F8FF] rounded-lg border border-[#E1E6F3] flex items-center gap-3">
+                                        <div className="w-9 h-9 rounded-full bg-[#245CFF] text-white flex items-center justify-center font-bold text-xs">
+                                            {selectedSub.submitterName.split(" ").map((n) => n[0]).join("")}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <div className="text-xs font-bold text-[#0B123D] truncate">
+                                                {selectedSub.submitterName}
+                                            </div>
+                                            <div className="text-[11px] text-[#64708C] truncate">
+                                                {selectedSub.submitterEmail} · {selectedSub.submitterId}
+                                            </div>
+                                        </div>
+                                        <span className="px-2.5 py-1 bg-[#E9EDFF] text-[#245CFF] text-[10px] font-semibold rounded-full">
+                                            {selectedSub.submitterRole}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Interactive Quality Checklist & Decision Section */}
+                                <div className="bg-white p-6 rounded-xl border border-[#E1E6F3] space-y-5">
+                                    <h3 className="text-base font-bold text-[#0B123D]">
+                                        Review checklist
+                                    </h3>
+
+                                    <div className="space-y-3">
+                                        <label className="flex items-center gap-3 cursor-pointer text-xs text-[#0B123D]">
+                                            <input
+                                                type="checkbox"
+                                                checked={checks.relevance}
+                                                onChange={() => handleCheckboxChange("relevance")}
+                                                className="w-4 h-4 rounded border-gray-300 text-[#245CFF] focus:ring-[#245CFF]"
+                                            />
+                                            <span>Content is relevant to the selected course</span>
+                                        </label>
+
+                                        <label className="flex items-center gap-3 cursor-pointer text-xs text-[#0B123D]">
+                                            <input
+                                                type="checkbox"
+                                                checked={checks.fileReadable}
+                                                onChange={() => handleCheckboxChange("fileReadable")}
+                                                className="w-4 h-4 rounded border-gray-300 text-[#245CFF] focus:ring-[#245CFF]"
+                                            />
+                                            <span>File opens correctly and is readable</span>
+                                        </label>
+
+                                        <label className="flex items-center gap-3 cursor-pointer text-xs text-[#0B123D]">
+                                            <input
+                                                type="checkbox"
+                                                checked={checks.noDuplicates}
+                                                onChange={() => handleCheckboxChange("noDuplicates")}
+                                                className="w-4 h-4 rounded border-gray-300 text-[#245CFF] focus:ring-[#245CFF]"
+                                            />
+                                            <span>No duplicate resource or sensitive personal information</span>
+                                        </label>
+
+                                        <label className="flex items-center gap-3 cursor-pointer text-xs text-[#0B123D]">
+                                            <input
+                                                type="checkbox"
+                                                checked={checks.copyrightVerified}
+                                                onChange={() => handleCheckboxChange("copyrightVerified")}
+                                                className="w-4 h-4 rounded border-gray-300 text-[#245CFF] focus:ring-[#245CFF]"
+                                            />
+                                            <span>Copyright, citations and source attribution verified</span>
+                                        </label>
+                                    </div>
+
+                                    {/* Checklist Note Banner */}
+                                    <div className="p-3 bg-[#FFF5EB] rounded-lg border border-[#FFE3C6] flex items-start gap-2.5">
+                                        <AlertTriangle className="w-4 h-4 text-[#B86A17] shrink-0 mt-0.5" />
+                                        <p className="text-xs text-[#B86A17] leading-relaxed">
+                                            Confirm all checks before approving. Source attribution on page 12 needs clarification.
+                                        </p>
+                                    </div>
+
+                                    {/* Feedback Text Area */}
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-semibold text-[#0B123D]">
+                                            Reason / feedback to submitter
+                                        </label>
+                                        <textarea
+                                            rows={3}
+                                            value={feedback}
+                                            onChange={(e) => setFeedback(e.target.value)}
+                                            className="w-full p-3 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] placeholder-[#64708C] focus:outline-none focus:border-[#245CFF]"
+                                            placeholder="Write feedback for the student..."
+                                        />
+                                        <p className="text-[11px] text-[#64708C]">
+                                            Required for Request Changes or Reject. This message will be sent to {selectedSub.submitterName}.
+                                        </p>
+                                    </div>
+
+                                    {/* Action Buttons */}
+                                    <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
+                                        <button
+                                            onClick={() => handleDecision("approve")}
+                                            className="w-full sm:w-auto h-11 px-6 bg-gradient-to-r from-[#7148FF] to-[#245CFF] text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:opacity-95 shadow-sm"
+                                        >
+                                            <Check className="w-4 h-4" />
+                                            <span>Approve</span>
+                                        </button>
+
+                                        <button
+                                            onClick={() => handleDecision("request-changes")}
+                                            className="w-full sm:w-auto h-11 px-6 bg-white border border-[#E1E6F3] text-[#245CFF] text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors"
+                                        >
+                                            <RotateCcw className="w-4 h-4" />
+                                            <span>Request Changes</span>
+                                        </button>
+
+                                        <button
+                                            onClick={() => handleDecision("reject")}
+                                            className="w-full sm:w-auto h-11 px-6 bg-white border border-[#DF365B] text-[#DF365B] text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-red-50 transition-colors"
+                                        >
+                                            <XCircle className="w-4 h-4" />
+                                            <span>Reject</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Audit Trail / Decision History */}
+                                <div className="bg-white p-6 rounded-xl border border-[#E1E6F3] space-y-4">
+                                    <h3 className="text-base font-bold text-[#0B123D]">
+                                        Decision history
+                                    </h3>
+
+                                    <div className="divide-y divide-[#E1E6F3] text-xs">
+                                        <div className="py-3 flex items-start gap-4">
+                                            <span className="w-28 text-[#64708C] shrink-0">
+                                                24 Oct · 10:42
+                                            </span>
+                                            <span className="text-[#0B123D] font-medium">
+                                                John Doe resubmitted version 2 with improved file quality.
+                                            </span>
+                                        </div>
+
+                                        <div className="py-3 flex items-start gap-4">
+                                            <span className="w-28 text-[#64708C] shrink-0">
+                                                23 Oct · 2:15
+                                            </span>
+                                            <span className="text-[#0B123D] font-medium">
+                                                Dr. Smith requested changes: replace blurred pages 8–10.
+                                            </span>
+                                        </div>
+
+                                        <div className="py-3 flex items-start gap-4">
+                                            <span className="w-28 text-[#64708C] shrink-0">
+                                                22 Oct · 9:30
+                                            </span>
+                                            <span className="text-[#0B123D] font-medium">
+                                                John Doe submitted version 1 for review.
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <p className="text-[11px] text-[#64708C] pt-1">
+                                        No final decision yet · All review actions are recorded.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Shared Footer */}
+                    <Footer />
+                </main>
+            </div>
+        </div>
+    );
+}
+```
+
+---
+
+# Section: Administrator Portal
+
+## 22. Administrator Dashboard
+
+- **Route**: `/admin/dashboard`
+- **File**: `frontend/src/app/admin/dashboard/page.tsx`
+- **Category**: Administrator Portal
+- **Description**: Central administrative dashboard showing platform health, active users, storage usage, and system-wide metrics.
+
+```tsx
+'use client';
+
+import { useState } from 'react';
+import Sidebar from '@/components/layout/Sidebar';
+import {
+    Search,
+    FileText,
+    Users,
+    Clock,
+    Download,
+    Bell,
+    ChevronDown,
+    Menu
+} from 'lucide-react';
+import Footer from '@/components/layout/footer';
+
+export default function AdminDashboardPage() {
+    const [query, setQuery] = useState('');
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    const metrics = [
+        { label: 'Total Resources', count: '1,250', bgColor: 'rgba(0, 197, 138, 0.09)', iconColor: '#00C58A', icon: FileText },
+        { label: 'Total Users', count: '450', bgColor: 'rgba(36, 92, 255, 0.09)', iconColor: '#245CFF', icon: Users },
+        { label: 'Pending Review', count: '28', bgColor: 'rgba(255, 72, 105, 0.09)', iconColor: '#FF4869', icon: Clock },
+        { label: 'Total Downloads', count: '1.2K', bgColor: 'rgba(36, 92, 255, 0.09)', iconColor: '#245CFF', icon: Download },
+    ];
+
+    const userDistribution = [
+        { label: 'Students', percentage: '70%', color: '#7148FF' },
+        { label: 'Staff', percentage: '20%', color: '#F6B93D' },
+        { label: 'Admins', percentage: '10%', color: '#FF4869' },
+    ];
+
+    return (
+        <div className="w-full min-h-screen bg-[#F6F8FF] flex font-sans text-[#0B123D]">
+
+            {/* DESKTOP SIDEBAR */}
+            <Sidebar userRole="admin" userName="Admin User" userCode="Administrator" />
+
+            {/* MAIN CONTENT AREA */}
+            <div className="flex-1 flex flex-col min-w-0">
+
+                {/* HEADER APP BAR */}
+                <header className="h-[76px] bg-white border-b border-[#E1E6F3] px-4 sm:px-8 flex items-center justify-between sticky top-0 z-30">
+
+                    {/* Mobile Logo & Menu Toggle */}
+                    <div className="flex items-center gap-3 lg:hidden">
+                        <div className="w-9 h-[38px] bg-[#245CFF] rounded-[10px] flex items-center justify-center text-white font-bold text-[17px]">
+                            C
+                        </div>
+                        <span className="text-[21px] sm:text-[25px] font-bold text-[#0B123D]">AdminHub</span>
+                    </div>
+
+                    {/* Search Field */}
+                    <div className="hidden lg:block w-full max-w-[620px]">
+                        <div className="h-[43px] px-4 bg-white rounded-[8px] border border-[#E1E6F3] flex items-center gap-3 focus-within:ring-2 focus-within:ring-[#245CFF]">
+                            <Search className="w-[18px] h-[18px] text-[#64708C]" />
+                            <input
+                                type="text"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                placeholder="Search for resources, topics, or keywords..."
+                                className="w-full bg-transparent text-[14px] text-[#0B123D] placeholder-[#64708C] focus:outline-none"
+                            />
+                        </div>
+                    </div>
+
+                    {/* User Profile & Actions */}
+                    <div className="flex items-center gap-3 sm:gap-6">
+                        <button className="p-2 text-[#0B123D] hover:bg-slate-50 rounded-lg">
+                            <Bell className="w-[20px] h-[20px]" />
+                        </button>
+
+                        <div className="flex items-center gap-3 border-l border-[#E1E6F3] pl-3 sm:pl-4">
+                            <div className="w-[34px] h-[36px] sm:w-[38px] sm:h-[40px] rounded-full bg-[#245CFF]/10 text-[#245CFF] font-bold flex items-center justify-center text-sm">
+                                AU
+                            </div>
+                            <div className="hidden sm:flex flex-col">
+                                <span className="text-[14px] font-bold text-[#0B123D]">Admin User</span>
+                                <span className="text-[12px] text-[#64708C]">Administrator</span>
+                            </div>
+                            <ChevronDown className="w-4 h-4 text-[#64708C] hidden sm:block" />
+                        </div>
+                    </div>
+                </header>
+
+                {/* MOBILE SEARCH BAR & NAVIGATION BAR */}
+                <div className="lg:hidden bg-white border-b border-[#E1E6F3] p-4 space-y-3">
+                    <div className="h-[44px] px-3 bg-white rounded-[8px] border border-[#E1E6F3] flex items-center gap-2.5">
+                        <Search className="w-[18px] h-[18px] text-[#64708C]" />
+                        <input
+                            type="text"
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            placeholder="Search resources, topics or keywords..."
+                            className="w-full bg-transparent text-[14px] text-[#0B123D] placeholder-[#64708C] focus:outline-none"
+                        />
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1">
+                        <span className="text-[12px] font-semibold text-[#64708C]">ADMIN WORKSPACE</span>
+                        <button
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            className="flex items-center gap-1.5 text-[12px] text-[#64708C] hover:text-[#0B123D]"
+                        >
+                            <Menu className="w-4 h-4" />
+                            <span>Menu</span>
+                            <ChevronDown className={`w-3.5 h-3.5 transition-transform ${mobileMenuOpen ? 'rotate-180' : ''}`} />
+                        </button>
+                    </div>
+
+                    {/* Mobile Workspace Tabs */}
+                    {mobileMenuOpen && (
+                        <div className="grid grid-cols-2 gap-2 pt-2">
+                            <a href="/admin/dashboard" className="h-[44px] px-3 bg-[#E9EDFF] text-[#245CFF] text-[13px] font-semibold rounded-[6px] flex items-center justify-between">
+                                <span>Dashboard</span>
+                                <div className="w-[3px] h-5 bg-[#245CFF] rounded-full" />
+                            </a>
+                            <a href="#" className="h-[44px] px-3 bg-white text-[#0B123D] text-[13px] rounded-[6px] flex items-center">
+                                Users
+                            </a>
+                            <a href="#" className="h-[44px] px-3 bg-white text-[#0B123D] text-[13px] rounded-[6px] flex items-center">
+                                Categories & Courses
+                            </a>
+                            <a href="#" className="h-[44px] px-3 bg-white text-[#0B123D] text-[13px] rounded-[6px] flex items-center">
+                                Manage Resources
+                            </a>
+                            <a href="#" className="h-[44px] px-3 bg-white text-[#0B123D] text-[13px] rounded-[6px] flex items-center">
+                                Analytics
+                            </a>
+                            <a href="#" className="h-[44px] px-3 bg-white text-[#0B123D] text-[13px] rounded-[6px] flex items-center">
+                                System Settings
+                            </a>
+                        </div>
+                    )}
+                </div>
+
+                {/* DASHBOARD CONTENT AREA */}
+                <main className="p-4 sm:p-6 lg:p-[32px] space-y-[26px] flex-1">
+
+                    {/* TITLE SECTION */}
+                    <h1 className="text-[26px] sm:text-[30px] font-bold text-[#0B123D] leading-tight">
+                        System Overview
+                    </h1>
+
+                    {/* METRIC CARDS GRID */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[18px]">
+                        {metrics.map((item, idx) => (
+                            <div
+                                key={idx}
+                                className="h-[123px] p-[22px] bg-white rounded-[16px] shadow-[0px_5px_18px_rgba(39,63,121,0.06)] border border-[#E1E6F3]/50 flex items-center gap-[18px]"
+                            >
+                                <div
+                                    style={{ backgroundColor: item.bgColor }}
+                                    className="w-[56px] h-[58px] rounded-[14px] flex items-center justify-center flex-shrink-0"
+                                >
+                                    <item.icon style={{ color: item.iconColor }} className="w-[29px] h-[29px]" />
+                                </div>
+                                <div className="flex flex-col gap-0.5">
+                                    <span className="text-[28px] sm:text-[30px] font-bold leading-tight text-[#0B123D]">{item.count}</span>
+                                    <span className="text-[13px] sm:text-[14px] text-[#64708C] font-normal">{item.label}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* CHARTS GRID: RESOURCE GROWTH + USER DISTRIBUTION */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-[28px] items-stretch">
+
+                        {/* RESOURCE GROWTH CHART CARD (8 COLS ON DESKTOP) */}
+                        <div className="lg:col-span-7 xl:col-span-8 p-[20px] sm:p-[22px] bg-white rounded-[16px] border border-[#E1E6F3] flex flex-col gap-[15px]">
+                            <div>
+                                <h2 className="text-[18px] sm:text-[20px] font-bold text-[#0B123D]">Resource Growth</h2>
+                                <p className="text-[13px] text-[#64708C] mt-1">Total resources · January–October 2026</p>
+                            </div>
+
+                            {/* Simplified Custom Line Graph Visual */}
+                            <div className="w-full h-[210px] relative mt-2 flex flex-col justify-between">
+
+                                {/* Horizontal Y-Axis Grid Lines */}
+                                {[1500, 1000, 500, 0].map((val) => (
+                                    <div key={val} className="flex items-center gap-3 w-full">
+                                        <span className="w-9 text-[11px] text-[#64708C] text-right font-normal">{val}</span>
+                                        <div className="flex-1 h-[1px] bg-[#E9EDF7]" />
+                                    </div>
+                                ))}
+
+                                {/* Line Path Container */}
+                                <div className="absolute left-[48px] right-0 top-[10px] bottom-[30px]">
+                                    <svg className="w-full h-full overflow-visible" viewBox="0 0 500 130" preserveAspectRatio="none">
+                                        <path
+                                            d="M 0 110 Q 125 70, 250 40 T 500 10"
+                                            fill="none"
+                                            stroke="#245CFF"
+                                            strokeWidth="3.5"
+                                        />
+                                    </svg>
+                                </div>
+
+                                {/* X-Axis Labels */}
+                                <div className="flex justify-between pl-[48px] pr-2 pt-2 text-[12px] text-[#64708C]">
+                                    <span>Jan</span>
+                                    <span>Apr</span>
+                                    <span>Jul</span>
+                                    <span>Oct</span>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        {/* USER DISTRIBUTION CARD (4 COLS ON DESKTOP) */}
+                        <div className="lg:col-span-5 xl:col-span-4 p-[20px] sm:p-[22px] bg-white rounded-[16px] border border-[#E1E6F3] flex flex-col gap-[20px]">
+                            <h2 className="text-[18px] sm:text-[20px] font-bold text-[#0B123D]">User Distribution</h2>
+
+                            <div className="flex flex-col sm:flex-row lg:flex-col items-center justify-between gap-[25px] flex-1">
+
+                                {/* Donut Chart Mock (Concentric ring background gradient) */}
+                                <div className="relative w-[140px] h-[140px] sm:w-[155px] sm:h-[155px] rounded-full flex items-center justify-center flex-shrink-0"
+                                    style={{
+                                        background: 'conic-gradient(#7148FF 0% 70%, #F6B93D 70% 90%, #FF4869 90% 100%)'
+                                    }}
+                                >
+                                    <div className="w-[85px] h-[85px] sm:w-[95px] sm:h-[95px] bg-white rounded-full flex flex-col items-center justify-center shadow-inner">
+                                        <span className="text-[18px] font-bold text-[#0B123D]">450</span>
+                                        <span className="text-[10px] text-[#64708C]">Total</span>
+                                    </div>
+                                </div>
+
+                                {/* Legend List */}
+                                <div className="w-full flex flex-col gap-[16px]">
+                                    {userDistribution.map((item) => (
+                                        <div key={item.label} className="flex items-center justify-between text-[13px] sm:text-[14px]">
+                                            <div className="flex items-center gap-[10px]">
+                                                <span className="w-[10px] h-[10px] rounded-full" style={{ backgroundColor: item.color }} />
+                                                <span className="text-[#0B123D] font-normal">{item.label}</span>
+                                            </div>
+                                            <span className="font-bold text-[#0B123D]">{item.percentage}</span>
+                                        </div>
+                                    ))}
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                </main>
+
+                {/* FOOTER */}
+                <Footer />
+
+            </div>
+        </div>
+    );
+}
+```
+
+---
+
+## 23. Admin User Management
+
+- **Route**: `/admin/users`
+- **File**: `frontend/src/app/admin/users/page.tsx`
+- **Category**: Administrator Portal
+- **Description**: User administration portal for managing student and staff roles, permissions, account status, and credentials.
+
+```tsx
+"use client";
+
+import React, { useState } from "react";
+import Navbar from "@/components/layout/Navbar";
+import Sidebar from "@/components/layout/Sidebar";
+import Footer from "@/components/layout/footer";
+import {
+    Search,
+    UserPlus,
+    ChevronDown,
+    Check,
+    Info,
+    UserX,
+    RotateCcw,
+} from "lucide-react";
+
+interface User {
+    id: string;
+    name: string;
+    email: string;
+    role: "Admin" | "Staff" | "Student";
+    status: "Active" | "Suspended" | "Invited";
+    lastActive: string;
+    staffOrMatricId?: string;
+    joinedDate: string;
+    resourcesUploaded?: number;
+}
+
+const mockUsers: User[] = [
+    {
+        id: "1",
+        name: "Dr. Smith",
+        email: "smith@cse.edu.ng",
+        role: "Staff",
+        status: "Active",
+        lastActive: "Today, 9:15",
+        staffOrMatricId: "CSE/STF/042",
+        joinedDate: "12 Sep 2024",
+        resourcesUploaded: 320,
+    },
+    {
+        id: "2",
+        name: "John Doe",
+        email: "john.doe@student.cse.edu.ng",
+        role: "Student",
+        status: "Active",
+        lastActive: "Today, 8:42",
+        staffOrMatricId: "CSE/2021/089",
+        joinedDate: "10 Oct 2023",
+        resourcesUploaded: 14,
+    },
+    {
+        id: "3",
+        name: "Admin User",
+        email: "admin@cse.edu.ng",
+        role: "Admin",
+        status: "Active",
+        lastActive: "Today, 8:30",
+        staffOrMatricId: "CSE/ADM/001",
+        joinedDate: "01 Jan 2023",
+        resourcesUploaded: 45,
+    },
+    {
+        id: "4",
+        name: "Zainab Aliyu",
+        email: "zainab.aliyu@student.cse.edu.ng",
+        role: "Student",
+        status: "Active",
+        lastActive: "Yesterday",
+        staffOrMatricId: "CSE/2022/112",
+        joinedDate: "15 Nov 2023",
+        resourcesUploaded: 8,
+    },
+    {
+        id: "5",
+        name: "Kwame Mensah",
+        email: "kwame.mensah@student.cse.edu.ng",
+        role: "Student",
+        status: "Suspended",
+        lastActive: "20 Oct 2026",
+        staffOrMatricId: "CSE/2020/045",
+        joinedDate: "05 Feb 2022",
+        resourcesUploaded: 2,
+    },
+    {
+        id: "6",
+        name: "Dr. Amaka Osei",
+        email: "amaka.osei@cse.edu.ng",
+        role: "Staff",
+        status: "Active",
+        lastActive: "Yesterday",
+        staffOrMatricId: "CSE/STF/018",
+        joinedDate: "20 Aug 2023",
+        resourcesUploaded: 198,
+    },
+    {
+        id: "7",
+        name: "Sarah Okafor",
+        email: "sarah.okafor@student.cse.edu.ng",
+        role: "Student",
+        status: "Invited",
+        lastActive: "Not yet",
+        staffOrMatricId: "CSE/2024/204",
+        joinedDate: "24 Oct 2026",
+        resourcesUploaded: 0,
+    },
+    {
+        id: "8",
+        name: "Emeka Adeyemi",
+        email: "emeka.adeyemi@student.cse.edu.ng",
+        role: "Student",
+        status: "Active",
+        lastActive: "22 Oct 2026",
+        staffOrMatricId: "CSE/2023/150",
+        joinedDate: "18 Mar 2024",
+        resourcesUploaded: 19,
+    },
+];
+
+export default function AdminUserManagementPage() {
+    const [searchTerm, setSearchTerm] = useState("");
+    const [roleFilter, setRoleFilter] = useState("All roles");
+    const [statusFilter, setStatusFilter] = useState("All statuses");
+    const [selectedUser, setSelectedUser] = useState<User>(mockUsers[0]);
+    const [assignedRole, setAssignedRole] = useState<"Admin" | "Staff" | "Student">(
+        mockUsers[0].role
+    );
+    const [suspensionReason, setSuspensionReason] = useState("");
+
+    const handleSelectUser = (user: User) => {
+        setSelectedUser(user);
+        setAssignedRole(user.role);
+        setSuspensionReason("");
+    };
+
+    const handleResetFilters = () => {
+        setSearchTerm("");
+        setRoleFilter("All roles");
+        setStatusFilter("All statuses");
+    };
+
+    const filteredUsers = mockUsers.filter((user) => {
+        const matchesSearch =
+            user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (user.staffOrMatricId &&
+                user.staffOrMatricId.toLowerCase().includes(searchTerm.toLowerCase()));
+
+        const matchesRole =
+            roleFilter === "All roles" || user.role === roleFilter;
+
+        const matchesStatus =
+            statusFilter === "All statuses" || user.status === statusFilter;
+
+        return matchesSearch && matchesRole && matchesStatus;
+    });
+
+    return (
+        <div className="min-h-screen w-full bg-[#F6F8FF] flex flex-col font-sans text-[#0B123D]">
+            {/* Standard Shared Navbar */}
+            <Navbar userRole="admin" userName="Admin User" userRoleTitle="Administrator" />
+
+            {/* Main Layout Container */}
+            <div className="flex-1 flex flex-col md:flex-row">
+                {/* Standard Shared Sidebar */}
+                <Sidebar userRole="admin" userName="Admin User" userCode="Administrator" />
+
+                {/* Content Workspace */}
+                <main className="flex-1 p-4 md:p-8 space-y-6 overflow-x-hidden flex flex-col justify-between">
+                    <div className="space-y-6">
+                        {/* Header Title & Action CTA */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <h1 className="text-2xl md:text-3xl font-bold text-[#0B123D]">
+                                    User Management
+                                </h1>
+                                <p className="text-sm text-[#64708C] mt-1">
+                                    Manage access, roles and account status across your department.
+                                </p>
+                            </div>
+
+                            <button className="h-11 px-5 bg-gradient-to-r from-[#7148FF] to-[#245CFF] text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:opacity-95 shadow-sm self-start sm:self-auto">
+                                <UserPlus className="w-4 h-4" />
+                                <span>Add User</span>
+                            </button>
+                        </div>
+
+                        {/* Overview Metric Cards */}
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+                            <div className="p-4.5 bg-white rounded-xl border border-[#E1E6F3] space-y-2">
+                                <div className="text-2xl md:text-3xl font-bold text-[#0B123D]">
+                                    450
+                                </div>
+                                <div className="text-xs text-[#64708C]">Total users</div>
+                            </div>
+
+                            <div className="p-4.5 bg-white rounded-xl border border-[#E1E6F3] space-y-2">
+                                <div className="text-2xl md:text-3xl font-bold text-[#0B123D]">
+                                    315
+                                </div>
+                                <div className="text-xs text-[#64708C]">Students</div>
+                            </div>
+
+                            <div className="p-4.5 bg-white rounded-xl border border-[#E1E6F3] space-y-2">
+                                <div className="text-2xl md:text-3xl font-bold text-[#0B123D]">
+                                    90
+                                </div>
+                                <div className="text-xs text-[#64708C]">Staff</div>
+                            </div>
+
+                            <div className="p-4.5 bg-white rounded-xl border border-[#E1E6F3] space-y-2">
+                                <div className="text-2xl md:text-3xl font-bold text-[#0B123D]">
+                                    45
+                                </div>
+                                <div className="text-xs text-[#64708C]">Administrators</div>
+                            </div>
+                        </div>
+
+                        {/* In-Page Filter & Local User Search Toolbar */}
+                        <div className="bg-white p-5 rounded-xl border border-[#E1E6F3] space-y-4">
+                            <div className="flex flex-col md:flex-row items-center gap-3">
+                                {/* Search Input */}
+                                <div className="flex-1 w-full relative">
+                                    <Search className="w-4.5 h-4.5 text-[#64708C] absolute left-3.5 top-3.5 pointer-events-none" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search name, email or matric number..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="w-full h-11 pl-10 pr-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] placeholder-[#64708C] focus:outline-none focus:border-[#245CFF]"
+                                    />
+                                </div>
+
+                                {/* Dropdown Filters */}
+                                <div className="flex items-center gap-3 w-full md:w-auto">
+                                    <div className="relative flex-1 md:w-36">
+                                        <select
+                                            value={roleFilter}
+                                            onChange={(e) => setRoleFilter(e.target.value)}
+                                            className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] appearance-none focus:outline-none focus:border-[#245CFF] pr-8"
+                                        >
+                                            <option>All roles</option>
+                                            <option>Admin</option>
+                                            <option>Staff</option>
+                                            <option>Student</option>
+                                        </select>
+                                        <ChevronDown className="w-4 h-4 text-[#64708C] absolute right-3 top-3.5 pointer-events-none" />
+                                    </div>
+
+                                    <div className="relative flex-1 md:w-40">
+                                        <select
+                                            value={statusFilter}
+                                            onChange={(e) => setStatusFilter(e.target.value)}
+                                            className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] appearance-none focus:outline-none focus:border-[#245CFF] pr-8"
+                                        >
+                                            <option>All statuses</option>
+                                            <option>Active</option>
+                                            <option>Suspended</option>
+                                            <option>Invited</option>
+                                        </select>
+                                        <ChevronDown className="w-4 h-4 text-[#64708C] absolute right-3 top-3.5 pointer-events-none" />
+                                    </div>
+
+                                    <button
+                                        onClick={handleResetFilters}
+                                        className="h-11 px-4 bg-white border border-[#E1E6F3] text-[#245CFF] text-xs font-semibold rounded-lg hover:bg-slate-50 transition-colors shrink-0"
+                                    >
+                                        Reset
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Split Screen Grid: Users List Table (Left) + Detailed User Inspector (Right) */}
+                        <div className="flex flex-col lg:flex-row items-start gap-6">
+                            {/* Left Column: User Data Table */}
+                            <div className="flex-1 w-full space-y-4">
+                                <div className="bg-white rounded-xl border border-[#E1E6F3] overflow-hidden">
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left border-collapse">
+                                            <thead>
+                                                <tr className="bg-[#F6F8FF] border-b border-[#E1E6F3] text-xs font-semibold text-[#64708C]">
+                                                    <th className="p-4 w-10">
+                                                        <input
+                                                            type="checkbox"
+                                                            className="w-4 h-4 rounded border-gray-300 text-[#245CFF] focus:ring-[#245CFF]"
+                                                        />
+                                                    </th>
+                                                    <th className="p-4">Name / email</th>
+                                                    <th className="p-4">Role</th>
+                                                    <th className="p-4">Status</th>
+                                                    <th className="p-4">Last active</th>
+                                                    <th className="p-4 text-right">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-[#E1E6F3] text-xs">
+                                                {filteredUsers.map((user) => {
+                                                    const isSelected = selectedUser.id === user.id;
+                                                    return (
+                                                        <tr
+                                                            key={user.id}
+                                                            onClick={() => handleSelectUser(user)}
+                                                            className={`cursor-pointer transition-colors ${isSelected
+                                                                ? "bg-[#F0F3FF]"
+                                                                : "bg-white hover:bg-slate-50"
+                                                                }`}
+                                                        >
+                                                            <td className="p-4" onClick={(e) => e.stopPropagation()}>
+                                                                <input
+                                                                    type="checkbox"
+                                                                    checked={isSelected}
+                                                                    onChange={() => handleSelectUser(user)}
+                                                                    className="w-4 h-4 rounded border-gray-300 text-[#245CFF] focus:ring-[#245CFF]"
+                                                                />
+                                                            </td>
+                                                            <td className="p-4">
+                                                                <div className="font-semibold text-[#0B123D]">
+                                                                    {user.name}
+                                                                </div>
+                                                                <div className="text-[11px] text-[#64708C]">
+                                                                    {user.email}
+                                                                </div>
+                                                            </td>
+                                                            <td className="p-4 text-[#0B123D]">{user.role}</td>
+                                                            <td className="p-4">
+                                                                <span
+                                                                    className={`px-2.5 py-1 text-[11px] font-semibold rounded-full inline-block ${user.status === "Active"
+                                                                        ? "bg-[#E6FAF4] text-[#009F75]"
+                                                                        : user.status === "Suspended"
+                                                                            ? "bg-[#FFF0F4] text-[#DF365B]"
+                                                                            : "bg-[#FFF5EB] text-[#B86A17]"
+                                                                        }`}
+                                                                >
+                                                                    {user.status}
+                                                                </span>
+                                                            </td>
+                                                            <td className="p-4 text-[#64708C]">
+                                                                {user.lastActive}
+                                                            </td>
+                                                            <td className="p-4 text-right">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        handleSelectUser(user);
+                                                                    }}
+                                                                    className="font-semibold text-[#245CFF] hover:underline"
+                                                                >
+                                                                    {isSelected ? "Selected" : "View"}
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                {/* Pagination Controls */}
+                                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#64708C]">
+                                    <div>Showing 1–8 of 450 users</div>
+                                    <div className="flex items-center gap-1.5">
+                                        <button className="h-9 px-3 bg-white border border-[#E1E6F3] text-[#245CFF] font-semibold rounded-lg hover:bg-slate-50 transition-colors">
+                                            Previous
+                                        </button>
+                                        <button className="w-8 h-9 bg-[#245CFF] text-white font-medium rounded-md flex items-center justify-center">
+                                            1
+                                        </button>
+                                        <button className="w-8 h-9 bg-white text-[#64708C] font-medium rounded-md hover:bg-slate-50 flex items-center justify-center">
+                                            2
+                                        </button>
+                                        <button className="w-8 h-9 bg-white text-[#64708C] font-medium rounded-md hover:bg-slate-50 flex items-center justify-center">
+                                            3
+                                        </button>
+                                        <span className="px-1 text-[#64708C]">…</span>
+                                        <button className="w-8 h-9 bg-white text-[#64708C] font-medium rounded-md hover:bg-slate-50 flex items-center justify-center">
+                                            57
+                                        </button>
+                                        <button className="h-9 px-3 bg-white border border-[#E1E6F3] text-[#245CFF] font-semibold rounded-lg hover:bg-slate-50 transition-colors">
+                                            Next
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* Audit Log Note Banner */}
+                                <div className="p-3.5 bg-[#F0F3FF] rounded-lg border border-[#D9E2FF] flex items-start gap-2.5">
+                                    <Info className="w-4 h-4 text-[#245CFF] shrink-0 mt-0.5" />
+                                    <p className="text-xs text-[#245CFF] leading-relaxed">
+                                        Role and account changes are recorded in the audit log. Suspended users cannot sign in.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Right Column: Selected User Inspection & Role Controls */}
+                            <div className="w-full lg:w-[320px] shrink-0 space-y-6">
+                                {/* Profile Details Card */}
+                                <div className="bg-white p-5 rounded-xl border border-[#E1E6F3] space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-11 h-11 bg-[#E9EDFF] rounded-full flex items-center justify-center font-bold text-[#245CFF] text-sm shrink-0">
+                                            {selectedUser.name
+                                                .split(" ")
+                                                .map((n) => n[0])
+                                                .join("")}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="text-sm font-bold text-[#0B123D] truncate">
+                                                {selectedUser.name}
+                                            </h3>
+                                            <p className="text-xs text-[#64708C] truncate">
+                                                {selectedUser.email}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <span
+                                            className={`px-2.5 py-1 text-[11px] font-semibold rounded-full inline-block ${selectedUser.status === "Active"
+                                                ? "bg-[#E6FAF4] text-[#009F75]"
+                                                : selectedUser.status === "Suspended"
+                                                    ? "bg-[#FFF0F4] text-[#DF365B]"
+                                                    : "bg-[#FFF5EB] text-[#B86A17]"
+                                                }`}
+                                        >
+                                            {selectedUser.status} account
+                                        </span>
+                                    </div>
+
+                                    {/* Attributes Table */}
+                                    <div className="divide-y divide-[#E1E6F3] text-xs">
+                                        {selectedUser.staffOrMatricId && (
+                                            <div className="py-2.5 flex justify-between">
+                                                <span className="text-[#64708C]">
+                                                    {selectedUser.role === "Student" ? "Matric ID" : "Staff ID"}
+                                                </span>
+                                                <span className="font-medium text-[#0B123D]">
+                                                    {selectedUser.staffOrMatricId}
+                                                </span>
+                                            </div>
+                                        )}
+
+                                        <div className="py-2.5 flex justify-between">
+                                            <span className="text-[#64708C]">Joined</span>
+                                            <span className="font-medium text-[#0B123D]">
+                                                {selectedUser.joinedDate}
+                                            </span>
+                                        </div>
+
+                                        <div className="py-2.5 flex justify-between">
+                                            <span className="text-[#64708C]">Resources</span>
+                                            <span className="font-medium text-[#0B123D]">
+                                                {selectedUser.resourcesUploaded || 0} uploaded
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Assigned Role Management */}
+                                    <div className="space-y-1.5 pt-1">
+                                        <label className="text-xs font-semibold text-[#0B123D]">
+                                            Assigned role
+                                        </label>
+                                        <div className="relative">
+                                            <select
+                                                value={assignedRole}
+                                                onChange={(e) =>
+                                                    setAssignedRole(
+                                                        e.target.value as "Admin" | "Staff" | "Student"
+                                                    )
+                                                }
+                                                className="w-full h-10 px-3 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] appearance-none focus:outline-none focus:border-[#245CFF] pr-8"
+                                            >
+                                                <option value="Student">Student</option>
+                                                <option value="Staff">Staff</option>
+                                                <option value="Admin">Admin</option>
+                                            </select>
+                                            <ChevronDown className="w-4 h-4 text-[#64708C] absolute right-3 top-3 pointer-events-none" />
+                                        </div>
+                                    </div>
+
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            alert(`Role updated to ${assignedRole} for ${selectedUser.name}`)
+                                        }
+                                        className="w-full h-9 bg-gradient-to-r from-[#7148FF] to-[#245CFF] text-white text-xs font-semibold rounded-lg flex items-center justify-center hover:opacity-95 shadow-sm"
+                                    >
+                                        Save Role
+                                    </button>
+
+                                    <hr className="border-[#E1E6F3]" />
+
+                                    {/* Role Permissions Matrix */}
+                                    <div className="space-y-2.5">
+                                        <h4 className="text-xs font-semibold text-[#0B123D]">
+                                            Role permissions
+                                        </h4>
+
+                                        <div className="space-y-2 text-xs">
+                                            <div className="flex items-center gap-2 text-[#0B123D]">
+                                                <div className="w-4 h-4 rounded bg-[#245CFF] flex items-center justify-center shrink-0">
+                                                    <Check className="w-3 h-3 text-white" />
+                                                </div>
+                                                <span>Browse, download and save</span>
+                                            </div>
+
+                                            <div className="flex items-center gap-2 text-[#0B123D]">
+                                                <div
+                                                    className={`w-4 h-4 rounded flex items-center justify-center shrink-0 ${assignedRole !== "Student"
+                                                        ? "bg-[#245CFF]"
+                                                        : "border border-[#B0BAD3] bg-white"
+                                                        }`}
+                                                >
+                                                    {assignedRole !== "Student" && (
+                                                        <Check className="w-3 h-3 text-white" />
+                                                    )}
+                                                </div>
+                                                <span>Upload and edit own resources</span>
+                                            </div>
+
+                                            <div className="flex items-center gap-2 text-[#0B123D]">
+                                                <div
+                                                    className={`w-4 h-4 rounded flex items-center justify-center shrink-0 ${assignedRole !== "Student"
+                                                        ? "bg-[#245CFF]"
+                                                        : "border border-[#B0BAD3] bg-white"
+                                                        }`}
+                                                >
+                                                    {assignedRole !== "Student" && (
+                                                        <Check className="w-3 h-3 text-white" />
+                                                    )}
+                                                </div>
+                                                <span>Review assigned submissions</span>
+                                            </div>
+
+                                            <div className="flex items-center gap-2 text-[#0B123D]">
+                                                <div
+                                                    className={`w-4 h-4 rounded flex items-center justify-center shrink-0 ${assignedRole === "Admin"
+                                                        ? "bg-[#245CFF]"
+                                                        : "border border-[#B0BAD3] bg-white"
+                                                        }`}
+                                                >
+                                                    {assignedRole === "Admin" && (
+                                                        <Check className="w-3 h-3 text-white" />
+                                                    )}
+                                                </div>
+                                                <span>Manage users and settings</span>
+                                            </div>
+                                        </div>
+
+                                        <p className="text-[11px] text-[#64708C] leading-relaxed pt-1">
+                                            {assignedRole} permissions apply department-wide. Only administrators can change roles.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Account Access & Suspension Console */}
+                                <div className="bg-white p-5 rounded-xl border border-[#E1E6F3] space-y-4">
+                                    <h3 className="text-base font-bold text-[#0B123D]">
+                                        Account access
+                                    </h3>
+                                    <p className="text-xs text-[#64708C] leading-relaxed">
+                                        Suspend access without deleting resources or activity history.
+                                    </p>
+
+                                    {selectedUser.status === "Suspended" ? (
+                                        <div className="space-y-3 pt-1">
+                                            <div className="p-3 bg-[#FFF0F4] rounded-lg border border-[#FFD0DC] text-xs text-[#DF365B]">
+                                                This user account is currently suspended.
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    alert(`Account restored for ${selectedUser.name}`)
+                                                }
+                                                className="w-full h-9 bg-white border border-[#009F75] text-[#009F75] text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 hover:bg-emerald-50 transition-colors"
+                                            >
+                                                <RotateCcw className="w-3.5 h-3.5" />
+                                                <span>Restore Account Access</span>
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            <div className="space-y-1.5">
+                                                <label className="text-xs font-semibold text-[#0B123D]">
+                                                    Reason for suspension
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    placeholder="Enter a reason..."
+                                                    value={suspensionReason}
+                                                    onChange={(e) => setSuspensionReason(e.target.value)}
+                                                    className="w-full h-10 px-3 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] placeholder-[#64708C] focus:outline-none focus:border-[#DF365B]"
+                                                />
+                                                <p className="text-[11px] text-[#64708C]">
+                                                    Required before suspending this account.
+                                                </p>
+                                            </div>
+
+                                            <button
+                                                type="button"
+                                                disabled={!suspensionReason.trim()}
+                                                onClick={() =>
+                                                    alert(
+                                                        `User ${selectedUser.name} suspended. Reason: ${suspensionReason}`
+                                                    )
+                                                }
+                                                className="w-full h-9 bg-white border border-[#DF365B] text-[#DF365B] text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 hover:bg-rose-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                            >
+                                                <UserX className="w-3.5 h-3.5" />
+                                                <span>Suspend User</span>
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    <p className="text-[11px] text-[#64708C] pt-1">
+                                        Activation can be restored by an administrator.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Standard Shared Footer */}
+                    <Footer />
+                </main>
+            </div>
+        </div>
+    );
+}
+```
+
+---
+
+## 24. Admin Category Management
+
+- **Route**: `/admin/categories`
+- **File**: `frontend/src/app/admin/categories/page.tsx`
+- **Category**: Administrator Portal
+- **Description**: Management of academic departments, courses, resource categories, and taxonomy hierarchy.
+
+```tsx
+"use client";
+
+import React, { useState } from "react";
+import Navbar from "@/components/layout/Navbar";
+import Sidebar from "@/components/layout/Sidebar";
+import Footer from "@/components/layout/footer";
+import {
+    Plus,
+    Folder,
+    FolderMinus,
+    Search,
+    Archive,
+    AlertTriangle,
+    ChevronRight,
+    BookOpen,
+} from "lucide-react";
+
+interface Category {
+    id: string;
+    name: string;
+    resourceCount: number;
+    courseCount: number;
+    subcategoryCount: number;
+    status: "Active" | "Archived";
+    parent: string;
+    description: string;
+}
+
+interface Course {
+    id: string;
+    code: string;
+    title: string;
+    session: string;
+    level: string;
+    resources: number;
+    status: "Active" | "Archived";
+}
+
+const mockCategories: Category[] = [
+    {
+        id: "cat-1",
+        name: "Lecture Notes",
+        resourceCount: 520,
+        courseCount: 8,
+        subcategoryCount: 3,
+        status: "Active",
+        parent: "None — Top-level category",
+        description:
+            "Lecture materials, course notes and slides shared by CSE staff and students.",
+    },
+    {
+        id: "cat-2",
+        name: "Year 1 & 2",
+        resourceCount: 240,
+        courseCount: 4,
+        subcategoryCount: 0,
+        status: "Active",
+        parent: "Lecture Notes",
+        description: "Foundational lecture notes for 100 & 200 Level computer science courses.",
+    },
+    {
+        id: "cat-3",
+        name: "Year 3",
+        resourceCount: 180,
+        courseCount: 3,
+        subcategoryCount: 0,
+        status: "Active",
+        parent: "Lecture Notes",
+        description: "Core computer science topics including OS, Networks, and Software Engineering.",
+    },
+    {
+        id: "cat-4",
+        name: "Year 4 & 5",
+        resourceCount: 100,
+        courseCount: 1,
+        subcategoryCount: 0,
+        status: "Active",
+        parent: "Lecture Notes",
+        description: "Advanced electives, special topics, AI, and Machine Learning resources.",
+    },
+    {
+        id: "cat-5",
+        name: "Past Questions",
+        resourceCount: 350,
+        courseCount: 12,
+        subcategoryCount: 0,
+        status: "Active",
+        parent: "None — Top-level category",
+        description: "Past semester exam papers and practice test questions.",
+    },
+    {
+        id: "cat-6",
+        name: "Projects",
+        resourceCount: 180,
+        courseCount: 6,
+        subcategoryCount: 0,
+        status: "Active",
+        parent: "None — Top-level category",
+        description: "Final year research work, software project code, and thesis docs.",
+    },
+    {
+        id: "cat-7",
+        name: "Code Samples",
+        resourceCount: 150,
+        courseCount: 5,
+        subcategoryCount: 0,
+        status: "Active",
+        parent: "None — Top-level category",
+        description: "Implementation repositories, lab exercises, and snippets.",
+    },
+    {
+        id: "cat-8",
+        name: "Knowledge Hub",
+        resourceCount: 50,
+        courseCount: 4,
+        subcategoryCount: 0,
+        status: "Active",
+        parent: "None — Top-level category",
+        description: "Tutorial guides, cheat sheets, and technical documentation.",
+    },
+];
+
+const mockCourses: Course[] = [
+    {
+        id: "crs-1",
+        code: "CS201",
+        title: "Data Structures & Algorithms",
+        session: "Lecture Notes · 2024 / 2025",
+        level: "Year 2",
+        resources: 126,
+        status: "Active",
+    },
+    {
+        id: "crs-2",
+        code: "CS301",
+        title: "Operating Systems",
+        session: "Lecture Notes · 2024 / 2025",
+        level: "Year 3",
+        resources: 104,
+        status: "Active",
+    },
+    {
+        id: "crs-3",
+        code: "CSC 401",
+        title: "Introduction to Machine Learning",
+        session: "Lecture Notes · 2024 / 2025",
+        level: "Year 4",
+        resources: 90,
+        status: "Active",
+    },
+    {
+        id: "crs-4",
+        code: "CS302",
+        title: "Computer Networks",
+        session: "Lecture Notes · 2024 / 2025",
+        level: "Year 3",
+        resources: 68,
+        status: "Active",
+    },
+];
+
+export default function AdminCategoriesPage() {
+    const [activeTab, setActiveTab] = useState<"categories" | "courses">("categories");
+    const [searchCategory, setSearchCategory] = useState("");
+    const [selectedCat, setSelectedCat] = useState<Category>(mockCategories[0]);
+
+    const [formData, setFormData] = useState({
+        name: mockCategories[0].name,
+        parent: mockCategories[0].parent,
+        description: mockCategories[0].description,
+    });
+
+    const handleSelectCategory = (cat: Category) => {
+        setSelectedCat(cat);
+        setFormData({
+            name: cat.name,
+            parent: cat.parent,
+            description: cat.description,
+        });
+    };
+
+    const filteredCategories = mockCategories.filter((c) =>
+        c.name.toLowerCase().includes(searchCategory.toLowerCase())
+    );
+
+    return (
+        <div className="min-h-screen w-full bg-[#F6F8FF] flex flex-col font-sans text-[#0B123D]">
+            {/* Standard Shared Navbar */}
+            {/*<Navbar userRole="admin" userName="Admin User" userRoleTitle="Administrator" />*/}
+
+            {/* Main Layout Shell */}
+            <div className="flex-1 flex flex-col md:flex-row">
+                {/* Standard Shared Sidebar */}
+                <Sidebar userRole="admin" userName="Admin User" userCode="Administrator" />
+
+                {/* Main Content Area */}
+                <main className="flex-1 p-4 md:p-8 space-y-6 overflow-x-hidden flex flex-col justify-between">
+                    <div className="space-y-6">
+                        {/* Header Title & Actions */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <h1 className="text-2xl md:text-3xl font-bold text-[#0B123D]">
+                                    Category & Course Management
+                                </h1>
+                                <p className="text-sm text-[#64708C] mt-1">
+                                    Keep the resource library structured, discoverable and aligned with courses.
+                                </p>
+                            </div>
+
+                            <button className="h-11 px-5 bg-gradient-to-r from-[#7148FF] to-[#245CFF] text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:opacity-95 shadow-sm self-start sm:self-auto">
+                                <Plus className="w-4 h-4" />
+                                <span>Add Category</span>
+                            </button>
+                        </div>
+
+                        {/* Overview Stats Cards */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+                            <div className="p-4.5 bg-white rounded-xl border border-[#E1E6F3] space-y-2">
+                                <div className="text-2xl md:text-3xl font-bold text-[#0B123D]">5</div>
+                                <div className="text-xs text-[#64708C]">Top-level categories</div>
+                            </div>
+
+                            <div className="p-4.5 bg-white rounded-xl border border-[#E1E6F3] space-y-2">
+                                <div className="text-2xl md:text-3xl font-bold text-[#0B123D]">42</div>
+                                <div className="text-xs text-[#64708C]">Courses</div>
+                            </div>
+
+                            <div className="p-4.5 bg-white rounded-xl border border-[#E1E6F3] space-y-2">
+                                <div className="text-2xl md:text-3xl font-bold text-[#0B123D]">1,250</div>
+                                <div className="text-xs text-[#64708C]">Organised resources</div>
+                            </div>
+                        </div>
+
+                        {/* View Tabs */}
+                        <div className="border-b border-[#E1E6F3] flex items-center gap-6">
+                            <button
+                                onClick={() => setActiveTab("categories")}
+                                className={`pb-3 text-xs font-semibold relative transition-colors ${activeTab === "categories"
+                                    ? "text-[#245CFF]"
+                                    : "text-[#64708C] hover:text-[#0B123D]"
+                                    }`}
+                            >
+                                Categories
+                                {activeTab === "categories" && (
+                                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#245CFF]" />
+                                )}
+                            </button>
+                            <button
+                                onClick={() => setActiveTab("courses")}
+                                className={`pb-3 text-xs font-semibold relative transition-colors ${activeTab === "courses"
+                                    ? "text-[#245CFF]"
+                                    : "text-[#64708C] hover:text-[#0B123D]"
+                                    }`}
+                            >
+                                Courses (42)
+                                {activeTab === "courses" && (
+                                    <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#245CFF]" />
+                                )}
+                            </button>
+                        </div>
+
+                        {/* Split View: Hierarchy Sidebar + Category Details */}
+                        <div className="flex flex-col lg:flex-row items-start gap-6">
+                            {/* Category Hierarchy Panel */}
+                            <div className="w-full lg:w-[310px] bg-white p-5 rounded-xl border border-[#E1E6F3] space-y-4 shrink-0">
+                                <h3 className="text-base font-bold text-[#0B123D]">Category hierarchy</h3>
+
+                                {/* Filter Input */}
+                                <div className="relative w-full">
+                                    <Search className="w-4 h-4 text-[#64708C] absolute left-3 top-3.5 pointer-events-none" />
+                                    <input
+                                        type="text"
+                                        placeholder="Search categories..."
+                                        value={searchCategory}
+                                        onChange={(e) => setSearchCategory(e.target.value)}
+                                        className="w-full h-10 pl-9 pr-3 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] placeholder-[#64708C] focus:outline-none focus:border-[#245CFF]"
+                                    />
+                                </div>
+
+                                <div className="text-[11px] text-[#64708C]">Category name · Resource count</div>
+
+                                {/* List Items */}
+                                <div className="space-y-1 max-h-[420px] overflow-y-auto pr-1">
+                                    {filteredCategories.map((cat) => {
+                                        const isSelected = selectedCat.id === cat.id;
+                                        const isSubcategory = cat.parent !== "None — Top-level category";
+
+                                        return (
+                                            <button
+                                                key={cat.id}
+                                                onClick={() => handleSelectCategory(cat)}
+                                                className={`w-full h-11 px-3 rounded-lg flex items-center justify-between text-xs transition-colors ${isSubcategory ? "pl-7" : ""
+                                                    } ${isSelected
+                                                        ? "bg-[#E9EDFF] text-[#245CFF] font-semibold"
+                                                        : "bg-white text-[#0B123D] hover:bg-slate-50"
+                                                    }`}
+                                            >
+                                                <div className="flex items-center gap-2 truncate">
+                                                    <Folder
+                                                        className={`w-4 h-4 shrink-0 ${isSelected ? "text-[#245CFF]" : "text-[#64708C]"
+                                                            }`}
+                                                    />
+                                                    <span className="truncate">{cat.name}</span>
+                                                </div>
+                                                <span className="text-[11px] text-[#64708C] font-normal shrink-0">
+                                                    {cat.resourceCount}
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                <hr className="border-[#E1E6F3]" />
+
+                                <button className="w-full h-9 bg-white border border-[#E1E6F3] text-[#245CFF] text-xs font-semibold rounded-lg flex items-center justify-center gap-1.5 hover:bg-slate-50 transition-colors">
+                                    <Plus className="w-3.5 h-3.5" />
+                                    <span>Add subcategory</span>
+                                </button>
+
+                                <p className="text-[11px] text-[#64708C] leading-relaxed">
+                                    Archived categories are hidden from new uploads.
+                                </p>
+                            </div>
+
+                            {/* Detail Editor Panel */}
+                            <div className="flex-1 w-full space-y-6">
+                                {/* Category Settings Card */}
+                                <div className="bg-white p-6 rounded-xl border border-[#E1E6F3] space-y-5">
+                                    <div className="flex items-center justify-between gap-3 flex-wrap">
+                                        <h2 className="text-xl font-bold text-[#0B123D]">{selectedCat.name}</h2>
+
+                                        <div className="flex items-center gap-2">
+                                            <span className="px-2.5 py-1 bg-[#E6FAF4] text-[#009F75] text-[11px] font-semibold rounded-full">
+                                                {selectedCat.status}
+                                            </span>
+                                            <button className="h-9 px-3.5 bg-white border border-[#E1E6F3] text-[#245CFF] text-xs font-semibold rounded-lg flex items-center gap-1.5 hover:bg-slate-50 transition-colors">
+                                                <Archive className="w-3.5 h-3.5" />
+                                                <span>Archive</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Summary Pills */}
+                                    <div className="flex items-center gap-2 flex-wrap text-xs font-semibold">
+                                        <span className="px-3 py-1 bg-[#E9EDFF] text-[#245CFF] rounded-full">
+                                            {selectedCat.resourceCount} resources
+                                        </span>
+                                        <span className="px-3 py-1 bg-[#E9EDFF] text-[#245CFF] rounded-full">
+                                            {selectedCat.courseCount} linked courses
+                                        </span>
+                                        <span className="px-3 py-1 bg-[#F2EDFF] text-[#7148FF] rounded-full">
+                                            {selectedCat.subcategoryCount} subcategories
+                                        </span>
+                                    </div>
+
+                                    {/* Edit Form */}
+                                    <div className="space-y-4 pt-1">
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-semibold text-[#0B123D]">
+                                                Category name *
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={formData.name}
+                                                onChange={(e) =>
+                                                    setFormData({ ...formData, name: e.target.value })
+                                                }
+                                                className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-semibold text-[#0B123D]">
+                                                Parent category
+                                            </label>
+                                            <select
+                                                value={formData.parent}
+                                                onChange={(e) =>
+                                                    setFormData({ ...formData, parent: e.target.value })
+                                                }
+                                                className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
+                                            >
+                                                <option>None — Top-level category</option>
+                                                <option>Lecture Notes</option>
+                                                <option>Past Questions</option>
+                                                <option>Projects</option>
+                                            </select>
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-semibold text-[#0B123D]">
+                                                Description
+                                            </label>
+                                            <textarea
+                                                rows={3}
+                                                value={formData.description}
+                                                onChange={(e) =>
+                                                    setFormData({ ...formData, description: e.target.value })
+                                                }
+                                                className="w-full p-3 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
+                                            />
+                                        </div>
+
+                                        <div className="flex items-center justify-end gap-3 pt-2">
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setFormData({
+                                                        name: selectedCat.name,
+                                                        parent: selectedCat.parent,
+                                                        description: selectedCat.description,
+                                                    })
+                                                }
+                                                className="h-10 px-4 bg-white border border-[#E1E6F3] text-[#245CFF] text-xs font-semibold rounded-lg hover:bg-slate-50 transition-colors"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    alert(`Category "${formData.name}" updated successfully!`)
+                                                }
+                                                className="h-10 px-5 bg-gradient-to-r from-[#7148FF] to-[#245CFF] text-white text-xs font-semibold rounded-lg hover:opacity-95 shadow-sm"
+                                            >
+                                                Save Changes
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Deletion Safety Card */}
+                                <div className="bg-white p-6 rounded-xl border border-[#E1E6F3] space-y-3">
+                                    <h3 className="text-base font-bold text-[#0B123D]">Deletion protection</h3>
+
+                                    <div className="p-3.5 bg-[#FFF5EB] rounded-lg flex items-start gap-2.5 text-xs text-[#B86A17]">
+                                        <AlertTriangle className="w-4 h-4 text-[#B86A17] shrink-0 mt-0.5" />
+                                        <p className="leading-relaxed">
+                                            This category cannot be deleted because {selectedCat.resourceCount}{" "}
+                                            resources and {selectedCat.subcategoryCount} subcategories use it.
+                                            Reassign resources and move subcategories first, or archive the category
+                                            instead.
+                                        </p>
+                                    </div>
+
+                                    <div className="flex items-center justify-between pt-1">
+                                        <span className="text-xs text-[#64708C]">
+                                            Archiving preserves existing resource links.
+                                        </span>
+                                        <button
+                                            disabled
+                                            className="h-9 px-3.5 bg-[#F6F8FF] text-[#B0BAD3] text-xs font-semibold rounded-lg cursor-not-allowed"
+                                        >
+                                            Delete unavailable
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Courses Table Section */}
+                        <div className="bg-white p-6 rounded-xl border border-[#E1E6F3] space-y-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div>
+                                    <h3 className="text-base font-bold text-[#0B123D]">
+                                        Courses in {selectedCat.name}
+                                    </h3>
+                                    <p className="text-xs text-[#64708C] mt-0.5">
+                                        Course codes link resources to academic years and categories.
+                                    </p>
+                                </div>
+
+                                <button className="h-9 px-4 bg-white border border-[#E1E6F3] text-[#245CFF] text-xs font-semibold rounded-lg flex items-center gap-1.5 hover:bg-slate-50 transition-colors self-start sm:self-auto">
+                                    <Plus className="w-3.5 h-3.5" />
+                                    <span>Add Course</span>
+                                </button>
+                            </div>
+
+                            {/* Desktop Table View */}
+                            <div className="hidden md:block overflow-x-auto rounded-lg border border-[#E1E6F3]">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-[#F6F8FF] border-b border-[#E1E6F3] text-xs font-semibold text-[#64708C]">
+                                            <th className="p-3.5">Course code</th>
+                                            <th className="p-3.5">Course title</th>
+                                            <th className="p-3.5">Level</th>
+                                            <th className="p-3.5">Resources</th>
+                                            <th className="p-3.5">Status</th>
+                                            <th className="p-3.5 text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-[#E1E6F3] text-xs">
+                                        {mockCourses.map((crs) => (
+                                            <tr key={crs.id} className="hover:bg-slate-50 transition-colors">
+                                                <td className="p-3.5 font-semibold text-[#0B123D]">{crs.code}</td>
+                                                <td className="p-3.5">
+                                                    <div className="text-[#0B123D] font-medium">{crs.title}</div>
+                                                    <div className="text-[11px] text-[#64708C]">{crs.session}</div>
+                                                </td>
+                                                <td className="p-3.5 text-[#0B123D]">{crs.level}</td>
+                                                <td className="p-3.5 text-[#0B123D]">{crs.resources}</td>
+                                                <td className="p-3.5">
+                                                    <span className="px-2.5 py-1 bg-[#E6FAF4] text-[#009F75] text-[11px] font-semibold rounded-full">
+                                                        {crs.status}
+                                                    </span>
+                                                </td>
+                                                <td className="p-3.5 text-right space-x-3">
+                                                    <button className="text-[#245CFF] font-semibold hover:underline">
+                                                        Edit
+                                                    </button>
+                                                    <button className="text-[#64708C] hover:underline">Archive</button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Mobile Card Layout */}
+                            <div className="md:hidden space-y-3">
+                                {mockCourses.map((crs) => (
+                                    <div
+                                        key={crs.id}
+                                        className="p-4 rounded-lg border border-[#E1E6F3] space-y-2 bg-white"
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <span className="font-bold text-[#0B123D] text-sm">{crs.code}</span>
+                                            <span className="px-2 py-0.5 bg-[#E6FAF4] text-[#009F75] text-[11px] font-semibold rounded-full">
+                                                {crs.status}
+                                            </span>
+                                        </div>
+
+                                        <div className="text-xs font-semibold text-[#0B123D]">{crs.title}</div>
+                                        <div className="text-[11px] text-[#64708C]">{crs.session}</div>
+                                        <div className="text-xs text-[#0B123D]">
+                                            {crs.level} · {crs.resources} resources
+                                        </div>
+
+                                        <div className="flex items-center gap-3 pt-2 border-t border-[#E1E6F3]">
+                                            <button className="h-8 px-3 bg-white border border-[#E1E6F3] text-[#245CFF] text-xs font-semibold rounded-md">
+                                                Edit
+                                            </button>
+                                            <button className="h-8 px-3 bg-white border border-[#E1E6F3] text-[#245CFF] text-xs font-semibold rounded-md">
+                                                Archive
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <button className="text-xs font-semibold text-[#245CFF] hover:underline flex items-center gap-1">
+                                <span>View all 8 linked courses</span>
+                                <ChevronRight className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Standard Shared Footer */}
+                    <Footer />
+                </main>
+            </div>
+        </div>
+    );
+}
+```
+
+---
+
+## 25. Admin Analytics & Usage Reports
+
+- **Route**: `/admin/analytics`
+- **File**: `frontend/src/app/admin/analytics/page.tsx`
+- **Category**: Administrator Portal
+- **Description**: Comprehensive platform analytics, resource download trends, search queries analysis, and user growth charts.
+
+```tsx
+"use client";
+
+import React, { useState } from "react";
+import Navbar from "@/components/layout/Navbar";
+import Sidebar from "@/components/layout/Sidebar";
+import Footer from "@/components/layout/footer";
+import {
+    Download,
+    Calendar,
+    Check,
+    TrendingUp,
+    FileText,
+    Upload,
+    Users,
+    Info,
+} from "lucide-react";
+
+interface PopularResource {
+    id: string;
+    title: string;
+    course: string;
+    downloads: number;
+    change: string;
+}
+
+const mockPopularResources: PopularResource[] = [
+    {
+        id: "res-1",
+        title: "Introduction to Algorithms — Lecture Notes 2024",
+        course: "CS201",
+        downloads: 248,
+        change: "+24%",
+    },
+    {
+        id: "res-2",
+        title: "Operating Systems — Lecture 7",
+        course: "CS301",
+        downloads: 184,
+        change: "+16%",
+    },
+    {
+        id: "res-3",
+        title: "Sorting Algorithms — C++ Implementations",
+        course: "CS201",
+        downloads: 156,
+        change: "+12%",
+    },
+    {
+        id: "res-4",
+        title: "Introduction to Machine Learning",
+        course: "CSC 401",
+        downloads: 125,
+        change: "+9%",
+    },
+];
+
+export default function AnalyticsPage() {
+    const [roleScope, setRoleScope] = useState<"admin" | "staff">("admin");
+    const [dateRange, setDateRange] = useState("1–31 Oct 2026");
+
+    const handleExport = () => {
+        alert("Exporting analytics report CSV/PDF with selected filters...");
+    };
+
+    return (
+        <div className="min-h-screen w-full bg-[#F6F8FF] flex flex-col font-sans text-[#0B123D]">
+            {/* Standard Shared Navbar */}
+            {/*   <Navbar userRole="admin" userName="Admin User" userRoleTitle="Administrator" />*/}
+
+            {/* Main Layout Shell */}
+            <div className="flex-1 flex flex-col md:flex-row">
+                {/* Standard Shared Sidebar */}
+                <Sidebar userRole="admin" userName="Admin User" userCode="Administrator" />
+
+                {/* Main Content Area */}
+                <main className="flex-1 p-4 md:p-8 space-y-6 overflow-x-hidden flex flex-col justify-between">
+                    <div className="space-y-6">
+                        {/* Header Title & Export Action */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <h1 className="text-2xl md:text-3xl font-bold text-[#0B123D]">Analytics</h1>
+                                <p className="text-sm text-[#64708C] mt-1">
+                                    Understand resource growth, learning activity and your most useful content.
+                                </p>
+                            </div>
+
+                            <button
+                                onClick={handleExport}
+                                className="h-11 px-5 bg-gradient-to-r from-[#7148FF] to-[#245CFF] text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:opacity-95 shadow-sm self-start sm:self-auto"
+                            >
+                                <Download className="w-4 h-4" />
+                                <span>Export Report</span>
+                            </button>
+                        </div>
+
+                        {/* Scope Tabs & Date Range Selector */}
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            {/* Scope Switcher Tabs */}
+                            <div className="border-b border-[#E1E6F3] flex items-center gap-6 flex-1">
+                                <button
+                                    onClick={() => setRoleScope("admin")}
+                                    className={`pb-3 text-xs font-semibold relative transition-colors ${roleScope === "admin"
+                                        ? "text-[#245CFF]"
+                                        : "text-[#64708C] hover:text-[#0B123D]"
+                                        }`}
+                                >
+                                    Admin · All resources
+                                    {roleScope === "admin" && (
+                                        <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#245CFF]" />
+                                    )}
+                                </button>
+                                <button
+                                    onClick={() => setRoleScope("staff")}
+                                    className={`pb-3 text-xs font-semibold relative transition-colors ${roleScope === "staff"
+                                        ? "text-[#245CFF]"
+                                        : "text-[#64708C] hover:text-[#0B123D]"
+                                        }`}
+                                >
+                                    Staff · My resources
+                                    {roleScope === "staff" && (
+                                        <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#245CFF]" />
+                                    )}
+                                </button>
+                            </div>
+
+                            {/* Date Filter Dropdown */}
+                            <div className="h-10 px-3.5 bg-white border border-[#E1E6F3] rounded-lg flex items-center gap-2 text-xs text-[#0B123D] shrink-0">
+                                <Calendar className="w-4 h-4 text-[#64708C]" />
+                                <select
+                                    value={dateRange}
+                                    onChange={(e) => setDateRange(e.target.value)}
+                                    className="bg-transparent focus:outline-none font-medium cursor-pointer"
+                                >
+                                    <option value="1–31 Oct 2026">1–31 Oct 2026</option>
+                                    <option value="1–30 Sep 2026">1–30 Sep 2026</option>
+                                    <option value="Last 90 Days">Last 90 Days</option>
+                                    <option value="Year to Date">Year to Date</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        {/* Core Metrics Grid */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {/* Total Resources */}
+                            <div className="p-5 bg-white rounded-2xl border border-[#E1E6F3] shadow-sm flex items-center gap-4">
+                                <div className="w-12 h-13 bg-[#009F75]/10 rounded-xl flex items-center justify-center shrink-0">
+                                    <FileText className="w-6 h-6 text-[#009F75]" />
+                                </div>
+                                <div>
+                                    <div className="text-2xl md:text-3xl font-bold text-[#0B123D]">1,250</div>
+                                    <div className="text-xs text-[#64708C] mt-0.5">Total resources</div>
+                                    <div className="text-[11px] text-[#009F75] font-medium mt-0.5">
+                                        Across 42 courses
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Uploads this month */}
+                            <div className="p-5 bg-white rounded-2xl border border-[#E1E6F3] shadow-sm flex items-center gap-4">
+                                <div className="w-12 h-13 bg-[#245CFF]/10 rounded-xl flex items-center justify-center shrink-0">
+                                    <Upload className="w-6 h-6 text-[#245CFF]" />
+                                </div>
+                                <div>
+                                    <div className="text-2xl md:text-3xl font-bold text-[#0B123D]">84</div>
+                                    <div className="text-xs text-[#64708C] mt-0.5">Uploads this month</div>
+                                    <div className="text-[11px] text-[#009F75] font-medium mt-0.5">
+                                        ↑ 12% vs September
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Downloads this month */}
+                            <div className="p-5 bg-white rounded-2xl border border-[#E1E6F3] shadow-sm flex items-center gap-4">
+                                <div className="w-12 h-13 bg-[#7148FF]/10 rounded-xl flex items-center justify-center shrink-0">
+                                    <Download className="w-6 h-6 text-[#7148FF]" />
+                                </div>
+                                <div>
+                                    <div className="text-2xl md:text-3xl font-bold text-[#0B123D]">1,250</div>
+                                    <div className="text-xs text-[#64708C] mt-0.5">Downloads this month</div>
+                                    <div className="text-[11px] text-[#009F75] font-medium mt-0.5">
+                                        ↑ 18% vs September
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Active Users */}
+                            <div className="p-5 bg-white rounded-2xl border border-[#E1E6F3] shadow-sm flex items-center gap-4">
+                                <div className="w-12 h-13 bg-[#B86A17]/10 rounded-xl flex items-center justify-center shrink-0">
+                                    <Users className="w-6 h-6 text-[#B86A17]" />
+                                </div>
+                                <div>
+                                    <div className="text-2xl md:text-3xl font-bold text-[#0B123D]">286</div>
+                                    <div className="text-xs text-[#64708C] mt-0.5">Active users</div>
+                                    <div className="text-[11px] text-[#009F75] font-medium mt-0.5">
+                                        Of 450 registered users
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Scope Banner Banner */}
+                        <div className="p-3.5 bg-[#E9EDFF] rounded-lg flex items-center justify-between gap-2 text-xs flex-wrap">
+                            <div className="text-[#245CFF] font-medium flex items-center gap-2">
+                                <Info className="w-4 h-4 shrink-0" />
+                                <span>Viewing department-wide activity · Admin scope</span>
+                            </div>
+                            <div className="text-[#64708C]">
+                                Dr. Smith’s staff scope: 320 resources · 1,250 total downloads
+                            </div>
+                        </div>
+
+                        {/* Charts Split Grid */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            {/* Download & Upload Trend Chart Card */}
+                            <div className="lg:col-span-2 bg-white p-6 rounded-xl border border-[#E1E6F3] space-y-6">
+                                <div className="flex items-center justify-between gap-2">
+                                    <div>
+                                        <h3 className="text-lg font-bold text-[#0B123D]">Download trend</h3>
+                                        <p className="text-xs text-[#64708C] mt-0.5">
+                                            Weekly downloads · October 2026
+                                        </p>
+                                    </div>
+                                    <span className="px-2.5 py-1 bg-[#E6FAF4] text-[#009F75] text-xs font-semibold rounded-full">
+                                        +18%
+                                    </span>
+                                </div>
+
+                                {/* CSS Bar Chart Mockup - Download Trend */}
+                                <div className="space-y-2">
+                                    <div className="h-48 w-full flex items-end justify-between gap-4 pt-6 pb-2 px-4 border-b border-[#E1E6F3]">
+                                        {/* Week 1 */}
+                                        <div className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                                            <span className="text-xs font-semibold text-[#245CFF]">210</span>
+                                            <div className="w-full max-w-[56px] bg-[#245CFF] rounded-t-md h-[45%]" />
+                                        </div>
+                                        {/* Week 2 */}
+                                        <div className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                                            <span className="text-xs font-semibold text-[#245CFF]">280</span>
+                                            <div className="w-full max-w-[56px] bg-[#245CFF] rounded-t-md h-[60%]" />
+                                        </div>
+                                        {/* Week 3 */}
+                                        <div className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                                            <span className="text-xs font-semibold text-[#245CFF]">330</span>
+                                            <div className="w-full max-w-[56px] bg-[#245CFF] rounded-t-md h-[75%]" />
+                                        </div>
+                                        {/* Week 4 */}
+                                        <div className="flex-1 flex flex-col items-center gap-2 h-full justify-end">
+                                            <span className="text-xs font-semibold text-[#245CFF]">430</span>
+                                            <div className="w-full max-w-[56px] bg-[#245CFF] rounded-t-md h-[95%]" />
+                                        </div>
+                                    </div>
+                                    <div className="flex justify-between px-4 text-[11px] text-[#64708C]">
+                                        <span className="flex-1 text-center">1–7 Oct</span>
+                                        <span className="flex-1 text-center">8–14 Oct</span>
+                                        <span className="flex-1 text-center">15–21 Oct</span>
+                                        <span className="flex-1 text-center">22–31 Oct</span>
+                                    </div>
+                                </div>
+
+                                <hr className="border-[#E1E6F3]" />
+
+                                {/* Weekly Uploads Breakdown Mini Chart */}
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                    <div>
+                                        <div className="text-xl font-bold text-[#0B123D]">84</div>
+                                        <div className="text-xs text-[#64708C]">Monthly uploads</div>
+                                    </div>
+
+                                    <div className="flex items-end gap-6 h-16 w-full sm:w-auto">
+                                        <div className="flex flex-col items-center gap-1">
+                                            <span className="text-[11px] text-[#245CFF]">14</span>
+                                            <div className="w-9 bg-[#7148FF] rounded h-5" />
+                                            <span className="text-[10px] text-[#64708C]">Wk 1</span>
+                                        </div>
+                                        <div className="flex flex-col items-center gap-1">
+                                            <span className="text-[11px] text-[#245CFF]">19</span>
+                                            <div className="w-9 bg-[#7148FF] rounded h-7" />
+                                            <span className="text-[10px] text-[#64708C]">Wk 2</span>
+                                        </div>
+                                        <div className="flex flex-col items-center gap-1">
+                                            <span className="text-[11px] text-[#245CFF]">23</span>
+                                            <div className="w-9 bg-[#7148FF] rounded h-9" />
+                                            <span className="text-[10px] text-[#64708C]">Wk 3</span>
+                                        </div>
+                                        <div className="flex flex-col items-center gap-1">
+                                            <span className="text-[11px] text-[#245CFF]">28</span>
+                                            <div className="w-9 bg-[#7148FF] rounded h-11" />
+                                            <span className="text-[10px] text-[#64708C]">Wk 4</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Resources by Category Distribution Card */}
+                            <div className="bg-white p-6 rounded-xl border border-[#E1E6F3] space-y-5">
+                                <div>
+                                    <h3 className="text-lg font-bold text-[#0B123D]">Resources by category</h3>
+                                    <p className="text-xs text-[#64708C] mt-0.5">
+                                        Distribution of 1,250 resources
+                                    </p>
+                                </div>
+
+                                <div className="space-y-4">
+                                    {/* Lecture Notes */}
+                                    <div className="space-y-1.5">
+                                        <div className="flex items-center justify-between text-xs">
+                                            <span className="text-[#0B123D]">Lecture Notes</span>
+                                            <span className="font-semibold text-[#0B123D]">520 · 42%</span>
+                                        </div>
+                                        <div className="h-2 w-full bg-[#F6F8FF] rounded-full overflow-hidden">
+                                            <div className="h-full bg-[#245CFF] rounded-full w-[42%]" />
+                                        </div>
+                                    </div>
+
+                                    {/* Past Questions */}
+                                    <div className="space-y-1.5">
+                                        <div className="flex items-center justify-between text-xs">
+                                            <span className="text-[#0B123D]">Past Questions</span>
+                                            <span className="font-semibold text-[#0B123D]">350 · 28%</span>
+                                        </div>
+                                        <div className="h-2 w-full bg-[#F6F8FF] rounded-full overflow-hidden">
+                                            <div className="h-full bg-[#7148FF] rounded-full w-[28%]" />
+                                        </div>
+                                    </div>
+
+                                    {/* Projects */}
+                                    <div className="space-y-1.5">
+                                        <div className="flex items-center justify-between text-xs">
+                                            <span className="text-[#0B123D]">Projects</span>
+                                            <span className="font-semibold text-[#0B123D]">180 · 14%</span>
+                                        </div>
+                                        <div className="h-2 w-full bg-[#F6F8FF] rounded-full overflow-hidden">
+                                            <div className="h-full bg-[#00C58A] rounded-full w-[14%]" />
+                                        </div>
+                                    </div>
+
+                                    {/* Code Samples */}
+                                    <div className="space-y-1.5">
+                                        <div className="flex items-center justify-between text-xs">
+                                            <span className="text-[#0B123D]">Code Samples</span>
+                                            <span className="font-semibold text-[#0B123D]">150 · 12%</span>
+                                        </div>
+                                        <div className="h-2 w-full bg-[#F6F8FF] rounded-full overflow-hidden">
+                                            <div className="h-full bg-[#FF9235] rounded-full w-[12%]" />
+                                        </div>
+                                    </div>
+
+                                    {/* Knowledge Hub */}
+                                    <div className="space-y-1.5">
+                                        <div className="flex items-center justify-between text-xs">
+                                            <span className="text-[#0B123D]">Knowledge Hub</span>
+                                            <span className="font-semibold text-[#0B123D]">50 · 4%</span>
+                                        </div>
+                                        <div className="h-2 w-full bg-[#F6F8FF] rounded-full overflow-hidden">
+                                            <div className="h-full bg-[#FF4869] rounded-full w-[4%]" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <hr className="border-[#E1E6F3]" />
+
+                                <p className="text-xs text-[#64708C]">
+                                    Lecture Notes make up the largest share of the library.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Popular Resources Table Section */}
+                        <div className="bg-white p-6 rounded-xl border border-[#E1E6F3] space-y-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                <h3 className="text-lg font-bold text-[#0B123D]">Popular Resources</h3>
+                                <span className="text-xs text-[#64708C]">
+                                    Ranked by downloads · October 2026
+                                </span>
+                            </div>
+
+                            {/* Desktop Table */}
+                            <div className="hidden md:block overflow-x-auto rounded-lg border border-[#E1E6F3]">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-[#F6F8FF] border-b border-[#E1E6F3] text-xs font-semibold text-[#64708C]">
+                                            <th className="p-3.5">Resource</th>
+                                            <th className="p-3.5">Course</th>
+                                            <th className="p-3.5">Downloads</th>
+                                            <th className="p-3.5">Change</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-[#E1E6F3] text-xs">
+                                        {mockPopularResources.map((res) => (
+                                            <tr key={res.id} className="hover:bg-slate-50 transition-colors">
+                                                <td className="p-3.5 font-semibold text-[#0B123D]">
+                                                    {res.title}
+                                                </td>
+                                                <td className="p-3.5 text-[#0B123D]">{res.course}</td>
+                                                <td className="p-3.5 text-[#0B123D]">{res.downloads}</td>
+                                                <td className="p-3.5 text-[#009F75] font-medium">{res.change}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Mobile Cards */}
+                            <div className="md:hidden space-y-3">
+                                {mockPopularResources.map((res) => (
+                                    <div
+                                        key={res.id}
+                                        className="p-4 rounded-lg border border-[#E1E6F3] space-y-2 bg-white"
+                                    >
+                                        <div className="font-semibold text-[#0B123D] text-xs">
+                                            {res.title}
+                                        </div>
+                                        <div className="text-xs text-[#64708C]">Course: {res.course}</div>
+                                        <div className="flex items-center justify-between pt-1 border-t border-[#E1E6F3] text-xs">
+                                            <span className="text-[#0B123D] font-medium">
+                                                {res.downloads} downloads
+                                            </span>
+                                            <span className="text-[#009F75] font-semibold">{res.change}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Footer Metadata Stamp */}
+                        <div className="text-xs text-[#64708C]">
+                            Updated 1 Nov 2026, 8:00 AM · Dates use Africa/Lagos (WAT). Export includes
+                            filters and the selected role scope.
+                        </div>
+                    </div>
+
+                    {/* Standard Shared Footer */}
+                    <Footer />
+                </main>
+            </div>
+        </div>
+    );
+}
+```
+
+---
+
+## 26. Admin System Settings
+
+- **Route**: `/admin/settings`
+- **File**: `frontend/src/app/admin/settings/page.tsx`
+- **Category**: Administrator Portal
+- **Description**: Global system configuration, security rules, storage quotas, notification settings, and backend API links.
+
+```tsx
+"use client";
+
+import React, { useState } from "react";
+import Navbar from "@/components/layout/Navbar";
+import Sidebar from "@/components/layout/Sidebar";
+import Footer from "@/components/layout/footer";
+import {
+    Settings,
+    Search,
+    Shield,
+    Users,
+    Bell,
+    Database,
+    CheckCircle2,
+    AlertTriangle,
+    Info,
+    RotateCw,
+    Save,
+} from "lucide-react";
+
+export default function SystemSettingsPage() {
+    const [activeSection, setActiveSection] = useState("general");
+
+    // Form State Management
+    const [generalSettings, setGeneralSettings] = useState({
+        appName: "CSE Hub",
+        academicYear: "2024 / 2025",
+        department: "Computer Science and Engineering",
+        timeZone: "Africa/Lagos (WAT)",
+        supportEmail: "support@cse.edu.ng",
+        maintenanceMode: false,
+    });
+
+    const [searchSettings, setSearchSettings] = useState({
+        defaultSort: "Relevance",
+        resultsPerPage: "20",
+        fullTextSearch: true,
+        automaticIndexing: true,
+    });
+
+    const [resourcePolicy, setResourcePolicy] = useState({
+        maxFileSize: "20 MB",
+        defaultVisibility: "Public — Registered users",
+        allowedFormats: "PDF, DOC, DOCX, PPT, ZIP, RAR, JPG, PNG",
+        requireApproval: true,
+        detectDuplicates: true,
+        scanThreats: true,
+    });
+
+    const [userAccess, setUserAccess] = useState({
+        defaultRole: "Student",
+        sessionTimeout: "60 minutes",
+        approvedDomains: "cse.edu.ng, student.cse.edu.ng",
+        requireVerifiedEmail: true,
+        requireAdmin2FA: true,
+        allowSelfRegistration: true,
+    });
+
+    const [notifications, setNotifications] = useState({
+        reviewQueueAlerts: true,
+        decisionEmails: true,
+        systemAnnouncements: true,
+        activityDigest: "Weekly — Monday",
+        deliveryTime: "08:00 WAT",
+    });
+
+    const [backupSettings, setBackupSettings] = useState({
+        schedule: "Daily at 02:00 WAT",
+        retention: "30 days",
+    });
+
+    const [isReindexing, setIsReindexing] = useState(false);
+    const [isBackingUp, setIsBackingUp] = useState(false);
+
+    const handleSaveAll = () => {
+        alert("System settings successfully updated!");
+    };
+
+    const handleRebuildIndex = () => {
+        setIsReindexing(true);
+        setTimeout(() => {
+            setIsReindexing(false);
+            alert("Search index successfully rebuilt.");
+        }, 1500);
+    };
+
+    const handleRunBackup = () => {
+        setIsBackingUp(true);
+        setTimeout(() => {
+            setIsBackingUp(false);
+            alert("System backup initiated successfully.");
+        }, 1500);
+    };
+
+    const sectionTabs = [
+        { id: "general", label: "General", icon: Settings },
+        { id: "search", label: "Search & Indexing", icon: Search },
+        { id: "policy", label: "Resource Policy", icon: Shield },
+        { id: "access", label: "User & Access", icon: Users },
+        { id: "notifications", label: "Notifications", icon: Bell },
+        { id: "backup", label: "Backup", icon: Database },
+    ];
+
+    return (
+        <div className="min-h-screen w-full bg-[#F6F8FF] flex flex-col font-sans text-[#0B123D]">
+            {/* Standard Shared Navbar */}
+            {/* <Navbar userRole="admin" userName="Admin User" userRoleTitle="Administrator" />*/}
+
+            {/* Main Layout Shell */}
+            <div className="flex-1 flex flex-col md:flex-row">
+                {/* Standard Shared Sidebar */}
+                <Sidebar userRole="admin" userName="Admin User" userCode="Administrator" />
+
+                {/* Main Content Area */}
+                <main className="flex-1 p-4 md:p-8 space-y-6 overflow-x-hidden flex flex-col justify-between">
+                    <div className="space-y-6 max-w-6xl">
+                        {/* Header Title & Status */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <h1 className="text-2xl md:text-3xl font-bold text-[#0B123D]">
+                                    System Settings
+                                </h1>
+                                <p className="text-sm text-[#64708C] mt-1">
+                                    Configure CSE Hub policies, access and platform operations.
+                                </p>
+                            </div>
+
+                            <div className="flex items-center gap-3">
+                                <span className="px-3 py-1 bg-[#E6FAF4] text-[#009F75] text-xs font-semibold rounded-full flex items-center gap-1.5 shrink-0">
+                                    <span className="w-2 h-2 rounded-full bg-[#009F75]" />
+                                    All services operational
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="text-xs text-[#64708C]">
+                            Last saved by Admin User · 4 Nov 2026, 9:30 AM WAT
+                        </div>
+
+                        {/* Layout Grid: Sidebar Navigation & Form Content */}
+                        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
+                            {/* Section Jump Links Card (Desktop & Mobile Tabs) */}
+                            <div className="lg:col-span-1 bg-white p-3 rounded-xl border border-[#E1E6F3] shadow-sm space-y-1">
+                                <div className="text-xs font-semibold text-[#64708C] px-3 py-2 md:hidden">
+                                    Settings Sections
+                                </div>
+                                {sectionTabs.map((tab) => {
+                                    const Icon = tab.icon;
+                                    const isActive = activeSection === tab.id;
+                                    return (
+                                        <button
+                                            key={tab.id}
+                                            onClick={() => {
+                                                setActiveSection(tab.id);
+                                                const el = document.getElementById(tab.id);
+                                                if (el) el.scrollIntoView({ behavior: "smooth" });
+                                            }}
+                                            className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-lg text-xs font-medium transition-all ${isActive
+                                                ? "bg-[#E9EDFF] text-[#245CFF] font-semibold"
+                                                : "text-[#0B123D] hover:bg-[#F6F8FF]"
+                                                }`}
+                                        >
+                                            <Icon className={`w-4 h-4 ${isActive ? "text-[#245CFF]" : "text-[#64708C]"}`} />
+                                            <span>{tab.label}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+
+                            {/* Form Cards Stack */}
+                            <div className="lg:col-span-3 space-y-6">
+                                {/* 1. General Settings Card */}
+                                <div id="general" className="bg-white p-6 rounded-xl border border-[#E1E6F3] shadow-sm space-y-5">
+                                    <div className="border-b border-[#E1E6F3] pb-4">
+                                        <h3 className="text-lg font-bold text-[#0B123D]">General</h3>
+                                        <p className="text-xs text-[#64708C] mt-1">
+                                            Basic information shown throughout the application.
+                                        </p>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {/* App Name */}
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-semibold text-[#0B123D]">
+                                                Application name
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={generalSettings.appName}
+                                                onChange={(e) =>
+                                                    setGeneralSettings({ ...generalSettings, appName: e.target.value })
+                                                }
+                                                className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
+                                            />
+                                        </div>
+
+                                        {/* Academic Year */}
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-semibold text-[#0B123D]">
+                                                Academic year
+                                            </label>
+                                            <select
+                                                value={generalSettings.academicYear}
+                                                onChange={(e) =>
+                                                    setGeneralSettings({ ...generalSettings, academicYear: e.target.value })
+                                                }
+                                                className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
+                                            >
+                                                <option value="2024 / 2025">2024 / 2025</option>
+                                                <option value="2025 / 2026">2025 / 2026</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    {/* Department */}
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-semibold text-[#0B123D]">Department</label>
+                                        <input
+                                            type="text"
+                                            value={generalSettings.department}
+                                            onChange={(e) =>
+                                                setGeneralSettings({ ...generalSettings, department: e.target.value })
+                                            }
+                                            className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
+                                        />
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {/* Time zone */}
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-semibold text-[#0B123D]">Time zone</label>
+                                            <select
+                                                value={generalSettings.timeZone}
+                                                onChange={(e) =>
+                                                    setGeneralSettings({ ...generalSettings, timeZone: e.target.value })
+                                                }
+                                                className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
+                                            >
+                                                <option value="Africa/Lagos (WAT)">Africa/Lagos (WAT)</option>
+                                                <option value="UTC">UTC</option>
+                                            </select>
+                                        </div>
+
+                                        {/* Support email */}
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-semibold text-[#0B123D]">
+                                                Support email
+                                            </label>
+                                            <input
+                                                type="email"
+                                                value={generalSettings.supportEmail}
+                                                onChange={(e) =>
+                                                    setGeneralSettings({ ...generalSettings, supportEmail: e.target.value })
+                                                }
+                                                className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Maintenance Mode Toggle */}
+                                    <div className="flex items-center justify-between gap-4 pt-2">
+                                        <div>
+                                            <div className="text-xs font-semibold text-[#0B123D]">
+                                                Maintenance mode
+                                            </div>
+                                            <div className="text-xs text-[#64708C] mt-0.5">
+                                                Limit access to administrators while maintenance is in progress.
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setGeneralSettings({
+                                                    ...generalSettings,
+                                                    maintenanceMode: !generalSettings.maintenanceMode,
+                                                })
+                                            }
+                                            className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${generalSettings.maintenanceMode ? "bg-[#245CFF]" : "bg-[#B0BAD3]"
+                                                }`}
+                                        >
+                                            <span
+                                                className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${generalSettings.maintenanceMode ? "translate-x-5" : ""
+                                                    }`}
+                                            />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* 2. Search & Indexing Card */}
+                                <div id="search" className="bg-white p-6 rounded-xl border border-[#E1E6F3] shadow-sm space-y-5">
+                                    <div className="border-b border-[#E1E6F3] pb-4 flex items-center justify-between gap-2">
+                                        <div>
+                                            <h3 className="text-lg font-bold text-[#0B123D]">Search & Indexing</h3>
+                                            <p className="text-xs text-[#64708C] mt-1">
+                                                1,250 / 1,250 resources indexed · 0 failed · Queue: 0
+                                            </p>
+                                        </div>
+                                        <span className="px-2.5 py-1 bg-[#E6FAF4] text-[#009F75] text-xs font-semibold rounded-full">
+                                            Healthy
+                                        </span>
+                                    </div>
+
+                                    <div className="text-xs text-[#64708C] border-b border-[#E1E6F3] pb-3 flex items-center gap-2">
+                                        <span className="font-semibold text-[#0B123D]">Last indexed:</span>
+                                        <span>4 Nov 2026, 9:28 AM · Completed in 42 seconds</span>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {/* Default Sort */}
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-semibold text-[#0B123D]">
+                                                Default sort
+                                            </label>
+                                            <select
+                                                value={searchSettings.defaultSort}
+                                                onChange={(e) =>
+                                                    setSearchSettings({ ...searchSettings, defaultSort: e.target.value })
+                                                }
+                                                className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
+                                            >
+                                                <option value="Relevance">Relevance</option>
+                                                <option value="Newest First">Newest First</option>
+                                                <option value="Most Downloaded">Most Downloaded</option>
+                                            </select>
+                                        </div>
+
+                                        {/* Results per page */}
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-semibold text-[#0B123D]">
+                                                Results per page
+                                            </label>
+                                            <select
+                                                value={searchSettings.resultsPerPage}
+                                                onChange={(e) =>
+                                                    setSearchSettings({ ...searchSettings, resultsPerPage: e.target.value })
+                                                }
+                                                className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
+                                            >
+                                                <option value="10">10</option>
+                                                <option value="20">20</option>
+                                                <option value="50">50</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    {/* Toggles */}
+                                    <div className="space-y-4 pt-2">
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div>
+                                                <div className="text-xs font-semibold text-[#0B123D]">
+                                                    Full-text search
+                                                </div>
+                                                <div className="text-xs text-[#64708C] mt-0.5">
+                                                    Search within supported PDF and document content.
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setSearchSettings({
+                                                        ...searchSettings,
+                                                        fullTextSearch: !searchSettings.fullTextSearch,
+                                                    })
+                                                }
+                                                className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${searchSettings.fullTextSearch ? "bg-[#245CFF]" : "bg-[#B0BAD3]"
+                                                    }`}
+                                            >
+                                                <span
+                                                    className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${searchSettings.fullTextSearch ? "translate-x-5" : ""
+                                                        }`}
+                                                />
+                                            </button>
+                                        </div>
+
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div>
+                                                <div className="text-xs font-semibold text-[#0B123D]">
+                                                    Automatic indexing
+                                                </div>
+                                                <div className="text-xs text-[#64708C] mt-0.5">
+                                                    Reindex resources when files or metadata change.
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setSearchSettings({
+                                                        ...searchSettings,
+                                                        automaticIndexing: !searchSettings.automaticIndexing,
+                                                    })
+                                                }
+                                                className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${searchSettings.automaticIndexing ? "bg-[#245CFF]" : "bg-[#B0BAD3]"
+                                                    }`}
+                                            >
+                                                <span
+                                                    className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${searchSettings.automaticIndexing ? "translate-x-5" : ""
+                                                        }`}
+                                                />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
+                                        <p className="text-xs text-[#64708C]">
+                                            Rebuilding runs in the background without blocking search.
+                                        </p>
+                                        <button
+                                            type="button"
+                                            onClick={handleRebuildIndex}
+                                            disabled={isReindexing}
+                                            className="h-10 px-4 border border-[#E1E6F3] bg-white text-[#245CFF] text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#F6F8FF] transition-colors shrink-0"
+                                        >
+                                            <RotateCw className={`w-3.5 h-3.5 ${isReindexing ? "animate-spin" : ""}`} />
+                                            <span>{isReindexing ? "Rebuilding..." : "Rebuild Index"}</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {/* 3. Resource Policy Card */}
+                                <div id="policy" className="bg-white p-6 rounded-xl border border-[#E1E6F3] shadow-sm space-y-5">
+                                    <div className="border-b border-[#E1E6F3] pb-4">
+                                        <h3 className="text-lg font-bold text-[#0B123D]">Resource Policy</h3>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {/* Max File Size */}
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-semibold text-[#0B123D]">
+                                                Maximum file size
+                                            </label>
+                                            <select
+                                                value={resourcePolicy.maxFileSize}
+                                                onChange={(e) =>
+                                                    setResourcePolicy({ ...resourcePolicy, maxFileSize: e.target.value })
+                                                }
+                                                className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
+                                            >
+                                                <option value="10 MB">10 MB</option>
+                                                <option value="20 MB">20 MB</option>
+                                                <option value="50 MB">50 MB</option>
+                                            </select>
+                                        </div>
+
+                                        {/* Default Visibility */}
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-semibold text-[#0B123D]">
+                                                Default visibility
+                                            </label>
+                                            <select
+                                                value={resourcePolicy.defaultVisibility}
+                                                onChange={(e) =>
+                                                    setResourcePolicy({
+                                                        ...resourcePolicy,
+                                                        defaultVisibility: e.target.value,
+                                                    })
+                                                }
+                                                className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
+                                            >
+                                                <option value="Public — Registered users">
+                                                    Public — Registered users
+                                                </option>
+                                                <option value="Staff Only">Staff Only</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    {/* Formats */}
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-semibold text-[#0B123D]">
+                                            Allowed file formats
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={resourcePolicy.allowedFormats}
+                                            onChange={(e) =>
+                                                setResourcePolicy({ ...resourcePolicy, allowedFormats: e.target.value })
+                                            }
+                                            className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
+                                        />
+                                        <p className="text-[11px] text-[#64708C]">
+                                            Separate extensions with commas. Executable files are blocked.
+                                        </p>
+                                    </div>
+
+                                    {/* Policy Toggles */}
+                                    <div className="space-y-4 pt-2">
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div>
+                                                <div className="text-xs font-semibold text-[#0B123D]">
+                                                    Require approval before publication
+                                                </div>
+                                                <div className="text-xs text-[#64708C] mt-0.5">
+                                                    New uploads and replacement files must pass staff review.
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setResourcePolicy({
+                                                        ...resourcePolicy,
+                                                        requireApproval: !resourcePolicy.requireApproval,
+                                                    })
+                                                }
+                                                className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${resourcePolicy.requireApproval ? "bg-[#245CFF]" : "bg-[#B0BAD3]"
+                                                    }`}
+                                            >
+                                                <span
+                                                    className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${resourcePolicy.requireApproval ? "translate-x-5" : ""
+                                                        }`}
+                                                />
+                                            </button>
+                                        </div>
+
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div>
+                                                <div className="text-xs font-semibold text-[#0B123D]">
+                                                    Detect duplicate submissions
+                                                </div>
+                                                <div className="text-xs text-[#64708C] mt-0.5">
+                                                    Flag matching files and similar resource titles for review.
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setResourcePolicy({
+                                                        ...resourcePolicy,
+                                                        detectDuplicates: !resourcePolicy.detectDuplicates,
+                                                    })
+                                                }
+                                                className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${resourcePolicy.detectDuplicates ? "bg-[#245CFF]" : "bg-[#B0BAD3]"
+                                                    }`}
+                                            >
+                                                <span
+                                                    className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${resourcePolicy.detectDuplicates ? "translate-x-5" : ""
+                                                        }`}
+                                                />
+                                            </button>
+                                        </div>
+
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div>
+                                                <div className="text-xs font-semibold text-[#0B123D]">
+                                                    Scan files for threats
+                                                </div>
+                                                <div className="text-xs text-[#64708C] mt-0.5">
+                                                    Quarantine potentially unsafe attachments before they are accessible.
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setResourcePolicy({
+                                                        ...resourcePolicy,
+                                                        scanThreats: !resourcePolicy.scanThreats,
+                                                    })
+                                                }
+                                                className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${resourcePolicy.scanThreats ? "bg-[#245CFF]" : "bg-[#B0BAD3]"
+                                                    }`}
+                                            >
+                                                <span
+                                                    className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${resourcePolicy.scanThreats ? "translate-x-5" : ""
+                                                        }`}
+                                                />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-3.5 bg-[#F0F3FF] rounded-lg flex items-center gap-2 text-xs text-[#245CFF]">
+                                        <Info className="w-4 h-4 shrink-0" />
+                                        <span>
+                                            Archived resources retain their history but are excluded from student search.
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* 4. User & Access Card */}
+                                <div id="access" className="bg-white p-6 rounded-xl border border-[#E1E6F3] shadow-sm space-y-5">
+                                    <div className="border-b border-[#E1E6F3] pb-4">
+                                        <h3 className="text-lg font-bold text-[#0B123D]">User & Access</h3>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {/* Role */}
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-semibold text-[#0B123D]">
+                                                Default registration role
+                                            </label>
+                                            <select
+                                                value={userAccess.defaultRole}
+                                                onChange={(e) =>
+                                                    setUserAccess({ ...userAccess, defaultRole: e.target.value })
+                                                }
+                                                className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
+                                            >
+                                                <option value="Student">Student</option>
+                                                <option value="Staff">Staff</option>
+                                            </select>
+                                        </div>
+
+                                        {/* Timeout */}
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-semibold text-[#0B123D]">
+                                                Session timeout
+                                            </label>
+                                            <select
+                                                value={userAccess.sessionTimeout}
+                                                onChange={(e) =>
+                                                    setUserAccess({ ...userAccess, sessionTimeout: e.target.value })
+                                                }
+                                                className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
+                                            >
+                                                <option value="30 minutes">30 minutes</option>
+                                                <option value="60 minutes">60 minutes</option>
+                                                <option value="120 minutes">120 minutes</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    {/* Domains */}
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-semibold text-[#0B123D]">
+                                            Approved email domains
+                                        </label>
+                                        <input
+                                            type="text"
+                                            value={userAccess.approvedDomains}
+                                            onChange={(e) =>
+                                                setUserAccess({ ...userAccess, approvedDomains: e.target.value })
+                                            }
+                                            className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
+                                        />
+                                    </div>
+
+                                    {/* Access Toggles */}
+                                    <div className="space-y-4 pt-2">
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div>
+                                                <div className="text-xs font-semibold text-[#0B123D]">
+                                                    Require verified university email
+                                                </div>
+                                                <div className="text-xs text-[#64708C] mt-0.5">
+                                                    Only verified departmental accounts can access resources.
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setUserAccess({
+                                                        ...userAccess,
+                                                        requireVerifiedEmail: !userAccess.requireVerifiedEmail,
+                                                    })
+                                                }
+                                                className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${userAccess.requireVerifiedEmail ? "bg-[#245CFF]" : "bg-[#B0BAD3]"
+                                                    }`}
+                                            >
+                                                <span
+                                                    className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${userAccess.requireVerifiedEmail ? "translate-x-5" : ""
+                                                        }`}
+                                                />
+                                            </button>
+                                        </div>
+
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div>
+                                                <div className="text-xs font-semibold text-[#0B123D]">
+                                                    Require two-factor authentication for admins
+                                                </div>
+                                                <div className="text-xs text-[#64708C] mt-0.5">
+                                                    Protect privileged actions with an additional sign-in step.
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setUserAccess({
+                                                        ...userAccess,
+                                                        requireAdmin2FA: !userAccess.requireAdmin2FA,
+                                                    })
+                                                }
+                                                className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${userAccess.requireAdmin2FA ? "bg-[#245CFF]" : "bg-[#B0BAD3]"
+                                                    }`}
+                                            >
+                                                <span
+                                                    className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${userAccess.requireAdmin2FA ? "translate-x-5" : ""
+                                                        }`}
+                                                />
+                                            </button>
+                                        </div>
+
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div>
+                                                <div className="text-xs font-semibold text-[#0B123D]">
+                                                    Allow student self-registration
+                                                </div>
+                                                <div className="text-xs text-[#64708C] mt-0.5">
+                                                    Students can register using their university email and matric number.
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setUserAccess({
+                                                        ...userAccess,
+                                                        allowSelfRegistration: !userAccess.allowSelfRegistration,
+                                                    })
+                                                }
+                                                className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${userAccess.allowSelfRegistration ? "bg-[#245CFF]" : "bg-[#B0BAD3]"
+                                                    }`}
+                                            >
+                                                <span
+                                                    className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${userAccess.allowSelfRegistration ? "translate-x-5" : ""
+                                                        }`}
+                                                />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <p className="text-xs text-[#64708C]">
+                                        Staff and administrator roles are assigned from User Management. Permission
+                                        changes take effect at the next sign-in.
+                                    </p>
+                                </div>
+
+                                {/* 5. Notifications Card */}
+                                <div id="notifications" className="bg-white p-6 rounded-xl border border-[#E1E6F3] shadow-sm space-y-5">
+                                    <div className="border-b border-[#E1E6F3] pb-4">
+                                        <h3 className="text-lg font-bold text-[#0B123D]">Notifications</h3>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div>
+                                                <div className="text-xs font-semibold text-[#0B123D]">
+                                                    Review queue alerts
+                                                </div>
+                                                <div className="text-xs text-[#64708C] mt-0.5">
+                                                    Notify assigned staff when a resource is submitted or resubmitted.
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setNotifications({
+                                                        ...notifications,
+                                                        reviewQueueAlerts: !notifications.reviewQueueAlerts,
+                                                    })
+                                                }
+                                                className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${notifications.reviewQueueAlerts ? "bg-[#245CFF]" : "bg-[#B0BAD3]"
+                                                    }`}
+                                            >
+                                                <span
+                                                    className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${notifications.reviewQueueAlerts ? "translate-x-5" : ""
+                                                        }`}
+                                                />
+                                            </button>
+                                        </div>
+
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div>
+                                                <div className="text-xs font-semibold text-[#0B123D]">
+                                                    Decision emails
+                                                </div>
+                                                <div className="text-xs text-[#64708C] mt-0.5">
+                                                    Email contributors when resources are approved or need changes.
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setNotifications({
+                                                        ...notifications,
+                                                        decisionEmails: !notifications.decisionEmails,
+                                                    })
+                                                }
+                                                className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${notifications.decisionEmails ? "bg-[#245CFF]" : "bg-[#B0BAD3]"
+                                                    }`}
+                                            >
+                                                <span
+                                                    className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${notifications.decisionEmails ? "translate-x-5" : ""
+                                                        }`}
+                                                />
+                                            </button>
+                                        </div>
+
+                                        <div className="flex items-center justify-between gap-4">
+                                            <div>
+                                                <div className="text-xs font-semibold text-[#0B123D]">
+                                                    System announcements
+                                                </div>
+                                                <div className="text-xs text-[#64708C] mt-0.5">
+                                                    Send service notices and important platform updates.
+                                                </div>
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    setNotifications({
+                                                        ...notifications,
+                                                        systemAnnouncements: !notifications.systemAnnouncements,
+                                                    })
+                                                }
+                                                className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${notifications.systemAnnouncements ? "bg-[#245CFF]" : "bg-[#B0BAD3]"
+                                                    }`}
+                                            >
+                                                <span
+                                                    className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${notifications.systemAnnouncements ? "translate-x-5" : ""
+                                                        }`}
+                                                />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                                        {/* Activity Digest */}
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-semibold text-[#0B123D]">
+                                                Activity digest
+                                            </label>
+                                            <select
+                                                value={notifications.activityDigest}
+                                                onChange={(e) =>
+                                                    setNotifications({ ...notifications, activityDigest: e.target.value })
+                                                }
+                                                className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
+                                            >
+                                                <option value="Weekly — Monday">Weekly — Monday</option>
+                                                <option value="Daily">Daily</option>
+                                            </select>
+                                        </div>
+
+                                        {/* Delivery Time */}
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-semibold text-[#0B123D]">
+                                                Delivery time
+                                            </label>
+                                            <select
+                                                value={notifications.deliveryTime}
+                                                onChange={(e) =>
+                                                    setNotifications({ ...notifications, deliveryTime: e.target.value })
+                                                }
+                                                className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
+                                            >
+                                                <option value="08:00 WAT">08:00 WAT</option>
+                                                <option value="12:00 WAT">12:00 WAT</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* 6. Backup Card */}
+                                <div id="backup" className="bg-white p-6 rounded-xl border border-[#E1E6F3] shadow-sm space-y-5">
+                                    <div className="border-b border-[#E1E6F3] pb-4 flex items-center justify-between gap-2">
+                                        <div>
+                                            <h3 className="text-lg font-bold text-[#0B123D]">Backup</h3>
+                                            <p className="text-xs text-[#64708C] mt-1">
+                                                4 Nov 2026, 2:00 AM WAT · 4.8 GB · Encrypted
+                                            </p>
+                                        </div>
+                                        <span className="px-2.5 py-1 bg-[#E6FAF4] text-[#009F75] text-xs font-semibold rounded-full">
+                                            Successful
+                                        </span>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        {/* Schedule */}
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-semibold text-[#0B123D]">Schedule</label>
+                                            <select
+                                                value={backupSettings.schedule}
+                                                onChange={(e) =>
+                                                    setBackupSettings({ ...backupSettings, schedule: e.target.value })
+                                                }
+                                                className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
+                                            >
+                                                <option value="Daily at 02:00 WAT">Daily at 02:00 WAT</option>
+                                                <option value="Weekly at 02:00 WAT">Weekly at 02:00 WAT</option>
+                                            </select>
+                                        </div>
+
+                                        {/* Retention */}
+                                        <div className="space-y-1.5">
+                                            <label className="text-xs font-semibold text-[#0B123D]">Retention</label>
+                                            <select
+                                                value={backupSettings.retention}
+                                                onChange={(e) =>
+                                                    setBackupSettings({ ...backupSettings, retention: e.target.value })
+                                                }
+                                                className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
+                                            >
+                                                <option value="30 days">30 days</option>
+                                                <option value="60 days">60 days</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2 text-xs border-y border-[#E1E6F3] py-3">
+                                        <div className="flex justify-between">
+                                            <span className="text-[#64708C]">Next backup:</span>
+                                            <span className="font-medium text-[#0B123D]">5 Nov 2026, 2:00 AM WAT</span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-[#64708C]">Storage:</span>
+                                            <span className="font-medium text-[#0B123D]">
+                                                University secure storage · 144 GB / 500 GB used
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-wrap items-center gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={handleRunBackup}
+                                            disabled={isBackingUp}
+                                            className="h-10 px-4 border border-[#E1E6F3] bg-white text-[#245CFF] text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#F6F8FF] transition-colors"
+                                        >
+                                            <Database className="w-3.5 h-3.5" />
+                                            <span>{isBackingUp ? "Running..." : "Run Backup Now"}</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => alert("Opening Backup History Log...")}
+                                            className="h-10 px-4 border border-[#E1E6F3] bg-white text-[#245CFF] text-xs font-semibold rounded-lg flex items-center justify-center hover:bg-[#F6F8FF] transition-colors"
+                                        >
+                                            View Backup History
+                                        </button>
+                                    </div>
+
+                                    <div className="p-3.5 bg-[#FFF5EB] rounded-lg flex items-start gap-2.5 text-xs text-[#B86A17]">
+                                        <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                                        <span>
+                                            Restore operations replace current data and require administrator confirmation.
+                                            Contact the platform team before restoring.
+                                        </span>
+                                    </div>
+                                </div>
+
+                                {/* Save Footer Action */}
+                                <div className="p-4 bg-white rounded-xl border border-[#E1E6F3] shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+                                    <span className="text-xs text-[#64708C]">
+                                        Changes apply to the entire department.
+                                    </span>
+                                    <div className="flex items-center gap-3 w-full sm:w-auto">
+                                        <button
+                                            type="button"
+                                            onClick={() => window.location.reload()}
+                                            className="flex-1 sm:flex-none h-11 px-5 border border-[#E1E6F3] bg-white text-[#245CFF] text-xs font-semibold rounded-lg hover:bg-[#F6F8FF] transition-colors"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleSaveAll}
+                                            className="flex-1 sm:flex-none h-11 px-6 bg-gradient-to-r from-[#7148FF] to-[#245CFF] text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:opacity-95 shadow-sm"
+                                        >
+                                            <Save className="w-4 h-4" />
+                                            <span>Save Settings</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Standard Shared Footer */}
+                    <Footer />
+                </main>
+            </div>
+        </div>
+    );
+}
+```
+
+---
+
+# Appendix: Key Shared Layout Components
+
+## App.1 Top Navigation Bar (Navbar)
+
+- **File**: `frontend/src/components/layout/Navbar.tsx`
+- **Description**: Header component featuring brand logo, search launcher, responsive mobile drawer toggle, and auth actions.
+
+```tsx
+'use client';
+
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { Search, Bell, ChevronDown, Menu, X, LogOut } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+
+interface NavbarProps {
+    userRole?: 'student' | 'staff' | 'admin';
+    userName?: string;
+    userRoleTitle?: string;
+}
+
+export default function Navbar({
+    userRole = 'staff',
+    userName,
+    userRoleTitle,
+}: NavbarProps) {
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    // Shared default values for staff & admin roles
+    const defaultName =
+        userName ||
+        (userRole === 'admin'
+            ? 'Admin User'
+            : userRole === 'staff'
+                ? 'Dr. Smith'
+                : 'Student User');
+
+    const defaultTitle =
+        userRoleTitle ||
+        (userRole === 'admin'
+            ? 'Administrator'
+            : userRole === 'staff'
+                ? 'Staff'
+                : 'Student');
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        window.location.href = '/login';
+    };
+
+    return (
+        <header className="h-[76px] bg-white border-b border-[#E1E6F3] px-4 md:px-7 flex items-center justify-between sticky top-0 z-30 w-full">
+            {/* Brand Header — Unified CSE Hub branding */}
+            <Link href="/" className="flex items-center gap-3 w-auto md:w-[258px]">
+                <div className="w-9 h-[38px] bg-[#245CFF] rounded-xl flex items-center justify-center font-bold text-white text-lg shadow-sm">
+                    C
+                </div>
+                <span className="text-xl md:text-2xl font-bold text-[#0B123D]">
+                    CSE Hub
+                </span>
+            </Link>
+
+            {/* Desktop Search Bar */}
+            <div className="hidden md:flex flex-1 max-w-[620px] mx-6 items-center gap-3 px-4 h-[43px] bg-white border border-[#E1E6F3] rounded-lg">
+                <Search className="w-4 h-4 text-[#64708C]" />
+                <input
+                    type="text"
+                    placeholder="Search for resources, topics, or keywords..."
+                    className="w-full bg-transparent text-sm text-[#0B123D] placeholder-[#64708C] focus:outline-none"
+                />
+            </div>
+
+            {/* Right User Actions */}
+            <div className="flex items-center gap-4">
+                <Link
+                    href="/notifications"
+                    aria-label="Notifications"
+                    className="p-2 text-[#0B123D] hover:bg-[#F6F8FF] rounded-full transition-colors"
+                >
+                    <Bell className="w-5 h-5 text-[#0B123D]" />
+                </Link>
+
+                {/* User Profile Link */}
+                <Link href="/profile" className="flex items-center gap-3 cursor-pointer">
+                    <div className="w-9 h-9 rounded-full bg-[#245CFF]/10 text-[#245CFF] overflow-hidden relative border border-[#E1E6F3] flex items-center justify-center font-bold text-xs">
+                        {defaultName.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div className="hidden sm:flex flex-col text-left">
+                        <span className="text-sm font-bold text-[#0B123D] leading-tight">
+                            {defaultName}
+                        </span>
+                        <span className="text-xs text-[#64708C]">{defaultTitle}</span>
+                    </div>
+                    <ChevronDown className="w-4 h-4 text-[#64708C] hidden sm:block" />
+                </Link>
+
+                {/* Mobile Hamburger Toggle */}
+                <button
+                    onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                    className="md:hidden p-2 text-[#0B123D] hover:bg-[#F6F8FF] rounded-lg"
+                >
+                    {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                </button>
+            </div>
+
+            {/* Mobile Drawer Navigation */}
+            {mobileMenuOpen && (
+                <div className="md:hidden fixed inset-x-0 top-[76px] bg-white border-b border-[#E1E6F3] p-4 shadow-lg space-y-4 z-50">
+                    <div className="flex items-center gap-3 px-3 py-2 bg-[#F6F8FF] rounded-lg border border-[#E1E6F3]">
+                        <Search className="w-4 h-4 text-[#64708C]" />
+                        <input
+                            type="text"
+                            placeholder="Search resources..."
+                            className="w-full bg-transparent text-sm text-[#0B123D] placeholder-[#64708C] focus:outline-none"
+                        />
+                    </div>
+
+                    <nav className="flex flex-col space-y-1">
+                        {userRole === 'student' && (
+                            <>
+                                <Link
+                                    href="/student/dashboard"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="px-3 py-2.5 text-sm font-medium text-[#0B123D] hover:bg-[#F6F8FF] rounded-md"
+                                >
+                                    Dashboard
+                                </Link>
+                                <Link
+                                    href="/projects"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="px-3 py-2.5 text-sm font-medium text-[#0B123D] hover:bg-[#F6F8FF] rounded-md"
+                                >
+                                    Projects
+                                </Link>
+                                <Link
+                                    href="/resources"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="px-3 py-2.5 text-sm font-medium text-[#0B123D] hover:bg-[#F6F8FF] rounded-md"
+                                >
+                                    My Resources
+                                </Link>
+                            </>
+                        )}
+
+                        {userRole === 'staff' && (
+                            <>
+                                <Link
+                                    href="/staff/dashboard"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="px-3 py-2.5 text-sm font-medium text-[#0B123D] hover:bg-[#F6F8FF] rounded-md"
+                                >
+                                    Dashboard
+                                </Link>
+                                <Link
+                                    href="/staff/upload"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="px-3 py-2.5 text-sm font-medium text-[#0B123D] hover:bg-[#F6F8FF] rounded-md"
+                                >
+                                    Upload Resource
+                                </Link>
+                                <Link
+                                    href="/staff/manage-resources"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="px-3 py-2.5 text-sm font-medium text-[#0B123D] hover:bg-[#F6F8FF] rounded-md"
+                                >
+                                    Manage Resources
+                                </Link>
+                                <Link
+                                    href="/staff/review-submissions"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="px-3 py-2.5 text-sm font-medium text-[#0B123D] hover:bg-[#F6F8FF] rounded-md"
+                                >
+                                    Review Submissions
+                                </Link>
+                                <Link
+                                    href="/staff/analytics"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="px-3 py-2.5 text-sm font-medium text-[#0B123D] hover:bg-[#F6F8FF] rounded-md"
+                                >
+                                    Analytics
+                                </Link>
+                            </>
+                        )}
+
+                        {userRole === 'admin' && (
+                            <>
+                                <Link
+                                    href="/admin/dashboard"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="px-3 py-2.5 text-sm font-medium text-[#0B123D] hover:bg-[#F6F8FF] rounded-md"
+                                >
+                                    Dashboard
+                                </Link>
+                                <Link
+                                    href="/admin/users"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="px-3 py-2.5 text-sm font-medium text-[#0B123D] hover:bg-[#F6F8FF] rounded-md"
+                                >
+                                    User Management
+                                </Link>
+                                <Link
+                                    href="/admin/categories"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="px-3 py-2.5 text-sm font-medium text-[#0B123D] hover:bg-[#F6F8FF] rounded-md"
+                                >
+                                    Category & Courses
+                                </Link>
+                                <Link
+                                    href="/admin/resources"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="px-3 py-2.5 text-sm font-medium text-[#0B123D] hover:bg-[#F6F8FF] rounded-md"
+                                >
+                                    Manage Resources
+                                </Link>
+                                <Link
+                                    href="/admin/analytics"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="px-3 py-2.5 text-sm font-medium text-[#0B123D] hover:bg-[#F6F8FF] rounded-md"
+                                >
+                                    Analytics
+                                </Link>
+                                <Link
+                                    href="/admin/settings"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className="px-3 py-2.5 text-sm font-medium text-[#0B123D] hover:bg-[#F6F8FF] rounded-md"
+                                >
+                                    System Settings
+                                </Link>
+                            </>
+                        )}
+
+                        <div className="pt-2 border-t border-[#E1E6F3] flex flex-col space-y-1">
+                            <Link
+                                href="/profile"
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="px-3 py-2 text-sm text-[#64708C] hover:text-[#0B123D]"
+                            >
+                                My Profile
+                            </Link>
+                            <Link
+                                href="/notifications"
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="px-3 py-2 text-sm text-[#64708C] hover:text-[#0B123D]"
+                            >
+                                Notifications
+                            </Link>
+                            <Link
+                                href="/support"
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="px-3 py-2 text-sm text-[#64708C] hover:text-[#0B123D]"
+                            >
+                                Help & Support
+                            </Link>
+                        </div>
+                    </nav>
+
+                    <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50 rounded-md"
+                    >
+                        <LogOut className="w-4 h-4" />
+                        <span>Sign Out</span>
+                    </button>
+                </div>
+            )}
+        </header>
+    );
+}
+```
+
+---
+
+## App.2 Sidebar Navigation
+
+- **File**: `frontend/src/components/layout/Sidebar.tsx`
+- **Description**: Collapsible sidebar drawer offering categorized route shortcuts for students, staff, and administrators.
+
+```tsx
+'use client';
+
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import {
+    LayoutDashboard,
+    Search,
+    FileText,
+    FolderGit2,
+    BookMarked,
+    Code,
+    Layers,
+    Bookmark,
+    User,
+    UploadCloud,
+    FolderKanban,
+    FileSearch,
+    BarChart2,
+    Users,
+    Building2,
+    Settings,
+    FileBarChart,
+    Bell,
+    HelpCircle,
+    Info,
+    LogOut,
+} from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+
+interface SidebarProps {
+    userRole?: 'student' | 'staff' | 'admin';
+    userName?: string;
+    userCode?: string;
+}
+
+export default function Sidebar({
+    userRole = 'student',
+    userName,
+    userCode,
+}: SidebarProps) {
+    const pathname = usePathname();
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        window.location.href = '/login';
+    };
+
+    // Shared & Role Navigation Links
+    const studentNav = [
+        { label: 'Dashboard', icon: LayoutDashboard, href: '/student/dashboard' },
+        { label: 'Search Resources', icon: Search, href: '/student/search' },
+        { label: 'Past Questions', icon: FileText, href: '/student/search?category=past-questions' },
+        { label: 'Projects', icon: FolderGit2, href: '/projects' },
+        { label: 'Lecture Notes', icon: BookMarked, href: '/student/search?category=lecture-notes' },
+        { label: 'Code Samples', icon: Code, href: '/student/search?category=code-samples' },
+        { label: 'Knowledge Hub', icon: Layers, href: '/student/search?category=knowledge-hub' },
+        { label: 'My Resources', icon: Bookmark, href: '/resources' },
+        { label: 'Notifications', icon: Bell, href: '/notifications' },
+        { label: 'Help & Support', icon: HelpCircle, href: '/support' },
+        { label: 'Profile', icon: User, href: '/profile' },
+    ];
+
+    const staffNav = [
+        { label: 'Dashboard', icon: LayoutDashboard, href: '/staff/dashboard' },
+        { label: 'Upload Resource', icon: UploadCloud, href: '/staff/upload' },
+        { label: 'Manage Resources', icon: FolderKanban, href: '/staff/manage-resources' },
+        { label: 'Review Submissions', icon: FileSearch, href: '/staff/review-submissions' },
+        { label: 'Analytics', icon: BarChart2, href: '/staff/analytics' },
+        { label: 'My Resources', icon: Bookmark, href: '/resources' },
+        { label: 'Notifications', icon: Bell, href: '/notifications' },
+        { label: 'Help & Support', icon: HelpCircle, href: '/support' },
+        { label: 'Profile', icon: User, href: '/profile' },
+    ];
+
+    const adminNav = [
+        { label: 'Dashboard', icon: LayoutDashboard, href: '/admin/dashboard' },
+        { label: 'Manage Users', icon: Users, href: '/admin/users' },
+        { label: 'Manage Resources', icon: FolderKanban, href: '/admin/resources' },
+        { label: 'Department Management', icon: Building2, href: '/admin/departments' },
+        { label: 'System Settings', icon: Settings, href: '/admin/settings' },
+        { label: 'Analytics', icon: BarChart2, href: '/admin/analytics' },
+        { label: 'Reports', icon: FileBarChart, href: '/admin/reports' },
+        { label: 'Notifications', icon: Bell, href: '/notifications' },
+        { label: 'Help & Support', icon: HelpCircle, href: '/support' },
+        { label: 'Profile', icon: User, href: '/profile' },
+    ];
+
+    const getNavItems = () => {
+        switch (userRole) {
+            case 'staff':
+                return staffNav;
+            case 'admin':
+                return adminNav;
+            default:
+                return studentNav;
+        }
+    };
+
+    const navItems = getNavItems();
+    const defaultName = userName || (userRole === 'staff' ? 'Dr. Smith' : userRole === 'admin' ? 'Admin User' : 'Student User');
+    const defaultCode = userCode || (userRole === 'staff' ? 'Staff' : userRole === 'admin' ? 'Administrator' : 'CSC/2021/042');
+
+    return (
+        <aside className="w-64 md:w-72 bg-white border-r border-[#E1E6F3] flex flex-col justify-between hidden md:flex sticky top-[76px] h-[calc(100vh-76px)] z-20 shrink-0">
+            <div className="flex-1 overflow-y-auto">
+                {/* Dynamic Navigation Items */}
+                <nav className="p-4 space-y-1">
+                    {navItems.map((item, idx) => {
+                        const isActive =
+                            pathname === item.href ||
+                            (item.href.includes('?') && pathname.includes(item.href.split('?')[0]));
+
+                        return (
+                            <Link
+                                key={idx}
+                                href={item.href}
+                                className={`flex items-center justify-between px-3.5 h-11 rounded-lg text-sm transition-all ${isActive
+                                    ? 'bg-[#E9EDFF] text-[#245CFF] font-semibold relative'
+                                    : 'text-[#0B123D] hover:bg-[#F6F8FF] font-normal'
+                                    }`}
+                            >
+                                <div className="flex items-center gap-3.5">
+                                    <item.icon className={`w-4 h-4 ${isActive ? 'text-[#245CFF]' : 'text-[#0B123D]'}`} />
+                                    <span>{item.label}</span>
+                                </div>
+                                {isActive && <div className="w-1 h-6 bg-[#245CFF] rounded-full" />}
+                            </Link>
+                        );
+                    })}
+                </nav>
+            </div>
+
+            {/* Bottom Footer Links */}
+            <div className="p-4 border-t border-[#E1E6F3] space-y-2">
+                <div className="space-y-1 mb-2 pb-2 border-b border-[#E1E6F3]">
+                    <Link
+                        href="/about"
+                        className={`flex items-center gap-3.5 px-3.5 h-9 rounded-lg text-xs font-normal transition-all ${pathname === '/about'
+                            ? 'bg-[#E9EDFF] text-[#245CFF] font-semibold'
+                            : 'text-[#64708C] hover:text-[#0B123D]'
+                            }`}
+                    >
+                        <Info className="w-4 h-4" />
+                        <span>About CSE Hub</span>
+                    </Link>
+                </div>
+
+                {/* User Info & Logout Button */}
+                <Link href="/profile" className="flex items-center gap-3 p-2 rounded-xl bg-[#F6F8FF] hover:bg-[#E9EDFF] transition-colors">
+                    <div className="w-9 h-9 rounded-full bg-[#245CFF]/10 text-[#245CFF] flex items-center justify-center font-bold text-xs">
+                        {defaultName.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div className="flex flex-col min-w-0 flex-1">
+                        <span className="text-xs font-bold text-[#0B123D] truncate">{defaultName}</span>
+                        <span className="text-[10px] text-[#64708C] truncate">{defaultCode}</span>
+                    </div>
+                </Link>
+
+                <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors"
+                >
+                    <LogOut className="w-4 h-4" />
+                    <span>Sign Out</span>
+                </button>
+            </div>
+        </aside>
+    );
+}
+```
+
+---
+
+## App.3 Global Footer
+
+- **File**: `frontend/src/components/layout/footer.tsx`
+- **Description**: Site-wide footer featuring department branding, quick links, academic calendar links, and copyright info.
+
+```tsx
+'use client';
+
+import Link from 'next/link';
+
+interface FooterProps {
+    links?: { label: string; href: string }[];
+}
+
+const defaultLinks = [
+    { label: 'Notifications', href: '/student/notifications' },
+    { label: 'Help & Support', href: '/student/support' },
+    { label: 'About CSE Hub', href: '/about' },
+    { label: 'Reports', href: '/admin/reports' },
+];
+
+export default function Footer({ links = defaultLinks }: FooterProps) {
+    return (
+        <footer className="px-4 sm:px-8 py-5 border-t border-[#E1E6F3] flex flex-col sm:flex-row items-center justify-between gap-3 text-[12px] text-[#64708C] bg-white lg:bg-transparent">
+            {/* Footer Navigation Links */}
+            <div className="flex items-center gap-4 sm:gap-6 flex-wrap">
+                {links.map((link, idx) => (
+                    <Link
+                        key={idx}
+                        href={link.href}
+                        className="hover:underline hover:text-[#0B123D] transition-colors"
+                    >
+                        {link.label}
+                    </Link>
+                ))}
+            </div>
+
+            {/* Copyright Notice */}
+            <div className="text-center sm:text-right font-medium">
+                © 2026 Olawale Akinbileje Emmanuel. All rights reserved.
+            </div>
+        </footer>
+    );
+}
+```
+
+---
+
