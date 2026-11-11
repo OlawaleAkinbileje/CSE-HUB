@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
@@ -12,10 +11,6 @@ import {
     Clock,
     Download,
     Folder,
-    Home,
-    HelpCircle,
-    BookOpen,
-    FolderSearch
 } from 'lucide-react';
 import { useProjects } from '@/lib/queries';
 import DataContainer from '@/components/ui/DataContainer';
@@ -50,12 +45,12 @@ export default function ProjectsPage() {
     return (
         <div className="min-h-screen w-full bg-[#F6F8FF] flex flex-col font-sans text-[#0B123D]">
             {/* Shared Header Navigation */}
-            <Navbar userRole="student" />
+            <Navbar />
 
             {/* Main Shell */}
             <div className="flex-1 flex flex-col md:flex-row">
                 {/* Shared Sidebar */}
-                <Sidebar userRole="student" />
+                <Sidebar />
 
                 {/* Main Workspace Container */}
                 <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 overflow-x-hidden flex flex-col justify-between">
@@ -115,7 +110,7 @@ export default function ProjectsPage() {
                             }
                             emptyAction={{
                                 label: "Explore Resources",
-                                href: "/student/search",
+                                href: "/search",
                             }}
                             skeletonCount={6}
                         >
@@ -185,29 +180,6 @@ export default function ProjectsPage() {
                 </main>
             </div>
 
-            {/* Mobile Navigation Bar */}
-            <div className="md:hidden fixed bottom-0 left-0 right-0 h-[64px] bg-white border-t border-[#E1E6F3] px-2 flex items-center justify-around z-40">
-                <Link href="/student/dashboard" className="flex flex-col items-center gap-1 text-[#64708C]">
-                    <Home className="w-5 h-5" />
-                    <span className="text-[10px]">Home</span>
-                </Link>
-                <Link href="/student/search" className="flex flex-col items-center gap-1 text-[#64708C]">
-                    <FolderSearch className="w-5 h-5" />
-                    <span className="text-[10px]">Search</span>
-                </Link>
-                <Link href="/past-questions" className="flex flex-col items-center gap-1 text-[#64708C]">
-                    <HelpCircle className="w-5 h-5" />
-                    <span className="text-[10px]">Questions</span>
-                </Link>
-                <Link href="/projects" className="flex flex-col items-center gap-1 text-[#245CFF] font-bold bg-[#E9EDFF] px-3 py-1 rounded-lg">
-                    <Folder className="w-5 h-5" />
-                    <span className="text-[10px]">Projects</span>
-                </Link>
-                <Link href="/knowledge" className="flex flex-col items-center gap-1 text-[#64708C]">
-                    <BookOpen className="w-5 h-5" />
-                    <span className="text-[10px]">Knowledge</span>
-                </Link>
-            </div>
         </div>
     );
 }

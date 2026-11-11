@@ -6,6 +6,10 @@ export default function middleware(request: NextRequest) {
   const userRole = request.cookies.get("role")?.value;
   const { pathname } = request.nextUrl;
 
+  if (pathname === "/student/search") {
+    return NextResponse.redirect(new URL(`/search${request.nextUrl.search}`, request.url));
+  }
+
   // Protect student dashboard routes
   if (pathname.startsWith("/student") && !token) {
     return NextResponse.redirect(new URL("/login", request.url));

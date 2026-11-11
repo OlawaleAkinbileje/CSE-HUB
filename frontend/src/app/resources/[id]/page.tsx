@@ -17,10 +17,12 @@ import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
 import DataContainer from '@/components/ui/DataContainer';
 import { apiClient } from '@/lib/api';
+import { useCurrentUser } from '@/lib/useCurrentUser';
 
 interface ResourceDetails {
     id: string;
     title: string;
+    original_filename?: string | null;
     description: string;
     file_url: string;
     file_type: string;
@@ -75,6 +77,7 @@ export default function ResourceDetailsPage() {
 
 function ResourceDetailsContent() {
     const { id } = useParams<{ id: string }>();
+    const currentUser = useCurrentUser();
     const queryClient = useQueryClient();
     const [commentText, setCommentText] = useState('');
     const [replyTo, setReplyTo] = useState<string | null>(null);
@@ -170,18 +173,20 @@ function ResourceDetailsContent() {
     };
 
     const filePreviewUrl = `${apiClient.defaults.baseURL}/resources/${id}/file-preview`;
-    const isPdf = resource?.file_type === 'document' && resource.file_url.startsWith('/api/');
+    const isPdf =
+        resource?.file_type === 'document' &&
+        resource.original_filename?.toLowerCase().endsWith('.pdf') === true;
     const comments = commentsQuery.data || [];
 
     return (
         <div className="min-h-screen w-full bg-[#F6F8FF] font-sans text-[#0B123D]">
             <Navbar />
             <div className="flex min-h-[calc(100vh-76px)]">
-                <Sidebar />
+                {currentUser.isAuthenticated && <Sidebar userRole={currentUser.role} />}
                 <main className="flex-1 min-w-0 p-4 sm:p-8">
                     <div className="mx-auto max-w-5xl space-y-6">
                         <Link
-                            href="/student/search"
+                            href="/search"
                             className="inline-flex items-center gap-2 text-sm font-semibold text-[#245CFF] hover:underline"
                         >
                             <ArrowLeft className="h-4 w-4" /> Back to search

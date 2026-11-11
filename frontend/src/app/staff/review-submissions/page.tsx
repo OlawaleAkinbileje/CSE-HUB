@@ -81,12 +81,12 @@ export default function ReviewSubmissionsPage() {
     return (
         <div className="min-h-screen w-full bg-[#F6F8FF] flex flex-col font-sans text-[#0B123D]">
             {/* Shared Navbar */}
-            <Navbar userRole="staff" />
+            <Navbar />
 
             {/* Main Content Layout */}
             <div className="flex-1 flex flex-col md:flex-row">
                 {/* Shared Sidebar */}
-                <Sidebar userRole="staff" />
+                <Sidebar />
 
                 {/* Workspace Area */}
                 <main className="flex-1 p-4 md:p-8 space-y-6 overflow-x-hidden flex flex-col justify-between">

@@ -21,7 +21,7 @@ export default function LandingPage() {
   const router = useRouter();
 
   const handleSearch = (query: string) => {
-    router.push(`/student/search?q=${encodeURIComponent(query)}`);
+    router.push(`/search?q=${encodeURIComponent(query)}`);
   };
 
   const popularTags = [
@@ -161,7 +161,7 @@ export default function LandingPage() {
               title={card.title}
               bgColor={card.bgColor}
               icon={card.icon}
-              onClick={() => router.push(`/student/search?category=${encodeURIComponent(card.slug)}`)}
+              onClick={() => router.push(`/search?category=${encodeURIComponent(card.slug)}`)}
             />
           ))}
         </div>

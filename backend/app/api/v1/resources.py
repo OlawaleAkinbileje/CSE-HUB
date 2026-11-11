@@ -152,6 +152,7 @@ def _resource_query(
     file_type: Optional[str] = None,
     programming_language: Optional[str] = None,
     year: Optional[int] = None,
+    sort_by: str = "relevance",
     status_filter: Optional[str] = "approved",
     limit: int = 50,
     offset: int = 0,
@@ -197,12 +198,23 @@ def _resource_query(
         params,
     ).scalar_one()
 
-    order_by = (
-        " ORDER BY ts_rank(r.search_vector, plainto_tsquery('english', :search)) DESC, "
-        "similarity(r.title, :search) DESC, r.created_at DESC"
-        if search
-        else " ORDER BY r.created_at DESC"
-    )
+    order_options = {
+        "relevance": (
+            "ts_rank(r.search_vector, plainto_tsquery('english', :search)) DESC, "
+            "similarity(r.title, :search) DESC, r.created_at DESC"
+            if search
+            else "r.created_at DESC"
+        ),
+        "newest": "r.created_at DESC",
+        "oldest": "r.created_at ASC",
+        "title_asc": "lower(r.title) ASC",
+        "title_desc": "lower(r.title) DESC",
+        "downloads": (
+            "(SELECT count(*) FROM public.backend_downloads d "
+            "WHERE d.resource_id = r.id) DESC, r.created_at DESC"
+        ),
+    }
+    order_by = f" ORDER BY {order_options[sort_by]}"
     rows = db.execute(
         text(RESOURCE_SELECT + where_clause + order_by + " LIMIT :limit OFFSET :offset"),
         params,
@@ -240,6 +252,10 @@ def get_resources(
     file_type: Optional[str] = Query(None),
     programming_language: Optional[str] = Query(None),
     year: Optional[int] = Query(None, ge=1900, le=2200),
+    sort_by: str = Query(
+        "relevance",
+        pattern="^(relevance|newest|oldest|title_asc|title_desc|downloads)$",
+    ),
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
@@ -271,6 +287,7 @@ def get_resources(
         file_type=file_type,
         programming_language=programming_language,
         year=year,
+        sort_by=sort_by,
         status_filter=selected_status,
         limit=limit,
         offset=offset,
@@ -306,6 +323,13 @@ def get_resource_options(db: Session = Depends(get_db)):
     courses = db.execute(
         text("SELECT id, course_code, title FROM public.courses ORDER BY course_code")
     ).mappings().all()
+    years = db.execute(
+        text(
+            "SELECT DISTINCT EXTRACT(YEAR FROM created_at)::integer AS year "
+            "FROM public.resources WHERE status::text = 'approved' "
+            "ORDER BY year DESC"
+        )
+    ).scalars().all()
     return {
         "categories": [
             {"id": str(row["id"]), "name": row["name"], "slug": row["slug"]}
@@ -319,6 +343,27 @@ def get_resource_options(db: Session = Depends(get_db)):
             }
             for row in courses
         ],
+        "years": years,
+    }
+
+
+@router.get("/stats")
+def get_public_resource_stats(db: Session = Depends(get_db)):
+    stats = db.execute(
+        text(
+            """
+            SELECT
+                (SELECT count(*) FROM public.resources
+                 WHERE status::text = 'approved') AS total_resources,
+                (SELECT count(*) FROM public.users) AS total_users,
+                (SELECT count(*) FROM public.courses) AS total_courses
+            """
+        )
+    ).mappings().one()
+    return {
+        "totalResources": stats["total_resources"],
+        "totalUsers": stats["total_users"],
+        "totalCourses": stats["total_courses"],
     }
 
 

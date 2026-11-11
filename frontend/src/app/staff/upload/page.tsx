@@ -91,9 +91,9 @@ export default function UploadResourcePage() {
 
     return (
         <div className="min-h-screen w-full bg-[#F6F8FF] flex flex-col font-sans text-[#0B123D]">
-            <Navbar userRole="staff" />
+            <Navbar />
             <div className="flex-1 flex flex-col md:flex-row">
-                <Sidebar userRole="staff" />
+                <Sidebar />
                 <main className="flex-1 p-4 md:p-8">
                     <div className="mx-auto w-full max-w-3xl space-y-6">
                         <div>

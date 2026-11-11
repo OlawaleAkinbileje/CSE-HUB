@@ -9,31 +9,58 @@ import {
     BookOpen,
     Users,
     GraduationCap,
-    FileText,
     UserCheck,
     ShieldCheck,
-    Search,
     BookMarked,
-    UploadCloud,
     ArrowRight,
     HelpCircle,
-    Sparkles,
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { apiClient } from "@/lib/api";
+import { useCurrentUser } from "@/lib/useCurrentUser";
+
+interface AboutStats {
+    totalResources: number;
+    totalUsers: number;
+    totalCourses: number;
+}
 
 export default function AboutPage() {
+    const currentUser = useCurrentUser();
+    const roleLabels = {
+        student: "student",
+        staff: "staff",
+        admin: "administrator",
+    } as const;
+    const supportLinkLabel = currentUser.isAuthenticated
+        ? `Get ${roleLabels[currentUser.role]} support`
+        : "Help & Support";
+    const resourceLibraryHref =
+        currentUser.isAuthenticated && currentUser.role !== "student"
+            ? "/staff/manage-resources"
+            : "/search";
+
+    const { data: aboutStats, isLoading: statsLoading, error: statsError } = useQuery({
+        queryKey: ["about", "stats"],
+        queryFn: async () => {
+            const response = await apiClient.get<AboutStats>("/resources/stats");
+            return response.data;
+        },
+    });
+
     const stats = [
         {
-            value: "1,250",
+            value: statsLoading ? "…" : statsError ? "—" : (aboutStats?.totalResources ?? 0).toLocaleString(),
             label: "Learning resources",
             icon: BookOpen,
         },
         {
-            value: "450",
+            value: statsLoading ? "…" : statsError ? "—" : (aboutStats?.totalUsers ?? 0).toLocaleString(),
             label: "Registered users",
             icon: Users,
         },
         {
-            value: "42",
+            value: statsLoading ? "…" : statsError ? "—" : (aboutStats?.totalCourses ?? 0).toLocaleString(),
             label: "Courses supported",
             icon: GraduationCap,
         },
@@ -84,12 +111,12 @@ export default function AboutPage() {
     return (
         <div className="min-h-screen w-full bg-[#F6F8FF] flex flex-col font-sans text-[#0B123D]">
             {/* Shared Header Navigation */}
-            <Navbar userRole="student" />
+            <Navbar userRole={currentUser.isAuthenticated ? currentUser.role : undefined} />
 
             {/* Main Layout Shell */}
             <div className="flex-1 flex flex-col md:flex-row">
                 {/* Shared Desktop Sidebar */}
-                <Sidebar userRole="student" />
+                {currentUser.isAuthenticated && <Sidebar userRole={currentUser.role} />}
 
                 {/* Workspace Container */}
                 <main className="flex-1 p-4 md:p-8 space-y-6 overflow-x-hidden flex flex-col justify-between">
@@ -127,6 +154,11 @@ export default function AboutPage() {
                                     <div className="w-11 h-11 rounded-lg bg-[#E9EDFF] flex items-center justify-center shrink-0">
                                         <stat.icon className="w-6 h-6 text-[#245CFF]" />
                                     </div>
+                                    {statsError && (
+                                        <p role="status" className="text-xs text-[#64708C]">
+                                            Live platform statistics are temporarily unavailable.
+                                        </p>
+                                    )}
                                     <div>
                                         <span className="text-2xl font-bold text-[#0B123D] block leading-none">
                                             {stat.value}
@@ -218,7 +250,7 @@ export default function AboutPage() {
                                 </div>
 
                                 <Link
-                                    href="/student/search"
+                                    href={resourceLibraryHref}
                                     className="text-xs font-semibold text-[#245CFF] hover:underline flex items-center gap-1 pt-2"
                                 >
                                     <span>Browse the resource library</span>
@@ -248,7 +280,7 @@ export default function AboutPage() {
                                     href="/support"
                                     className="text-xs font-semibold text-[#245CFF] hover:underline flex items-center gap-1 pt-2"
                                 >
-                                    <span>Get accessibility support</span>
+                                    <span>{supportLinkLabel}</span>
                                     <ArrowRight className="w-3.5 h-3.5" />
                                 </Link>
                             </div>
@@ -277,7 +309,7 @@ export default function AboutPage() {
                                 href="/support"
                                 className="h-11 px-5 bg-gradient-to-r from-[#7148FF] to-[#245CFF] text-white text-xs font-semibold rounded-lg flex items-center justify-center shrink-0 hover:opacity-95 transition-opacity shadow-sm self-start sm:self-auto"
                             >
-                                Help &amp; Support
+                                {supportLinkLabel}
                             </Link>
                         </div>
                     </div>

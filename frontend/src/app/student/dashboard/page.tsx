@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
 import { useCurrentUser } from '@/lib/useCurrentUser';
 import { useRouter } from 'next/navigation';
+import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
 import {
     Search,
@@ -13,7 +13,6 @@ import {
     Code,
     Download,
     Bookmark,
-    Bell
 } from 'lucide-react';
 import Footer from '@/components/layout/footer';
 import { useStudentDashboard } from '@/lib/queries';
@@ -31,7 +30,7 @@ export default function StudentDashboardPage() {
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
         if (query.trim()) {
-            router.push(`/student/search?q=${encodeURIComponent(query)}`);
+            router.push(`/search?q=${encodeURIComponent(query)}`);
         }
     };
 
@@ -89,50 +88,11 @@ export default function StudentDashboardPage() {
     ];
 
     return (
-        <div className="w-full min-h-screen bg-[#F6F8FF] flex font-sans text-[#0B123D]">
-
-            {/* 1. REUSABLE DASHBOARD SIDEBAR */}
-            <Sidebar userRole="student" />
-
-            {/* MAIN CONTAINER */}
-            <div className="flex-1 flex flex-col min-w-0">
-
-                {/* TOP DASHBOARD APP BAR */}
-                <header className="h-[76px] bg-white border-b border-[#E1E6F3] px-6 sm:px-8 flex items-center justify-between sticky top-0 z-30">
-                    <form onSubmit={handleSearch} className="w-full max-w-[620px]">
-                        <div className="h-[43px] px-4 bg-white rounded-[8px] border border-[#E1E6F3] flex items-center gap-3 focus-within:ring-2 focus-within:ring-[#245CFF]">
-                            <Search className="w border-none text-[#64708C] w-[18px] h-[18px]" />
-                            <input
-                                type="text"
-                                value={query}
-                                onChange={(e) => setQuery(e.target.value)}
-                                placeholder="Search for resources, topics, or keywords..."
-                                className="w-full bg-transparent text-[14px] text-[#0B123D] placeholder-[#64708C] focus:outline-none"
-                            />
-                        </div>
-                    </form>
-
-                    {/* User Profile Pill */}
-                    <div className="flex items-center gap-4">
-                        <Link href="/notifications">
-                            <button className="p-2 text-[#0B123D] hover:bg-slate-50 rounded-lg">
-                                <Bell className="w-[20px] h-[20px]" />
-                            </button>
-                        </Link>
-                        <Link href="/profile" className="flex items-center gap-3 border-l border-[#E1E6F3] pl-4">
-                            <div className="w-[38px] h-[40px] rounded-[22px] bg-[#245CFF]/10 text-[#245CFF] font-bold flex items-center justify-center text-sm">
-                                {currentUser.initials}
-                            </div>
-                            <div className="hidden sm:flex flex-col">
-                                <span className="text-[14px] font-bold leading-[20.3px] text-[#0B123D]">{currentUser.full_name || currentUser.username || 'User'}</span>
-                                <span className="text-[12px] text-[#64708C]">Student</span>
-                            </div>
-                        </Link>
-                    </div>
-                </header>
-
-                {/* DASHBOARD CONTENT AREA */}
-                <main className="p-6 sm:p-[32px] space-y-[26px] flex-1">
+        <div className="min-h-screen w-full bg-[#F6F8FF] flex flex-col font-sans text-[#0B123D]">
+            <Navbar userRole={currentUser.role} />
+            <div className="flex-1 flex flex-col md:flex-row">
+                <Sidebar userRole={currentUser.role} />
+                <main className="flex-1 p-4 md:p-8 space-y-6">
 
                     {/* BANNER WITH SEARCH ENGINE & PILLS */}
                     <div className="relative p-6 sm:p-[36px] bg-gradient-to-br from-[#DDF7FE] via-[#E7DCFF] to-[#D6F6FF] rounded-[16px] flex flex-col gap-[24px] overflow-hidden border border-[#E1E6F3]/50">
@@ -168,7 +128,7 @@ export default function StudentDashboardPage() {
                                     onClick={() => {
                                         setActiveCategory(cat.name);
                                         if (cat.name !== 'All') {
-                                            router.push(`/student/search?category=${encodeURIComponent(cat.name.toLowerCase().replace(' ', '-'))}`);
+                                            router.push(`/search?category=${encodeURIComponent(cat.name.toLowerCase().replace(' ', '-'))}`);
                                         }
                                     }}
                                     className={`px-[20px] py-[9px] rounded-full text-[14px] font-semibold transition-all ${cat.active
@@ -216,14 +176,14 @@ export default function StudentDashboardPage() {
                             data={popularCollectionCards}
                             emptyTitle="No Categories Found"
                             emptyDescription="There are currently no active course categories configured."
-                            emptyAction={{ label: "Browse All Resources", href: "/student/search" }}
+                            emptyAction={{ label: "Browse All Resources", href: "/search" }}
                         >
                             {(cards) => (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[20px]">
                                     {cards.map((card, idx) => (
                                         <div
                                             key={idx}
-                                            onClick={() => router.push(`/student/search?category=${card.cat}`)}
+                                            onClick={() => router.push(`/search?category=${card.cat}`)}
                                             className="h-[138px] p-[22px] bg-white rounded-[16px] shadow-[0px_5px_18px_rgba(39,63_121,0.06)] border border-[#E1E6F3]/50 flex items-center gap-[18px] cursor-pointer hover:border-[#245CFF] transition-all group"
                                         >
                                             {/* Category Square Badge */}
@@ -256,6 +216,6 @@ export default function StudentDashboardPage() {
                 <Footer />
 
             </div>
-        </div>
+            </div>
     );
 }

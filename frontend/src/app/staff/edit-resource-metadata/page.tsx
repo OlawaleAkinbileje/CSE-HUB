@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -57,6 +57,14 @@ const resourceTypes = [
 ];
 
 export default function EditResourceMetadataPage() {
+    return (
+        <Suspense fallback={<div className="p-8 text-sm text-[#64708C]">Loading resource editor…</div>}>
+            <EditResourceMetadataContent />
+        </Suspense>
+    );
+}
+
+function EditResourceMetadataContent() {
     const searchParams = useSearchParams();
     const resourceId = searchParams.get("id");
     const queryClient = useQueryClient();
@@ -126,9 +134,9 @@ export default function EditResourceMetadataPage() {
 
     return (
         <div className="min-h-screen w-full bg-[#F6F8FF] flex flex-col font-sans text-[#0B123D]">
-            <Navbar userRole="staff" />
+            <Navbar />
             <div className="flex-1 flex flex-col md:flex-row">
-                <Sidebar userRole="staff" />
+                <Sidebar />
                 <main className="flex-1 p-4 md:p-8">
                     <div className="mx-auto max-w-5xl space-y-6">
                         <Link

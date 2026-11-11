@@ -54,7 +54,7 @@ export default function ProfilePage() {
             ]
             : [
                 { label: 'Home', href: '/student/dashboard', icon: Home },
-                { label: 'Search', href: '/student/search', icon: Search },
+                { label: 'Search', href: '/search', icon: Search },
                 { label: 'Questions', href: '/past-questions', icon: HelpCircle },
                 { label: 'Alerts', href: '/notifications', icon: Bell },
                 { label: 'Profile', href: '/profile', icon: CircleUserRound },

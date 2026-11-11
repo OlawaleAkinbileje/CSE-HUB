@@ -49,12 +49,12 @@ export default function StudentNotificationsPage() {
     return (
         <div className="min-h-screen w-full bg-[#F6F8FF] flex flex-col font-sans text-[#0B123D]">
             {/* Standard Shared Navbar */}
-            <Navbar userRole="student" />
+            <Navbar userRole={currentUser.role} />
 
             {/* Main Layout Shell */}
             <div className="flex-1 flex flex-col md:flex-row">
                 {/* Standard Shared Sidebar */}
-                <Sidebar userRole="student" />
+                <Sidebar userRole={currentUser.role} />
 
                 {/* Main Content Area */}
                 <main className="flex-1 p-4 md:p-8 space-y-6 overflow-x-hidden flex flex-col justify-between">

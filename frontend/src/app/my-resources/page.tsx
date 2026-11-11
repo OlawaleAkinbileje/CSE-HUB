@@ -80,7 +80,7 @@ export default function StudentResourcesPage() {
                             </div>
 
                             <button
-                                onClick={() => router.push(isStaff ? "/staff/manage-resources" : "/student/search")}
+                                onClick={() => router.push(isStaff ? "/staff/manage-resources" : "/search")}
                                 className="h-11 px-5 bg-white border border-[#E1E6F3] text-[#245CFF] text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#F6F8FF] transition-colors shadow-sm self-start sm:self-auto"
                             >
                                 <Search className="w-4 h-4 text-[#245CFF]" />
@@ -180,7 +180,7 @@ export default function StudentResourcesPage() {
                                 }
                                 emptyAction={{
                                     label: "Browse All Resources",
-                                    href: "/student/search",
+                                    href: "/search",
                                 }}
                                 skeletonCount={6}
                             >
@@ -252,7 +252,7 @@ export default function StudentResourcesPage() {
                                 emptyDescription="You have not downloaded any study materials or files to your device yet."
                                 emptyAction={{
                                     label: "Search Resources",
-                                    href: "/student/search",
+                                    href: "/search",
                                 }}
                                 skeletonCount={4}
                                 skeletonType="rows"

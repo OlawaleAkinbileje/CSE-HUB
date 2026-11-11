@@ -35,12 +35,12 @@ export default function AnalyticsPage() {
     return (
         <div className="min-h-screen w-full bg-[#F6F8FF] flex flex-col font-sans text-[#0B123D]">
             {/* Top Navigation */}
-            <Navbar userRole="admin" />
+            <Navbar />
 
             {/* Main Layout Shell */}
             <div className="flex-1 flex flex-col md:flex-row">
                 {/* Standard Shared Sidebar */}
-                <Sidebar userRole="admin" />
+                <Sidebar />
 
                 {/* Main Content Area */}
                 <main className="flex-1 p-4 md:p-8 space-y-6 overflow-x-hidden flex flex-col justify-between">

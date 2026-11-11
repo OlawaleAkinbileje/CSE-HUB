@@ -36,6 +36,11 @@ interface FAQItem {
 
 export default function HelpAndSupportPage() {
     const currentUser = useCurrentUser();
+    const resourceLinkByRole = {
+        student: "/search",
+        staff: "/staff/manage-resources",
+        admin: "/staff/manage-resources",
+    } as const;
     const [searchQuery, setSearchQuery] = useState("");
     const [openFaqId, setOpenFaqId] = useState<string | null>("faq-1");
 
@@ -103,7 +108,7 @@ export default function HelpAndSupportPage() {
             description: "Search, filters and courses",
             articleCount: "12 articles →",
             icon: FolderSearch,
-            href: "/student/search",
+            href: resourceLinkByRole[currentUser.role],
         },
         {
             title: "Downloads & Access",
@@ -130,12 +135,12 @@ export default function HelpAndSupportPage() {
     return (
         <div className="min-h-screen w-full bg-[#F6F8FF] flex flex-col font-sans text-[#0B123D]">
             {/* Shared Navbar */}
-            <Navbar userRole="student" />
+            <Navbar userRole={currentUser.role} />
 
             {/* Main Container */}
             <div className="flex-1 flex flex-col md:flex-row">
                 {/* Shared Sidebar */}
-                <Sidebar userRole="student" />
+                <Sidebar userRole={currentUser.role} />
 
                 {/* Content Area */}
                 <main className="flex-1 p-4 md:p-8 space-y-6 overflow-x-hidden flex flex-col justify-between">
