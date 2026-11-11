@@ -117,8 +117,8 @@ Core data entities include:
 
 Migration history currently includes initial schema, application backend
 workflows, Storage bucket setup, and admin/support workflows. The latest
-admin/support migration was applied to the **local** Supabase stack during this
-review. This does not apply it to any hosted database.
+admin/support and API-only RLS migrations are applied to the **local** Supabase
+stack. These do not apply to a hosted database.
 
 To apply pending migrations to local Supabase:
 
@@ -252,9 +252,11 @@ has not been performed.
    the Supabase-exposed public schema. A local Supabase security check reported
    RLS disabled on 16 public tables. The latest migration revokes `anon` and
    `authenticated` privileges on the newly introduced settings, support ticket,
-   and search event tables, but this does not remediate the other exposed
-   tables. Do not enable RLS without designing policies: it may block expected
-   access. The database/API authorization model needs a table-by-table review.
+   and search event tables; a subsequent migration enables RLS on the public
+   application tables with no browser-role policies. This intentionally blocks
+   direct browser table access; test that the API's server-side DB role can
+   still access all required tables. Do not add broad policies just to make
+   public search work—the API provides that surface.
 10. Run a production deployment build and smoke-test login, role boundaries,
    search, upload/download, support tickets, and admin actions using test data.
 
