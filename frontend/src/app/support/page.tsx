@@ -12,18 +12,13 @@ import {
     Share2,
     ChevronDown,
     ChevronUp,
-    AlertCircle,
-    FileUp,
-    X,
     CheckSquare,
     Square,
     ShieldAlert,
     ArrowRight,
-    Clock,
-    Mail,
-    HelpCircle,
 } from "lucide-react";
 import { useCurrentUser } from '@/lib/useCurrentUser';
+import { apiClient } from "@/lib/api";
 
 interface FAQItem {
     id: string;
@@ -46,23 +41,16 @@ export default function HelpAndSupportPage() {
 
     // Contact Form State
     const [formState, setFormState] = useState({
-        subject: "Unable to download CS201 lecture notes",
+        subject: "",
         category: "Downloads & Access",
-        message:
-            "I receive an Access denied message when downloading Introduction to Algorithms — Lecture Notes 2024 (CS201). I am enrolled in CS201 and signed in with my university email. I tried refreshing and using another browser, but the issue remains.",
+        message: "",
         includeDeviceInfo: true,
     });
-
-    // Attachment Error State (reflecting the Figma design specs)
-    const [attachment, setAttachment] = useState<{
-        name: string;
-        size: string;
-        error: string;
-    } | null>({
-        name: "download-error.png",
-        size: "6.2 MB",
-        error: "File too large",
-    });
+    const [contactName, setContactName] = useState("");
+    const [contactEmail, setContactEmail] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submissionError, setSubmissionError] = useState("");
+    const [ticketId, setTicketId] = useState("");
 
     const faqs: FAQItem[] = [
         {
@@ -130,7 +118,30 @@ export default function HelpAndSupportPage() {
         setOpenFaqId(openFaqId === id ? null : id);
     };
 
-    const isFormDisabled = !!(attachment && attachment.error);
+    const handleSubmitTicket = async () => {
+        setIsSubmitting(true);
+        setSubmissionError("");
+        setTicketId("");
+        try {
+            const response = await apiClient.post("/support/tickets", {
+                subject: formState.subject,
+                category: formState.category,
+                message: formState.message,
+                include_device_info: formState.includeDeviceInfo,
+                name: currentUser.full_name || currentUser.username || contactName,
+                email: currentUser.email || contactEmail,
+                device_info: formState.includeDeviceInfo
+                    ? `${navigator.platform}; ${navigator.userAgent}`
+                    : null,
+            });
+            setTicketId(response.data.id);
+            setFormState({ ...formState, subject: "", message: "" });
+        } catch (error) {
+            setSubmissionError(error instanceof Error ? error.message : "Could not submit your request.");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     return (
         <div className="min-h-screen w-full bg-[#F6F8FF] flex flex-col font-sans text-[#0B123D]">
@@ -153,6 +164,11 @@ export default function HelpAndSupportPage() {
                             <p className="text-sm text-[#64708C] mt-1">
                                 Find answers, solve common issues or contact the CSE Hub team.
                             </p>
+                            {currentUser.role === "admin" && (
+                                <a href="/admin/support" className="mt-3 inline-block text-sm font-semibold text-[#245CFF] hover:underline">
+                                    Open support queue
+                                </a>
+                            )}
                         </div>
 
                         {/* Gradient Search Banner */}
@@ -260,15 +276,35 @@ export default function HelpAndSupportPage() {
                                     </p>
                                 </div>
 
-                                {/* Sender Context Pill */}
-                                <div className="p-3 bg-[#F6F8FF] rounded-lg border border-[#E1E6F3] flex items-center gap-3">
-                                    <span className="px-2.5 py-1 bg-[#E9EDFF] text-[#245CFF] text-xs font-semibold rounded-full">
-                                        {currentUser.full_name || currentUser.username || 'User'}
-                                    </span>
-                                    <span className="text-xs text-[#64708C]">
-                                        john.doe@student.cse.edu.ng
-                                    </span>
-                                </div>
+                                {currentUser.email ? (
+                                    <div className="p-3 bg-[#F6F8FF] rounded-lg border border-[#E1E6F3] flex items-center gap-3">
+                                        <span className="px-2.5 py-1 bg-[#E9EDFF] text-[#245CFF] text-xs font-semibold rounded-full">
+                                            {currentUser.full_name || currentUser.username || "User"}
+                                        </span>
+                                        <span className="text-xs text-[#64708C]">{currentUser.email}</span>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                        <input
+                                            type="text"
+                                            required
+                                            aria-label="Your name"
+                                            placeholder="Your name *"
+                                            value={contactName}
+                                            onChange={(event) => setContactName(event.target.value)}
+                                            className="h-11 px-3.5 border border-[#E1E6F3] rounded-lg text-xs"
+                                        />
+                                        <input
+                                            type="email"
+                                            required
+                                            aria-label="Your email"
+                                            placeholder="Your email *"
+                                            value={contactEmail}
+                                            onChange={(event) => setContactEmail(event.target.value)}
+                                            className="h-11 px-3.5 border border-[#E1E6F3] rounded-lg text-xs"
+                                        />
+                                    </div>
+                                )}
 
                                 {/* Form Fields */}
                                 <div className="space-y-4">
@@ -329,64 +365,6 @@ export default function HelpAndSupportPage() {
                                         </p>
                                     </div>
 
-                                    {/* Attachment Section with Error State */}
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-semibold text-[#0B123D]">
-                                            Attachment (optional)
-                                        </label>
-
-                                        {attachment ? (
-                                            <div className="p-3.5 bg-[#FFF0F4] border border-[#DF365B] rounded-lg space-y-2">
-                                                <div className="flex items-center justify-between gap-3">
-                                                    <div className="flex items-center gap-2.5 min-w-0">
-                                                        <AlertCircle className="w-5 h-5 text-[#DF365B] shrink-0" />
-                                                        <div className="min-w-0">
-                                                            <p className="text-xs font-semibold text-[#0B123D] truncate">
-                                                                {attachment.name}
-                                                            </p>
-                                                            <p className="text-[11px] text-[#DF365B] font-medium">
-                                                                {attachment.size} · {attachment.error}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    <button
-                                                        onClick={() => setAttachment(null)}
-                                                        className="text-xs font-semibold text-[#DF365B] hover:underline shrink-0"
-                                                    >
-                                                        Remove
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        ) : null}
-
-                                        {attachment?.error && (
-                                            <p className="text-[11px] text-[#DF365B]">
-                                                Attachment must be 5 MB or smaller. Replace or remove this file before sending.
-                                            </p>
-                                        )}
-
-                                        <div className="flex items-center gap-3 pt-1">
-                                            <label className="h-9 px-3.5 bg-white border border-[#E1E6F3] text-[#245CFF] text-xs font-semibold rounded-lg flex items-center gap-2 cursor-pointer hover:bg-[#F6F8FF] transition-colors">
-                                                <FileUp className="w-4 h-4 text-[#245CFF]" />
-                                                <span>Replace Attachment</span>
-                                                <input
-                                                    type="file"
-                                                    className="hidden"
-                                                    onChange={() =>
-                                                        setAttachment({
-                                                            name: "error-screen.png",
-                                                            size: "2.1 MB",
-                                                            error: "",
-                                                        })
-                                                    }
-                                                />
-                                            </label>
-                                            <span className="text-[11px] text-[#64708C]">
-                                                PNG, JPG or PDF · Max 5 MB
-                                            </span>
-                                        </div>
-                                    </div>
-
                                     {/* Checkbox */}
                                     <div className="flex items-center gap-2.5 pt-1">
                                         <button
@@ -410,23 +388,26 @@ export default function HelpAndSupportPage() {
                                         </span>
                                     </div>
 
+                                    {submissionError && <p role="alert" className="text-xs text-[#DF365B]">{submissionError}</p>}
+                                    {ticketId && (
+                                        <p role="status" className="text-xs text-[#009F75]">
+                                            Request saved. Reference: {ticketId}
+                                        </p>
+                                    )}
+
                                     {/* Submit Button & Validation Bar */}
                                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-[#E1E6F3]">
                                         <span className="text-xs text-[#64708C]">
-                                            {isFormDisabled
-                                                ? "Resolve the attachment issue to continue."
-                                                : "Ready to submit."}
+                                            Your request will be saved for the support team. Email notifications are not configured.
                                         </span>
 
                                         <button
-                                            disabled={isFormDisabled}
-                                            onClick={() => alert("Support ticket submitted!")}
-                                            className={`h-11 px-6 rounded-lg text-xs font-semibold transition-all ${isFormDisabled
-                                                ? "bg-[#E1E6F3] text-[#64708C] cursor-not-allowed"
-                                                : "bg-[#245CFF] text-white hover:bg-blue-700 shadow-sm"
-                                                }`}
+                                            type="button"
+                                            disabled={isSubmitting || !formState.subject.trim() || formState.message.trim().length < 10 || (!currentUser.email && (!contactName.trim() || !contactEmail.trim()))}
+                                            onClick={handleSubmitTicket}
+                                            className="h-11 px-6 rounded-lg text-xs font-semibold transition-all bg-[#245CFF] text-white hover:bg-blue-700 shadow-sm disabled:bg-[#E1E6F3] disabled:text-[#64708C] disabled:cursor-not-allowed"
                                         >
-                                            Send Request
+                                            {isSubmitting ? "Sending..." : "Send Request"}
                                         </button>
                                     </div>
                                 </div>
@@ -446,7 +427,7 @@ export default function HelpAndSupportPage() {
                                         9:00 AM–5:00 PM WAT
                                     </p>
                                     <p className="text-xs text-[#64708C] leading-relaxed">
-                                        We usually reply within 1–2 working days. You’ll receive a reference number and updates by email.
+                                        We usually reply within 1–2 working days. Keep your reference number for follow-up.
                                     </p>
                                     <hr className="border-[#E1E6F3]" />
                                     <p className="text-xs font-semibold text-[#0B123D]">
@@ -468,7 +449,7 @@ export default function HelpAndSupportPage() {
                                     <ul className="space-y-2 text-xs text-[#64708C]">
                                         <li>• Include the resource title and course code.</li>
                                         <li>• Describe the issue and any error message.</li>
-                                        <li>• Attach a screenshot with private details hidden.</li>
+                                        <li>• Do not include passwords or verification codes.</li>
                                         <li>• For enrolment changes, contact your department office.</li>
                                     </ul>
                                 </div>

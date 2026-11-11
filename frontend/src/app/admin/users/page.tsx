@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import Footer from "@/components/layout/footer";
@@ -9,14 +10,13 @@ import {
     UserPlus,
     ChevronDown,
     Check,
-    Info,
     UserX,
-    RotateCcw,
     Users
 } from "lucide-react";
 import { useAdminUsers, AdminUserItem } from "@/lib/queries";
 import DataContainer from "@/components/ui/DataContainer";
 import EmptyState from "@/components/ui/EmptyState";
+import { apiClient } from "@/lib/api";
 
 export default function AdminUserManagementPage() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -24,9 +24,11 @@ export default function AdminUserManagementPage() {
     const [statusFilter, setStatusFilter] = useState("All statuses");
     const [selectedUserId, setSelectedUserId] = useState<string>("");
     const [assignedRole, setAssignedRole] = useState<AdminUserItem["role"]>("Student");
-    const [suspensionReason, setSuspensionReason] = useState("");
+    const [actionError, setActionError] = useState("");
+    const [isSaving, setIsSaving] = useState(false);
+    const queryClient = useQueryClient();
 
-    const { data: rawUsers, isLoading } = useAdminUsers();
+    const { data: rawUsers, isLoading, error } = useAdminUsers();
     const users = rawUsers || [];
 
     const filteredUsers = users.filter((user) => {
@@ -51,7 +53,6 @@ export default function AdminUserManagementPage() {
     const handleSelectUser = (user: AdminUserItem) => {
         setSelectedUserId(user.id);
         setAssignedRole(user.role);
-        setSuspensionReason("");
     };
 
     const handleResetFilters = () => {
@@ -60,14 +61,45 @@ export default function AdminUserManagementPage() {
         setStatusFilter("All statuses");
     };
 
-    const handleSaveRole = () => {
+    const handleSaveRole = async () => {
         if (!selectedUser) return;
-        alert(`Assigned role "${assignedRole}" to user ${selectedUser.name}`);
+        setIsSaving(true);
+        setActionError("");
+        try {
+            await apiClient.patch(`/admin/users/${selectedUser.id}`, {
+                role: assignedRole.toLowerCase(),
+            });
+            await queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+        } catch (error) {
+            setActionError(error instanceof Error ? error.message : "Could not update the user's role.");
+        } finally {
+            setIsSaving(false);
+        }
     };
 
-    const handleToggleSuspension = () => {
+    const handleToggleSuspension = async () => {
         if (!selectedUser) return;
-        alert(`Updated suspension status for ${selectedUser.name}`);
+        setIsSaving(true);
+        setActionError("");
+        try {
+            await apiClient.patch(`/admin/users/${selectedUser.id}`, {
+                is_active: selectedUser.status !== "Active",
+            });
+            await queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+        } catch (error) {
+            setActionError(error instanceof Error ? error.message : "Could not update the account status.");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleCopyRegistrationLink = async () => {
+        try {
+            await navigator.clipboard.writeText(`${window.location.origin}/register`);
+            setActionError("");
+        } catch {
+            setActionError("Could not copy the registration link. Copy it from the address bar instead.");
+        }
     };
 
     return (
@@ -93,13 +125,14 @@ export default function AdminUserManagementPage() {
                                     Manage students, academic staff and administrator privileges across the platform.
                                 </p>
                             </div>
+                            {error && <p role="alert" className="text-sm text-[#DF365B]">{error.message}</p>}
 
                             <button
-                                onClick={() => alert("Invite link copied to clipboard!")}
+                                onClick={handleCopyRegistrationLink}
                                 className="h-11 px-5 bg-gradient-to-r from-[#7148FF] to-[#245CFF] text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:opacity-95 transition-opacity shadow-sm self-start sm:self-auto"
                             >
                                 <UserPlus className="w-4 h-4" />
-                                <span>Invite New User</span>
+                                <span>Copy Registration Link</span>
                             </button>
                         </div>
 
@@ -357,10 +390,21 @@ export default function AdminUserManagementPage() {
                                             </select>
                                             <button
                                                 onClick={handleSaveRole}
-                                                className="w-full h-10 bg-[#245CFF] text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+                                                disabled={isSaving}
+                                                className="w-full h-10 bg-[#245CFF] text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
                                             >
-                                                Update Role
+                                                {isSaving ? "Saving..." : "Update Role"}
                                             </button>
+                                            <button
+                                                onClick={handleToggleSuspension}
+                                                disabled={isSaving}
+                                                className="w-full h-10 border border-[#DF365B] text-[#DF365B] text-xs font-semibold rounded-lg hover:bg-[#FFF0F4] transition-colors disabled:opacity-50"
+                                            >
+                                                {selectedUser.status === "Active" ? "Suspend Account" : "Reactivate Account"}
+                                            </button>
+                                            {actionError && (
+                                                <p role="alert" className="text-xs text-[#DF365B]">{actionError}</p>
+                                            )}
                                         </div>
                                     </div>
                                 ) : (

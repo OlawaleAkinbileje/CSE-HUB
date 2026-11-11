@@ -6,6 +6,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     PROJECT_NAME: str = "CSE Hub API"
     API_V1_STR: str = "/api/v1"
+    ENVIRONMENT: str = "development"
+    CORS_ORIGINS: str = ""
 
     SECRET_KEY: str = os.getenv("SECRET_KEY", "your-super-secret-key-change-in-production")
     ALGORITHM: str = "HS256"

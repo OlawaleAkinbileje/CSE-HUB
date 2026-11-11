@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import Footer from "@/components/layout/footer";
@@ -10,26 +10,34 @@ import {
     FileText,
     Users,
 } from "lucide-react";
-import { useAdminAnalytics, PopularResourceItem } from "@/lib/queries";
+import { useAdminAnalytics } from "@/lib/queries";
 import DataContainer from "@/components/ui/DataContainer";
 
 export default function AnalyticsPage() {
-    const [roleScope, setRoleScope] = useState<"admin" | "staff">("admin");
-    const [dateRange, setDateRange] = useState("1–31 Oct 2026");
-
-    const { data: analyticsData, isLoading } = useAdminAnalytics();
-
-    const metrics = analyticsData?.metrics || {
-        totalDownloads: 0,
-        activeUsers: 0,
-        uploadedResources: 0,
-        avgDailyVisits: 0,
-    };
+    const { data: analyticsData, isLoading, error } = useAdminAnalytics();
 
     const popularResources = analyticsData?.popularResources || [];
 
     const handleExport = () => {
-        alert("Exporting analytics report CSV/PDF with selected filters...");
+        if (!analyticsData) return;
+        const rows = [
+            ["Metric", "Value"],
+            ["Total downloads", analyticsData.metrics.totalDownloads],
+            ["Active users", analyticsData.metrics.activeUsers],
+            ["Uploaded resources", analyticsData.metrics.uploadedResources],
+            ["Average daily downloads (30 days)", analyticsData.metrics.avgDailyDownloads],
+            [],
+            ["Resource", "Course", "Downloads"],
+            ...popularResources.map((resource) => [resource.title, resource.course, resource.downloads]),
+        ];
+        const csv = rows.map((row) => row.map((value) => `"${String(value ?? "").replaceAll('"', '""')}"`).join(",")).join("\r\n");
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = "cse-hub-analytics.csv";
+        anchor.click();
+        URL.revokeObjectURL(url);
     };
 
     return (
@@ -56,6 +64,7 @@ export default function AnalyticsPage() {
 
                             <button
                                 onClick={handleExport}
+                                disabled={!analyticsData}
                                 className="h-11 px-5 bg-gradient-to-r from-[#7148FF] to-[#245CFF] text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:opacity-95 shadow-sm self-start sm:self-auto"
                             >
                                 <Download className="w-4 h-4" />
@@ -63,30 +72,7 @@ export default function AnalyticsPage() {
                             </button>
                         </div>
 
-                        {/* Scope Tabs & Date Range Selector */}
-                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                            {/* Scope Switcher Tabs */}
-                            <div className="border-b border-[#E1E6F3] flex items-center gap-6 flex-1">
-                                <button
-                                    onClick={() => setRoleScope("admin")}
-                                    className={`py-3 text-sm font-semibold border-b-2 transition-all ${roleScope === "admin"
-                                        ? "border-[#245CFF] text-[#245CFF]"
-                                        : "border-transparent text-[#64708C] hover:text-[#0B123D]"
-                                        }`}
-                                >
-                                    Platform Wide
-                                </button>
-                                <button
-                                    onClick={() => setRoleScope("staff")}
-                                    className={`py-3 text-sm font-semibold border-b-2 transition-all ${roleScope === "staff"
-                                        ? "border-[#245CFF] text-[#245CFF]"
-                                        : "border-transparent text-[#64708C] hover:text-[#0B123D]"
-                                        }`}
-                                >
-                                    My Department
-                                </button>
-                            </div>
-                        </div>
+                        {error && <p role="alert" className="text-sm text-[#DF365B]">{error.message}</p>}
 
                         {/* Top Key Performance Cards */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -95,7 +81,7 @@ export default function AnalyticsPage() {
                                     <Download className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <div className="text-2xl font-bold text-[#0B123D]">{isLoading ? '...' : metrics.totalDownloads.toLocaleString()}</div>
+                                    <div className="text-2xl font-bold text-[#0B123D]">{isLoading ? '...' : analyticsData?.metrics.totalDownloads.toLocaleString() ?? "Unavailable"}</div>
                                     <div className="text-xs text-[#64708C]">Total downloads</div>
                                 </div>
                             </div>
@@ -105,8 +91,8 @@ export default function AnalyticsPage() {
                                     <Users className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <div className="text-2xl font-bold text-[#0B123D]">{isLoading ? '...' : metrics.activeUsers.toLocaleString()}</div>
-                                    <div className="text-xs text-[#64708C]">Active learners</div>
+                                    <div className="text-2xl font-bold text-[#0B123D]">{isLoading ? '...' : analyticsData?.metrics.activeUsers.toLocaleString() ?? "Unavailable"}</div>
+                                    <div className="text-xs text-[#64708C]">Active accounts</div>
                                 </div>
                             </div>
 
@@ -115,7 +101,7 @@ export default function AnalyticsPage() {
                                     <FileText className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <div className="text-2xl font-bold text-[#0B123D]">{isLoading ? '...' : metrics.uploadedResources.toLocaleString()}</div>
+                                    <div className="text-2xl font-bold text-[#0B123D]">{isLoading ? '...' : analyticsData?.metrics.uploadedResources.toLocaleString() ?? "Unavailable"}</div>
                                     <div className="text-xs text-[#64708C]">Uploaded resources</div>
                                 </div>
                             </div>
@@ -125,8 +111,8 @@ export default function AnalyticsPage() {
                                     <TrendingUp className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <div className="text-2xl font-bold text-[#0B123D]">{isLoading ? '...' : metrics.avgDailyVisits.toLocaleString()}</div>
-                                    <div className="text-xs text-[#64708C]">Daily active sessions</div>
+                                    <div className="text-2xl font-bold text-[#0B123D]">{isLoading ? '...' : analyticsData?.metrics.avgDailyDownloads.toLocaleString() ?? "Unavailable"}</div>
+                                    <div className="text-xs text-[#64708C]">Average daily downloads (30 days)</div>
                                 </div>
                             </div>
                         </div>
@@ -157,7 +143,6 @@ export default function AnalyticsPage() {
                                                     <th className="p-3.5">Resource</th>
                                                     <th className="p-3.5">Course</th>
                                                     <th className="p-3.5">Downloads</th>
-                                                    <th className="p-3.5">Change</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-[#E1E6F3] text-xs">
@@ -168,7 +153,6 @@ export default function AnalyticsPage() {
                                                         </td>
                                                         <td className="p-3.5 text-[#0B123D]">{res.course}</td>
                                                         <td className="p-3.5 text-[#0B123D]">{res.downloads}</td>
-                                                        <td className="p-3.5 text-[#009F75] font-medium">{res.change}</td>
                                                     </tr>
                                                 ))}
                                             </tbody>

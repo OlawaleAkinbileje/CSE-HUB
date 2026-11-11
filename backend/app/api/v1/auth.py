@@ -35,7 +35,7 @@ def register(user_in: UserRegister, db: Session = Depends(get_db)):
         email=user_in.email,
         username=user_in.username,
         hashed_password=hashed_pwd,
-        role=user_in.role or "student",
+        role=UserRole.STUDENT,
         is_active=True
     )
 

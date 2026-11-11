@@ -12,51 +12,44 @@ import Footer from '@/components/layout/footer';
 import { useAdminDashboard } from '@/lib/queries';
 
 export default function AdminDashboardPage() {
-    const { data: adminData, isLoading } = useAdminDashboard();
-
-    const adminMetrics = adminData?.metrics || {
-        totalResources: 0,
-        totalUsers: 0,
-        pendingReview: 0,
-        totalDownloads: 0,
-    };
+    const { data: adminData, isLoading, error } = useAdminDashboard();
+    const adminMetrics = adminData?.metrics;
+    const resourceGrowth = adminData?.resourceGrowth || [];
+    const maxMonthlyResources = Math.max(...resourceGrowth.map((item) => item.count), 1);
 
     const metrics = [
         {
             label: 'Total Resources',
-            count: adminMetrics.totalResources.toLocaleString(),
+            count: adminMetrics?.totalResources.toLocaleString() ?? 'Unavailable',
             bgColor: 'rgba(0, 197, 138, 0.09)',
             iconColor: '#00C58A',
             icon: FileText
         },
         {
             label: 'Total Users',
-            count: adminMetrics.totalUsers.toLocaleString(),
+            count: adminMetrics?.totalUsers.toLocaleString() ?? 'Unavailable',
             bgColor: 'rgba(36, 92, 255, 0.09)',
             iconColor: '#245CFF',
             icon: Users
         },
         {
             label: 'Pending Review',
-            count: adminMetrics.pendingReview.toLocaleString(),
+            count: adminMetrics?.pendingReview.toLocaleString() ?? 'Unavailable',
             bgColor: 'rgba(255, 72, 105, 0.09)',
             iconColor: '#FF4869',
             icon: Clock
         },
         {
             label: 'Total Downloads',
-            count: adminMetrics.totalDownloads.toLocaleString(),
+            count: adminMetrics?.totalDownloads.toLocaleString() ?? 'Unavailable',
             bgColor: 'rgba(36, 92, 255, 0.09)',
             iconColor: '#245CFF',
             icon: Download
         },
     ];
 
-    const userDistribution = adminData?.userDistribution || [
-        { label: 'Students', percentage: '70%', color: '#7148FF' },
-        { label: 'Staff', percentage: '20%', color: '#F6B93D' },
-        { label: 'Admins', percentage: '10%', color: '#FF4869' },
-    ];
+    const userDistribution = adminData?.userDistribution || [];
+    const distributionTotal = userDistribution.reduce((total, item) => total + Number.parseFloat(item.percentage), 0);
 
     return (
         <div className="w-full min-h-screen bg-[#F6F8FF] flex flex-col font-sans text-[#0B123D]">
@@ -70,6 +63,7 @@ export default function AdminDashboardPage() {
                     <h1 className="text-[26px] sm:text-[30px] font-bold text-[#0B123D] leading-tight">
                         System Overview
                     </h1>
+                    {error && <p role="alert" className="text-sm text-[#DF365B]">{error.message}</p>}
 
                     {/* METRIC CARDS GRID */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[18px]">
@@ -101,41 +95,22 @@ export default function AdminDashboardPage() {
                         <div className="lg:col-span-7 xl:col-span-8 p-[20px] sm:p-[22px] bg-white rounded-[16px] border border-[#E1E6F3] flex flex-col gap-[15px]">
                             <div>
                                 <h2 className="text-[18px] sm:text-[20px] font-bold text-[#0B123D]">Resource Growth</h2>
-                                <p className="text-[13px] text-[#64708C] mt-1">Total resources · Academic Year 2026</p>
+                                <p className="text-[13px] text-[#64708C] mt-1">Resources added per month · Last six months</p>
                             </div>
 
                             {/* Simplified Custom Line Graph Visual */}
-                            <div className="w-full h-[210px] relative mt-2 flex flex-col justify-between">
-
-                                {/* Horizontal Y-Axis Grid Lines */}
-                                {[1500, 1000, 500, 0].map((val) => (
-                                    <div key={val} className="flex items-center gap-3 w-full">
-                                        <span className="w-9 text-[11px] text-[#64708C] text-right font-normal">{val}</span>
-                                        <div className="flex-1 h-[1px] bg-[#E9EDF7]" />
-                                    </div>
-                                ))}
-
-                                {/* Line Path Container */}
-                                <div className="absolute left-[48px] right-0 top-[10px] bottom-[30px]">
-                                    <svg className="w-full h-full overflow-visible" viewBox="0 0 500 130" preserveAspectRatio="none">
-                                        <path
-                                            d="M 0 110 Q 125 70, 250 40 T 500 10"
-                                            fill="none"
-                                            stroke="#245CFF"
-                                            strokeWidth="3.5"
+                            <div className="w-full min-h-[210px] mt-2 flex items-end justify-around gap-3 border-b border-[#E9EDF7] px-2">
+                                {isLoading ? <span className="mb-4 text-xs text-[#64708C]">Loading resource growth...</span> : resourceGrowth.length ? resourceGrowth.map((item) => (
+                                    <div key={item.month} className="flex h-[190px] min-w-0 flex-1 flex-col items-center justify-end gap-2">
+                                        <span className="text-[11px] text-[#64708C]">{item.count}</span>
+                                        <div
+                                            title={`${item.count} resources`}
+                                            className="w-full max-w-12 rounded-t-md bg-[#245CFF]"
+                                            style={{ height: `${Math.max((item.count / maxMonthlyResources) * 70, item.count ? 4 : 0)}%` }}
                                         />
-                                    </svg>
-                                </div>
-
-                                {/* X-Axis Labels */}
-                                <div className="flex justify-between pl-[48px] pt-2 text-[11px] text-[#64708C]">
-                                    <span>Jan</span>
-                                    <span>Mar</span>
-                                    <span>May</span>
-                                    <span>Jul</span>
-                                    <span>Sep</span>
-                                    <span>Nov</span>
-                                </div>
+                                        <span className="truncate text-[10px] text-[#64708C]">{item.month}</span>
+                                    </div>
+                                )) : <span className="mb-4 text-xs text-[#64708C]">No resource additions recorded in the last six months.</span>}
                             </div>
                         </div>
 
@@ -150,13 +125,18 @@ export default function AdminDashboardPage() {
                             <div className="relative w-40 h-40 mx-auto flex items-center justify-center">
                                 <svg className="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
                                     <circle cx="18" cy="18" r="15.915" fill="transparent" stroke="#E1E6F3" strokeWidth="3.8" />
-                                    <circle cx="18" cy="18" r="15.915" fill="transparent" stroke="#7148FF" strokeWidth="3.8" strokeDasharray="70 30" strokeDashoffset="0" />
-                                    <circle cx="18" cy="18" r="15.915" fill="transparent" stroke="#F6B93D" strokeWidth="3.8" strokeDasharray="20 80" strokeDashoffset="-70" />
-                                    <circle cx="18" cy="18" r="15.915" fill="transparent" stroke="#FF4869" strokeWidth="3.8" strokeDasharray="10 90" strokeDashoffset="-90" />
+                                    {userDistribution.map((item, index) => {
+                                        const percentage = distributionTotal ? Number.parseFloat(item.percentage) * 100 / distributionTotal : 0;
+                                        const offset = userDistribution.slice(0, index).reduce(
+                                            (total, previous) => total + (distributionTotal ? Number.parseFloat(previous.percentage) * 100 / distributionTotal : 0),
+                                            0,
+                                        );
+                                        return <circle key={item.label} cx="18" cy="18" r="15.915" fill="transparent" stroke={item.color} strokeWidth="3.8" strokeDasharray={`${percentage} ${100 - percentage}`} strokeDashoffset={-offset} />;
+                                    })}
                                 </svg>
                                 <div className="absolute flex flex-col items-center justify-center">
                                     <span className="text-[20px] font-bold text-[#0B123D]">
-                                        {adminMetrics.totalUsers.toLocaleString()}
+                                        {isLoading ? "..." : adminMetrics?.totalUsers.toLocaleString() ?? "Unavailable"}
                                     </span>
                                     <span className="text-[11px] text-[#64708C]">Total Users</span>
                                 </div>

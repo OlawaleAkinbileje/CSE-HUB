@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Literal, Optional
 from pydantic import BaseModel, EmailStr
 
 # Auth Credentials Input
@@ -7,7 +7,7 @@ class UserRegister(BaseModel):
     email: EmailStr
     username: str
     password: str
-    role: Optional[str] = "student"
+    role: Literal["student"] = "student"
     full_name: Optional[str] = None
     department: Optional[str] = None
 

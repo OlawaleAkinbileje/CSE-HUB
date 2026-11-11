@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import Footer from "@/components/layout/footer";
@@ -9,17 +10,29 @@ import {
     Folder,
     Search,
     Archive,
-    ChevronRight,
 } from "lucide-react";
 import { useAdminCategories, CategoryItem, CourseItem } from "@/lib/queries";
 import DataContainer from "@/components/ui/DataContainer";
 import EmptyState from "@/components/ui/EmptyState";
+import { apiClient } from "@/lib/api";
 
 export default function AdminCategoriesPage() {
     const [searchCategory, setSearchCategory] = useState("");
     const [selectedCatId, setSelectedCatId] = useState<string>("");
+    const [isCreatingCategory, setIsCreatingCategory] = useState(false);
+    const [isCourseFormOpen, setIsCourseFormOpen] = useState(false);
+    const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
+    const [courseForm, setCourseForm] = useState({ code: "", title: "", level: "100", session: "" });
+    const [actionError, setActionError] = useState("");
+    const [isSaving, setIsSaving] = useState(false);
+    const queryClient = useQueryClient();
+    const [formData, setFormData] = useState({
+        name: "",
+        parent: "None — Top-level category",
+        description: "",
+    });
 
-    const { data: catData, isLoading } = useAdminCategories();
+    const { data: catData, isLoading, error } = useAdminCategories();
     const categories = catData?.categories || [];
     const courses = catData?.courses || [];
 
@@ -37,15 +50,15 @@ export default function AdminCategoriesPage() {
         parent: "None — Top-level category",
         description: "Default academic resource category.",
     };
-
-    const [formData, setFormData] = useState({
-        name: selectedCat.name,
-        parent: selectedCat.parent,
-        description: selectedCat.description,
-    });
+    const selectedCourses = courses.filter((course) => course.categoryId === selectedCat.id);
+    const formValues = isCreatingCategory || selectedCatId
+        ? formData
+        : { name: selectedCat.name, parent: selectedCat.parent, description: selectedCat.description };
 
     const handleSelectCategory = (cat: CategoryItem) => {
         setSelectedCatId(cat.id);
+        setIsCreatingCategory(false);
+        setActionError("");
         setFormData({
             name: cat.name,
             parent: cat.parent,
@@ -53,8 +66,92 @@ export default function AdminCategoriesPage() {
         });
     };
 
-    const handleSave = () => {
-        alert(`Saved changes for category: ${formData.name}`);
+    const handleSave = async () => {
+        setIsSaving(true);
+        setActionError("");
+        try {
+            const parent = categories.find((category) => category.name === formValues.parent);
+            if (isCreatingCategory) {
+                const result = await apiClient.post("/admin/categories", {
+                    name: formValues.name,
+                    description: formValues.description,
+                    parent_id: parent?.id || null,
+                });
+                setSelectedCatId(String(result.data.id));
+                setIsCreatingCategory(false);
+            } else {
+                await apiClient.patch(`/admin/categories/${selectedCat.id}`, {
+                    name: formValues.name,
+                    description: formValues.description,
+                    parent_id: parent?.id || null,
+                });
+            }
+            await queryClient.invalidateQueries({ queryKey: ["admin", "categories"] });
+        } catch (error) {
+            setActionError(error instanceof Error ? error.message : "Could not save this category.");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleArchiveCategory = async () => {
+        setIsSaving(true);
+        setActionError("");
+        try {
+            await apiClient.patch(`/admin/categories/${selectedCat.id}`, {
+                name: selectedCat.name,
+                description: selectedCat.description,
+                parent_id: selectedCat.parentId || null,
+                is_active: selectedCat.status !== "Active",
+            });
+            await queryClient.invalidateQueries({ queryKey: ["admin", "categories"] });
+        } catch (error) {
+            setActionError(error instanceof Error ? error.message : "Could not update this category.");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const updateCategoryForm = (updates: Partial<typeof formData>) => {
+        if (!isCreatingCategory && !selectedCatId) setSelectedCatId(selectedCat.id);
+        setFormData({ ...formValues, ...updates });
+    };
+
+    const handleCreateCourse = async () => {
+        setIsSaving(true);
+        setActionError("");
+        try {
+            const coursePayload = {
+                course_code: courseForm.code,
+                title: courseForm.title,
+                level: Number(courseForm.level),
+                category_id: selectedCat.id,
+                academic_session: courseForm.session || null,
+            };
+            if (editingCourseId) {
+                await apiClient.patch(`/admin/courses/${editingCourseId}`, coursePayload);
+            } else {
+                await apiClient.post("/admin/courses", coursePayload);
+            }
+            setCourseForm({ code: "", title: "", level: "100", session: "" });
+            setEditingCourseId(null);
+            setIsCourseFormOpen(false);
+            await queryClient.invalidateQueries({ queryKey: ["admin", "categories"] });
+        } catch (error) {
+            setActionError(error instanceof Error ? error.message : "Could not create this course.");
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    const handleArchiveCourse = async (course: CourseItem) => {
+        setActionError("");
+        try {
+            await apiClient.patch(`/admin/courses/${course.id}/archive?archived=${course.status === "Active"}`);
+            await queryClient.invalidateQueries({ queryKey: ["admin", "categories"] });
+        } catch (error) {
+            setActionError(error instanceof Error ? error.message : "Could not update this course.");
+        }
     };
 
     return (
@@ -80,9 +177,15 @@ export default function AdminCategoriesPage() {
                                     Structure how learning materials, lecture notes, and past questions are organised.
                                 </p>
                             </div>
+                            {error && <p role="alert" className="text-sm text-[#DF365B]">{error.message}</p>}
 
                             <button
-                                onClick={() => alert("Creating new category...")}
+                                onClick={() => {
+                                    setIsCreatingCategory(true);
+                                    setSelectedCatId("");
+                                    setFormData({ name: "", parent: "None — Top-level category", description: "" });
+                                    setActionError("");
+                                }}
                                 className="h-11 px-5 bg-gradient-to-r from-[#7148FF] to-[#245CFF] text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:opacity-95 transition-opacity shadow-sm self-start sm:self-auto"
                             >
                                 <Plus className="w-4 h-4" />
@@ -158,24 +261,24 @@ export default function AdminCategoriesPage() {
 
                             {/* Detail Editor Panel */}
                             <div className="flex-1 w-full space-y-6">
-                                {categories.length > 0 ? (
+                                {isCreatingCategory || categories.length > 0 ? (
                                     <div className="bg-white p-6 rounded-xl border border-[#E1E6F3] space-y-5">
                                         <div className="flex items-center justify-between gap-3 flex-wrap">
-                                            <h2 className="text-xl font-bold text-[#0B123D]">{selectedCat.name}</h2>
+                                            <h2 className="text-xl font-bold text-[#0B123D]">{isCreatingCategory ? "New Category" : selectedCat.name}</h2>
 
-                                            <div className="flex items-center gap-2">
+                                            {!isCreatingCategory && <div className="flex items-center gap-2">
                                                 <span className="px-2.5 py-1 bg-[#E6FAF4] text-[#009F75] text-[11px] font-semibold rounded-full">
                                                     {selectedCat.status}
                                                 </span>
-                                                <button className="h-9 px-3.5 bg-white border border-[#E1E6F3] text-[#245CFF] text-xs font-semibold rounded-lg flex items-center gap-1.5 hover:bg-slate-50 transition-colors">
+                                                <button onClick={handleArchiveCategory} disabled={isSaving} className="h-9 px-3.5 bg-white border border-[#E1E6F3] text-[#245CFF] text-xs font-semibold rounded-lg flex items-center gap-1.5 hover:bg-slate-50 transition-colors disabled:opacity-50">
                                                     <Archive className="w-3.5 h-3.5" />
-                                                    <span>Archive</span>
+                                                    <span>{selectedCat.status === "Active" ? "Archive" : "Restore"}</span>
                                                 </button>
-                                            </div>
+                                            </div>}
                                         </div>
 
                                         {/* Summary Pills */}
-                                        <div className="flex items-center gap-2 flex-wrap text-xs font-semibold">
+                                        {!isCreatingCategory && <div className="flex items-center gap-2 flex-wrap text-xs font-semibold">
                                             <span className="px-3 py-1 bg-[#E9EDFF] text-[#245CFF] rounded-full">
                                                 {selectedCat.resourceCount} resources
                                             </span>
@@ -185,7 +288,7 @@ export default function AdminCategoriesPage() {
                                             <span className="px-3 py-1 bg-[#F2EDFF] text-[#7148FF] rounded-full">
                                                 {selectedCat.subcategoryCount} subcategories
                                             </span>
-                                        </div>
+                                        </div>}
 
                                         {/* Edit Form */}
                                         <div className="space-y-4 pt-1">
@@ -195,9 +298,9 @@ export default function AdminCategoriesPage() {
                                                 </label>
                                                 <input
                                                     type="text"
-                                                    value={formData.name}
+                                                    value={formValues.name}
                                                     onChange={(e) =>
-                                                        setFormData({ ...formData, name: e.target.value })
+                                                        updateCategoryForm({ name: e.target.value })
                                                     }
                                                     className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
                                                 />
@@ -208,14 +311,14 @@ export default function AdminCategoriesPage() {
                                                     Parent category
                                                 </label>
                                                 <select
-                                                    value={formData.parent}
+                                                    value={formValues.parent}
                                                     onChange={(e) =>
-                                                        setFormData({ ...formData, parent: e.target.value })
+                                                        updateCategoryForm({ parent: e.target.value })
                                                     }
                                                     className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
                                                 >
                                                     <option value="None — Top-level category">None — Top-level category</option>
-                                                    {categories.map((c) => (
+                                                    {categories.filter((c) => c.id !== selectedCat.id).map((c) => (
                                                         <option key={c.id} value={c.name}>{c.name}</option>
                                                     ))}
                                                 </select>
@@ -227,20 +330,22 @@ export default function AdminCategoriesPage() {
                                                 </label>
                                                 <textarea
                                                     rows={3}
-                                                    value={formData.description}
+                                                    value={formValues.description}
                                                     onChange={(e) =>
-                                                        setFormData({ ...formData, description: e.target.value })
+                                                        updateCategoryForm({ description: e.target.value })
                                                     }
                                                     className="w-full p-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
                                                 />
                                             </div>
 
                                             <div className="pt-2 flex items-center justify-end gap-3">
+                                                {actionError && <p role="alert" className="mr-auto text-xs text-[#DF365B]">{actionError}</p>}
                                                 <button
                                                     onClick={handleSave}
-                                                    className="h-10 px-5 bg-[#245CFF] text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+                                                    disabled={isSaving || !formValues.name.trim()}
+                                                    className="h-10 px-5 bg-[#245CFF] text-white text-xs font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
                                                 >
-                                                    Save Category
+                                                    {isSaving ? "Saving..." : isCreatingCategory ? "Create Category" : "Save Category"}
                                                 </button>
                                             </div>
                                         </div>
@@ -268,7 +373,12 @@ export default function AdminCategoriesPage() {
                                 </div>
 
                                 <button
-                                    onClick={() => alert("Add course...")}
+                                    disabled={!categories.length}
+                                    onClick={() => {
+                                        setEditingCourseId(null);
+                                        setCourseForm({ code: "", title: "", level: "100", session: "" });
+                                        setIsCourseFormOpen((open) => !open);
+                                    }}
                                     className="h-9 px-4 bg-white border border-[#E1E6F3] text-[#245CFF] text-xs font-semibold rounded-lg flex items-center gap-1.5 hover:bg-slate-50 transition-colors self-start sm:self-auto"
                                 >
                                     <Plus className="w-3.5 h-3.5" />
@@ -276,10 +386,23 @@ export default function AdminCategoriesPage() {
                                 </button>
                             </div>
 
+                            {isCourseFormOpen && (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 p-4 bg-[#F6F8FF] rounded-lg border border-[#E1E6F3]">
+                                    <input aria-label="Course code" placeholder="Course code" value={courseForm.code} onChange={(event) => setCourseForm({ ...courseForm, code: event.target.value })} className="h-10 px-3 border border-[#E1E6F3] rounded-lg text-xs" />
+                                    <input aria-label="Course title" placeholder="Course title" value={courseForm.title} onChange={(event) => setCourseForm({ ...courseForm, title: event.target.value })} className="h-10 px-3 border border-[#E1E6F3] rounded-lg text-xs" />
+                                    <select aria-label="Course level" value={courseForm.level} onChange={(event) => setCourseForm({ ...courseForm, level: event.target.value })} className="h-10 px-3 border border-[#E1E6F3] rounded-lg text-xs">
+                                        {[100, 200, 300, 400, 500, 600, 700].map((level) => <option key={level} value={level}>{level} level</option>)}
+                                    </select>
+                                    <input aria-label="Academic session" placeholder="Session (optional)" value={courseForm.session} onChange={(event) => setCourseForm({ ...courseForm, session: event.target.value })} className="h-10 px-3 border border-[#E1E6F3] rounded-lg text-xs" />
+                                    <button onClick={handleCreateCourse} disabled={isSaving || !courseForm.code.trim() || !courseForm.title.trim()} className="h-10 bg-[#245CFF] text-white text-xs font-semibold rounded-lg disabled:opacity-50">{isSaving ? "Saving..." : editingCourseId ? "Save Course" : "Create Course"}</button>
+                                    {actionError && <p role="alert" className="sm:col-span-2 lg:col-span-5 text-xs text-[#DF365B]">{actionError}</p>}
+                                </div>
+                            )}
+
                             {/* Table or Empty State */}
                             <DataContainer
                                 isLoading={isLoading}
-                                data={courses}
+                                data={selectedCourses}
                                 emptyIcon={Folder}
                                 emptyTitle="No Courses Linked Yet"
                                 emptyDescription={`There are no courses assigned to "${selectedCat.name}". Use the "Add Course" button to register one.`}
@@ -315,10 +438,14 @@ export default function AdminCategoriesPage() {
                                                             </span>
                                                         </td>
                                                         <td className="p-3.5 text-right space-x-3">
-                                                            <button className="text-[#245CFF] font-semibold hover:underline">
+                                                            <button onClick={() => {
+                                                                setEditingCourseId(crs.id);
+                                                                setCourseForm({ code: crs.code, title: crs.title, level: crs.level, session: crs.session === "—" ? "" : crs.session });
+                                                                setIsCourseFormOpen(true);
+                                                            }} className="text-[#245CFF] font-semibold hover:underline">
                                                                 Edit
                                                             </button>
-                                                            <button className="text-[#64708C] hover:underline">Archive</button>
+                                                            <button onClick={() => handleArchiveCourse(crs)} className="text-[#64708C] hover:underline">{crs.status === "Active" ? "Archive" : "Restore"}</button>
                                                         </td>
                                                     </tr>
                                                 ))}

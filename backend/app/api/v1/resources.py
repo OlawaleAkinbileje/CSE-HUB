@@ -292,6 +292,14 @@ def get_resources(
         limit=limit,
         offset=offset,
     )
+    if search:
+        db.execute(
+            text(
+                "INSERT INTO public.backend_search_events (user_id) VALUES (:user_id)"
+            ),
+            {"user_id": current_user.id if current_user else None},
+        )
+        db.commit()
     return {"data": data, "count": count}
 
 

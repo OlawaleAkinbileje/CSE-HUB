@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import Footer from "@/components/layout/footer";
@@ -11,12 +11,11 @@ import {
     Users,
     Bell,
     Database,
-    CheckCircle2,
     AlertTriangle,
     Info,
-    RotateCw,
     Save,
 } from "lucide-react";
+import { apiClient } from "@/lib/api";
 
 export default function SystemSettingsPage() {
     const [activeSection, setActiveSection] = useState("general");
@@ -68,28 +67,60 @@ export default function SystemSettingsPage() {
         schedule: "Daily at 02:00 WAT",
         retention: "30 days",
     });
+    const [settingsLoadedAt, setSettingsLoadedAt] = useState<string | null>(null);
+    const [isLoadingSettings, setIsLoadingSettings] = useState(true);
+    const [settingsError, setSettingsError] = useState("");
+    const [settingsNotice, setSettingsNotice] = useState("");
+    const [isSaving, setIsSaving] = useState(false);
 
-    const [isReindexing, setIsReindexing] = useState(false);
-    const [isBackingUp, setIsBackingUp] = useState(false);
+    useEffect(() => {
+        let isMounted = true;
+        apiClient.get("/admin/settings").then(({ data }) => {
+            if (!isMounted) return;
+            if (!data.settings) {
+                setIsLoadingSettings(false);
+                return;
+            }
+            const settings = data.settings;
+            if (settings.generalSettings) setGeneralSettings(settings.generalSettings);
+            if (settings.searchSettings) setSearchSettings(settings.searchSettings);
+            if (settings.resourcePolicy) setResourcePolicy(settings.resourcePolicy);
+            if (settings.userAccess) setUserAccess(settings.userAccess);
+            if (settings.notifications) setNotifications(settings.notifications);
+            if (settings.backupSettings) setBackupSettings(settings.backupSettings);
+            setSettingsLoadedAt(data.updatedAt);
+            setIsLoadingSettings(false);
+        }).catch((error: unknown) => {
+            if (isMounted) {
+                setSettingsError(error instanceof Error ? error.message : "Could not load system settings.");
+                setIsLoadingSettings(false);
+            }
+        });
+        return () => { isMounted = false; };
+    }, []);
 
-    const handleSaveAll = () => {
-        alert("System settings successfully updated!");
-    };
-
-    const handleRebuildIndex = () => {
-        setIsReindexing(true);
-        setTimeout(() => {
-            setIsReindexing(false);
-            alert("Search index successfully rebuilt.");
-        }, 1500);
-    };
-
-    const handleRunBackup = () => {
-        setIsBackingUp(true);
-        setTimeout(() => {
-            setIsBackingUp(false);
-            alert("System backup initiated successfully.");
-        }, 1500);
+    const handleSaveAll = async () => {
+        setIsSaving(true);
+        setSettingsError("");
+        setSettingsNotice("");
+        try {
+            const response = await apiClient.put("/admin/settings", {
+                settings: {
+                    generalSettings,
+                    searchSettings,
+                    resourcePolicy,
+                    userAccess,
+                    notifications,
+                    backupSettings,
+                },
+            });
+            setSettingsLoadedAt(response.data.updatedAt);
+            setSettingsNotice("Settings saved.");
+        } catch (error) {
+            setSettingsError(error instanceof Error ? error.message : "Could not save system settings.");
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const sectionTabs = [
@@ -124,17 +155,18 @@ export default function SystemSettingsPage() {
                                 </p>
                             </div>
 
-                            <div className="flex items-center gap-3">
-                                <span className="px-3 py-1 bg-[#E6FAF4] text-[#009F75] text-xs font-semibold rounded-full flex items-center gap-1.5 shrink-0">
-                                    <span className="w-2 h-2 rounded-full bg-[#009F75]" />
-                                    All services operational
-                                </span>
-                            </div>
+                            <span className="px-3 py-1 bg-[#E9EDFF] text-[#245CFF] text-xs font-semibold rounded-full shrink-0">
+                                {isLoadingSettings ? "Loading settings" : "Persistent settings"}
+                            </span>
                         </div>
 
                         <div className="text-xs text-[#64708C]">
-                            Last saved · 4 Nov 2026, 9:30 AM WAT
+                            {settingsLoadedAt
+                                ? `Last saved · ${new Date(settingsLoadedAt).toLocaleString()}`
+                                : isLoadingSettings ? "Loading saved configuration..." : "No saved configuration yet."}
                         </div>
+                        {settingsError && <p role="alert" className="text-sm text-[#DF365B]">{settingsError}</p>}
+                        {settingsNotice && <p role="status" className="text-sm text-[#009F75]">{settingsNotice}</p>}
 
                         {/* Layout Grid: Sidebar Navigation & Form Content */}
                         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
@@ -401,17 +433,8 @@ export default function SystemSettingsPage() {
 
                                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
                                         <p className="text-xs text-[#64708C]">
-                                            Rebuilding runs in the background without blocking search.
+                                            Search uses database-managed full-text indexes. A manual rebuild operation is not configured.
                                         </p>
-                                        <button
-                                            type="button"
-                                            onClick={handleRebuildIndex}
-                                            disabled={isReindexing}
-                                            className="h-10 px-4 border border-[#E1E6F3] bg-white text-[#245CFF] text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#F6F8FF] transition-colors shrink-0"
-                                        >
-                                            <RotateCw className={`w-3.5 h-3.5 ${isReindexing ? "animate-spin" : ""}`} />
-                                            <span>{isReindexing ? "Rebuilding..." : "Rebuild Index"}</span>
-                                        </button>
                                     </div>
                                 </div>
 
@@ -853,11 +876,11 @@ export default function SystemSettingsPage() {
                                         <div>
                                             <h3 className="text-lg font-bold text-[#0B123D]">Backup</h3>
                                             <p className="text-xs text-[#64708C] mt-1">
-                                                4 Nov 2026, 2:00 AM WAT · 4.8 GB · Encrypted
+                                                Backup provider integration is not configured.
                                             </p>
                                         </div>
-                                        <span className="px-2.5 py-1 bg-[#E6FAF4] text-[#009F75] text-xs font-semibold rounded-full">
-                                            Successful
+                                        <span className="px-2.5 py-1 bg-[#FFF5EB] text-[#B86A17] text-xs font-semibold rounded-full">
+                                            Not configured
                                         </span>
                                     </div>
 
@@ -896,40 +919,20 @@ export default function SystemSettingsPage() {
                                     <div className="space-y-2 text-xs border-y border-[#E1E6F3] py-3">
                                         <div className="flex justify-between">
                                             <span className="text-[#64708C]">Next backup:</span>
-                                            <span className="font-medium text-[#0B123D]">5 Nov 2026, 2:00 AM WAT</span>
+                                            <span className="font-medium text-[#0B123D]">Unavailable</span>
                                         </div>
                                         <div className="flex justify-between">
                                             <span className="text-[#64708C]">Storage:</span>
                                             <span className="font-medium text-[#0B123D]">
-                                                University secure storage · 144 GB / 500 GB used
+                                                No backup storage connected
                                             </span>
                                         </div>
-                                    </div>
-
-                                    <div className="flex flex-wrap items-center gap-3">
-                                        <button
-                                            type="button"
-                                            onClick={handleRunBackup}
-                                            disabled={isBackingUp}
-                                            className="h-10 px-4 border border-[#E1E6F3] bg-white text-[#245CFF] text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#F6F8FF] transition-colors"
-                                        >
-                                            <Database className="w-3.5 h-3.5" />
-                                            <span>{isBackingUp ? "Running..." : "Run Backup Now"}</span>
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => alert("Opening Backup History Log...")}
-                                            className="h-10 px-4 border border-[#E1E6F3] bg-white text-[#245CFF] text-xs font-semibold rounded-lg flex items-center justify-center hover:bg-[#F6F8FF] transition-colors"
-                                        >
-                                            View Backup History
-                                        </button>
                                     </div>
 
                                     <div className="p-3.5 bg-[#FFF5EB] rounded-lg flex items-start gap-2.5 text-xs text-[#B86A17]">
                                         <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
                                         <span>
-                                            Restore operations replace current data and require administrator confirmation.
-                                            Contact the platform team before restoring.
+                                            Schedule and retention are stored as preferences only. No backups will run until a backup provider is configured.
                                         </span>
                                     </div>
                                 </div>
@@ -950,10 +953,11 @@ export default function SystemSettingsPage() {
                                         <button
                                             type="button"
                                             onClick={handleSaveAll}
-                                            className="flex-1 sm:flex-none h-11 px-6 bg-gradient-to-r from-[#7148FF] to-[#245CFF] text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:opacity-95 shadow-sm"
+                                            disabled={isSaving}
+                                            className="flex-1 sm:flex-none h-11 px-6 bg-gradient-to-r from-[#7148FF] to-[#245CFF] text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:opacity-95 shadow-sm disabled:opacity-50"
                                         >
                                             <Save className="w-4 h-4" />
-                                            <span>Save Settings</span>
+                                            <span>{isSaving ? "Saving..." : "Save Settings"}</span>
                                         </button>
                                     </div>
                                 </div>

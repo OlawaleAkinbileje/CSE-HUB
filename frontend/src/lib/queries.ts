@@ -19,26 +19,8 @@ export function useStudentDashboard() {
   return useQuery<StudentDashboardData>({
     queryKey: ["dashboard", "student"],
     queryFn: async () => {
-      try {
-        const res = await apiClient.get("/dashboard/student");
-        return res.data;
-      } catch (err) {
-        return {
-          metrics: {
-            totalResources: 0,
-            downloads: 0,
-            bookmarks: 0,
-            recentSearches: 0,
-          },
-          recentResources: [],
-          categories: [
-            { title: "Past Questions", cat: "past-questions" },
-            { title: "Projects", cat: "projects" },
-            { title: "Lecture Notes", cat: "lecture-notes" },
-            { title: "Code Samples", cat: "code-samples" },
-          ],
-        };
-      }
+      const res = await apiClient.get("/dashboard/student");
+      return res.data;
     },
   });
 }
@@ -58,20 +40,8 @@ export function useStaffDashboard() {
   return useQuery<StaffDashboardData>({
     queryKey: ["dashboard", "staff"],
     queryFn: async () => {
-      try {
-        const res = await apiClient.get("/dashboard/staff");
-        return res.data;
-      } catch (err) {
-        return {
-          metrics: {
-            totalResources: 0,
-            pendingReview: 0,
-            totalDownloads: 0,
-            activeUsers: 0,
-          },
-          recentSubmissions: [],
-        };
-      }
+      const res = await apiClient.get("/dashboard/staff");
+      return res.data;
     },
   });
 }
@@ -84,33 +54,16 @@ export interface AdminDashboardData {
     pendingReview: number;
     totalDownloads: number;
   };
-  userDistribution: { label: string; percentage: string; color: string }[];
-  resourceGrowth: Record<string, unknown>[];
+  userDistribution: { label: string; count: number; percentage: string; color: string }[];
+  resourceGrowth: { month: string; count: number }[];
 }
 
 export function useAdminDashboard() {
   return useQuery<AdminDashboardData>({
     queryKey: ["dashboard", "admin"],
     queryFn: async () => {
-      try {
-        const res = await apiClient.get("/dashboard/admin");
-        return res.data;
-      } catch (err) {
-        return {
-          metrics: {
-            totalResources: 0,
-            totalUsers: 0,
-            pendingReview: 0,
-            totalDownloads: 0,
-          },
-          userDistribution: [
-            { label: "Students", percentage: "70%", color: "#7148FF" },
-            { label: "Staff", percentage: "20%", color: "#F6B93D" },
-            { label: "Admins", percentage: "10%", color: "#FF4869" },
-          ],
-          resourceGrowth: [],
-        };
-      }
+      const res = await apiClient.get("/dashboard/admin");
+      return res.data;
     },
   });
 }
@@ -349,12 +302,11 @@ export function useAdminUsers() {
   return useQuery<AdminUserItem[]>({
     queryKey: ["admin", "users"],
     queryFn: async () => {
-      try {
-        const res = await apiClient.get("/admin/users");
-        return Array.isArray(res.data) ? res.data : [];
-      } catch (err) {
-        return [];
+      const res = await apiClient.get("/admin/users");
+      if (!Array.isArray(res.data)) {
+        throw new Error("The user list response was invalid.");
       }
+      return res.data;
     },
   });
 }
@@ -367,7 +319,9 @@ export interface CategoryItem {
   courseCount: number;
   subcategoryCount: number;
   status: "Active" | "Archived";
+  categoryId?: string | null;
   parent: string;
+  parentId?: string | null;
   description: string;
 }
 
@@ -379,18 +333,18 @@ export interface CourseItem {
   level: string;
   resources: number;
   status: "Active" | "Archived";
+  categoryId?: string | null;
 }
 
 export function useAdminCategories() {
   return useQuery<{ categories: CategoryItem[]; courses: CourseItem[] }>({
     queryKey: ["admin", "categories"],
     queryFn: async () => {
-      try {
-        const res = await apiClient.get("/admin/categories");
-        return res.data;
-      } catch (err) {
-        return { categories: [], courses: [] };
+      const res = await apiClient.get("/admin/categories");
+      if (!Array.isArray(res.data?.categories) || !Array.isArray(res.data?.courses)) {
+        throw new Error("The categories response was invalid.");
       }
+      return res.data;
     },
   });
 }
@@ -410,26 +364,14 @@ export function useAdminAnalytics() {
       totalDownloads: number;
       activeUsers: number;
       uploadedResources: number;
-      avgDailyVisits: number;
+      avgDailyDownloads: number;
     };
     popularResources: PopularResourceItem[];
   }>({
     queryKey: ["admin", "analytics"],
     queryFn: async () => {
-      try {
-        const res = await apiClient.get("/admin/analytics");
-        return res.data;
-      } catch (err) {
-        return {
-          metrics: {
-            totalDownloads: 0,
-            activeUsers: 0,
-            uploadedResources: 0,
-            avgDailyVisits: 0,
-          },
-          popularResources: [],
-        };
-      }
+      const res = await apiClient.get("/admin/analytics");
+      return res.data;
     },
   });
 }
