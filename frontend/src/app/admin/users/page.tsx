@@ -23,7 +23,7 @@ export default function AdminUserManagementPage() {
     const [roleFilter, setRoleFilter] = useState("All roles");
     const [statusFilter, setStatusFilter] = useState("All statuses");
     const [selectedUserId, setSelectedUserId] = useState<string>("");
-    const [assignedRole, setAssignedRole] = useState<"Admin" | "Staff" | "Student">("Student");
+    const [assignedRole, setAssignedRole] = useState<AdminUserItem["role"]>("Student");
     const [suspensionReason, setSuspensionReason] = useState("");
 
     const { data: rawUsers, isLoading } = useAdminUsers();
@@ -50,7 +50,7 @@ export default function AdminUserManagementPage() {
 
     const handleSelectUser = (user: AdminUserItem) => {
         setSelectedUserId(user.id);
-        setAssignedRole(user.role as any);
+        setAssignedRole(user.role);
         setSuspensionReason("");
     };
 
@@ -343,7 +343,12 @@ export default function AdminUserManagementPage() {
                                             <label className="block text-xs font-semibold text-[#0B123D]">Change Role</label>
                                             <select
                                                 value={assignedRole}
-                                                onChange={(e) => setAssignedRole(e.target.value as any)}
+                                                onChange={(e) => {
+                                                    const role = e.target.value;
+                                                    if (role === "Student" || role === "Staff" || role === "Admin") {
+                                                        setAssignedRole(role);
+                                                    }
+                                                }}
                                                 className="w-full h-10 px-3 border border-[#E1E6F3] rounded-lg text-xs"
                                             >
                                                 <option value="Student">Student</option>

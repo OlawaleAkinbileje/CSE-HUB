@@ -11,10 +11,13 @@ from app.models.user import User
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/auth/login"
 )
+optional_oauth2 = OAuth2PasswordBearer(
+    tokenUrl=f"{settings.API_V1_STR}/auth/login",
+    auto_error=False,
+)
 
-def get_current_user(
-    db: Session = Depends(get_db), token: str = Depends(reusable_oauth2)
-) -> User:
+
+def _get_user_from_token(token: str, db: Session) -> User:
     try:
         payload = jwt.decode(
             token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
@@ -25,20 +28,32 @@ def get_current_user(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Could not validate credentials",
             )
-        # 🔑 FIX: Cast string subject (e.g., "1") to Integer
         user_id = int(user_id_raw)
     except (jwt.PyJWTError, ValidationError, ValueError):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials",
         )
-    
+
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     if not user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     return user
+
+def get_current_user(
+    db: Session = Depends(get_db), token: str = Depends(reusable_oauth2)
+) -> User:
+    return _get_user_from_token(token, db)
+
+
+def get_optional_current_user(
+    db: Session = Depends(get_db), token: str | None = Depends(optional_oauth2)
+) -> User | None:
+    if token is None:
+        return None
+    return _get_user_from_token(token, db)
 
 class RoleChecker:
     def __init__(self, allowed_roles: List[str]):

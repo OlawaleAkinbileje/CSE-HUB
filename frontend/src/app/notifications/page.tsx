@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import Footer from "@/components/layout/footer";
@@ -8,51 +9,30 @@ import {
     Bell,
     CheckCheck,
     ChevronDown,
-    FileText,
     Clock,
     ArrowRight,
-    ShieldAlert,
-    SlidersHorizontal,
-    Mail,
-    HelpCircle,
 } from "lucide-react";
-import { useNotifications, NotificationItem } from "@/lib/queries";
+import { useNotifications } from "@/lib/queries";
 import DataContainer from "@/components/ui/DataContainer";
 import { useCurrentUser } from '@/lib/useCurrentUser';
+import { apiClient } from '@/lib/api';
 
 export default function StudentNotificationsPage() {
     const currentUser = useCurrentUser();
     const [activeTab, setActiveTab] = useState<"All" | "Resources" | "Reviews" | "System">("All");
     const [statusFilter, setStatusFilter] = useState<"all" | "unread" | "read">("all");
 
-    // Notification Preferences State
-    const [preferences, setPreferences] = useState({
-        resourceUpdates: true,
-        reviewActivity: true,
-        weeklyDigest: false,
-        emailFrequency: "As events happen",
-        channelInApp: true,
-        channelEmail: true,
+    const queryClient = useQueryClient();
+    const { data: rawNotifications, isLoading, error } = useNotifications();
+    const notifications = rawNotifications || [];
+    const markReadMutation = useMutation({
+        mutationFn: (id: string) => apiClient.patch(`/notifications/${id}/read`),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
     });
-
-    const { data: rawNotifications, isLoading } = useNotifications();
-    const [localNotifications, setLocalNotifications] = useState<NotificationItem[] | null>(null);
-
-    const notifications = localNotifications !== null ? localNotifications : (rawNotifications || []);
-
-    const markAllAsRead = () => {
-        setLocalNotifications((prev) =>
-            (prev || notifications).map((n) => ({ ...n, isRead: true }))
-        );
-    };
-
-    const markAsRead = (id: string) => {
-        setLocalNotifications((prev) =>
-            (prev || notifications).map((n) =>
-                n.id === id ? { ...n, isRead: true } : n
-            )
-        );
-    };
+    const markAllReadMutation = useMutation({
+        mutationFn: () => apiClient.post("/notifications/read-all"),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["notifications"] }),
+    });
 
     const filteredNotifications = notifications.filter((item) => {
         const matchesCategory =
@@ -65,10 +45,6 @@ export default function StudentNotificationsPage() {
     });
 
     const unreadCount = notifications.filter((n) => !n.isRead).length;
-
-    const handleSavePreferences = () => {
-        alert("Notification delivery preferences saved successfully.");
-    };
 
     return (
         <div className="min-h-screen w-full bg-[#F6F8FF] flex flex-col font-sans text-[#0B123D]">
@@ -95,7 +71,8 @@ export default function StudentNotificationsPage() {
                             </div>
 
                             <button
-                                onClick={markAllAsRead}
+                                onClick={() => markAllReadMutation.mutate()}
+                                disabled={markAllReadMutation.isPending || unreadCount === 0}
                                 className="h-11 px-4 bg-white border border-[#E1E6F3] text-[#245CFF] text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#F6F8FF] transition-colors shadow-sm self-start sm:self-auto"
                             >
                                 <CheckCheck className="w-4 h-4 text-[#245CFF]" />
@@ -164,10 +141,16 @@ export default function StudentNotificationsPage() {
                         </div>
 
                         {/* Notification Cards List wrapped with DataContainer */}
+                        {(markReadMutation.error || markAllReadMutation.error) && (
+                            <p role="alert" className="text-sm text-red-600">
+                                {(markReadMutation.error || markAllReadMutation.error)?.message}
+                            </p>
+                        )}
                         <div className="bg-white rounded-xl border border-[#E1E6F3] overflow-hidden shadow-sm divide-y divide-[#E1E6F3]">
                             <DataContainer
                                 isLoading={isLoading}
                                 data={filteredNotifications}
+                                errorMessage={error?.message}
                                 emptyIcon={Bell}
                                 emptyTitle="No Notifications Yet"
                                 emptyDescription="You're all caught up! You'll receive updates here about resources, reviews, and department notices."
@@ -218,7 +201,8 @@ export default function StudentNotificationsPage() {
                                                     <div className="flex items-center gap-3">
                                                         {!item.isRead && (
                                                             <button
-                                                                onClick={() => markAsRead(item.id)}
+                                                                onClick={() => markReadMutation.mutate(item.id)}
+                                                                disabled={markReadMutation.isPending}
                                                                 className="text-xs text-[#64708C] hover:text-[#0B123D] transition-colors"
                                                             >
                                                                 Mark as read

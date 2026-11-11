@@ -27,5 +27,8 @@ class User(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
-    # Relationship to uploaded resources
-    resources = relationship("Resource", back_populates="uploader", cascade="all, delete-orphan")
+    resources = relationship(
+        "Resource",
+        back_populates="uploader",
+        foreign_keys="Resource.backend_uploader_id",
+    )

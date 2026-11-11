@@ -313,7 +313,7 @@ export default function ManageResourcesPage() {
                                                             </td>
                                                             <td className="p-4 text-right">
                                                                 <div className="flex items-center justify-end gap-3 text-[#64708C]">
-                                                                    <Link href="/staff/edit-resource-metadata" title="Edit" className="text-[#245CFF] hover:opacity-80">
+                                                                    <Link href={`/staff/edit-resource-metadata?id=${encodeURIComponent(item.id)}`} title="Edit" className="text-[#245CFF] hover:opacity-80">
                                                                         <Edit2 className="w-4 h-4" />
                                                                     </Link>
                                                                     <button title="Archive/Restore" className="hover:text-[#0B123D]">

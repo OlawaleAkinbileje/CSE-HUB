@@ -12,6 +12,7 @@ export interface DataContainerProps<T> {
   emptyDescription?: string;
   emptyAction?: EmptyStateAction;
   emptyClassName?: string;
+  errorMessage?: string;
   loadingSkeleton?: React.ReactNode;
   skeletonCount?: number;
   skeletonType?: "cards" | "rows" | "stats";
@@ -26,6 +27,7 @@ export default function DataContainer<T>({
   emptyDescription = "There are no items recorded in this section at the moment.",
   emptyAction,
   emptyClassName,
+  errorMessage,
   loadingSkeleton,
   skeletonCount = 3,
   skeletonType = "cards",
@@ -101,6 +103,17 @@ export default function DataContainer<T>({
     );
   }
 
+  if (errorMessage) {
+    return (
+      <div
+        role="alert"
+        className={`w-full rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-700 ${emptyClassName || ""}`}
+      >
+        {errorMessage}
+      </div>
+    );
+  }
+
   const items = Array.isArray(data) ? data : [];
 
   if (items.length === 0) {
@@ -121,4 +134,3 @@ export default function DataContainer<T>({
 
   return <>{children}</>;
 }
-

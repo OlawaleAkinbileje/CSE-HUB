@@ -1,570 +1,324 @@
 "use client";
 
-import React, { useState } from "react";
+import { FormEvent, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { AlertCircle, ChevronLeft, FileText, Save } from "lucide-react";
+import Footer from "@/components/layout/footer";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
-import Footer from "@/components/layout/footer";
-import {
-    ChevronLeft,
-    AlertTriangle,
-    FileText,
-    UploadCloud,
-    ChevronDown,
-    X,
-    Check,
-    Info,
-    Download,
-    ExternalLink,
-    Save,
-} from "lucide-react";
+import { apiClient } from "@/lib/api";
 
-export default function EditResourceMetadataPage() {
-    // Form State
-    const [title, setTitle] = useState(
-        "Introduction to Algorithms — Lecture Notes 2024 (Revised)"
-    );
-    const [description, setDescription] = useState(
-        "Comprehensive lecture notes covering sorting, graph algorithms, dynamic programming and complexity analysis. Revised with worked examples and source citations for Year 2 students."
-    );
-    const [course, setCourse] = useState("CS201 — Data Structures & Algorithms");
-    const [category, setCategory] = useState("Lecture Notes");
-    const [academicYear, setAcademicYear] = useState("2024 / 2025");
-    const [resourceType, setResourceType] = useState("Document");
-    const [tags, setTags] = useState([
-        "algorithms",
-        "data-structures",
-        "CS201",
-        "Year 2",
-    ]);
-    const [tagInput, setTagInput] = useState("");
-    const [visibility, setVisibility] = useState<
-        "public" | "course" | "staff"
-    >("public");
-    const [notifyStudents, setNotifyStudents] = useState(true);
-    const [isDirty, setIsDirty] = useState(true);
+interface ResourceMetadata {
+    id: string;
+    title: string;
+    description: string | null;
+    resource_type: string;
+    course_id: string | null;
+    course_code: string;
+    course_title: string | null;
+    category_id: string | null;
+    category: string;
+    file_type: string;
+    file_size: number;
+    original_filename: string | null;
+    keywords: string[];
+    status: string;
+    updated_at: string | null;
+    downloads: number;
+    uploader_name: string;
+}
 
-    // Tag Handlers
-    const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if ((e.key === "Enter" || e.key === ",") && tagInput.trim()) {
-            e.preventDefault();
-            const newTag = tagInput.trim().replace(/^#/, "");
-            if (tags.length < 10 && !tags.includes(newTag)) {
-                setTags([...tags, newTag]);
-                setTagInput("");
-                setIsDirty(true);
+interface ResourceOptions {
+    categories: { id: string; name: string; slug: string }[];
+    courses: { id: string; course_code: string; title: string }[];
+}
+
+function getErrorMessage(error: unknown): string {
+    if (typeof error === "object" && error !== null && "response" in error) {
+        const response = error.response;
+        if (typeof response === "object" && response !== null && "data" in response) {
+            const data = response.data;
+            if (typeof data === "object" && data !== null && "detail" in data && typeof data.detail === "string") {
+                return data.detail;
             }
         }
+    }
+    return error instanceof Error ? error.message : "Unable to update resource metadata.";
+}
+
+const resourceTypes = [
+    { value: "lecture_note", label: "Lecture notes" },
+    { value: "past_question", label: "Past questions" },
+    { value: "project", label: "Project" },
+    { value: "code_preview", label: "Code sample" },
+    { value: "other", label: "Other" },
+];
+
+export default function EditResourceMetadataPage() {
+    const searchParams = useSearchParams();
+    const resourceId = searchParams.get("id");
+    const queryClient = useQueryClient();
+    const [isDirty, setIsDirty] = useState(false);
+
+    const resourceQuery = useQuery({
+        queryKey: ["resources", "metadata", resourceId],
+        enabled: Boolean(resourceId),
+        queryFn: async () => {
+            const response = await apiClient.get<ResourceMetadata>(`/resources/${resourceId}`);
+            return response.data;
+        },
+    });
+    const optionsQuery = useQuery({
+        queryKey: ["resources", "options"],
+        queryFn: async () => {
+            const response = await apiClient.get<ResourceOptions>("/resources/options");
+            return response.data;
+        },
+    });
+
+    const saveMutation = useMutation({
+        mutationFn: async (metadata: {
+            title: string;
+            description: string;
+            course_code: string | null;
+            category_id: string | null;
+            resource_type: string;
+            keywords: string[];
+        }) => {
+            if (!resourceId) throw new Error("No resource was selected.");
+            const response = await apiClient.patch<ResourceMetadata>(`/resources/${resourceId}`, {
+                ...metadata,
+            });
+            return response.data;
+        },
+        onSuccess: async (updatedResource) => {
+            queryClient.setQueryData(["resources", "metadata", resourceId], updatedResource);
+            await Promise.all([
+                queryClient.invalidateQueries({ queryKey: ["staff", "managed-resources"] }),
+                queryClient.invalidateQueries({ queryKey: ["staff", "submissions"] }),
+                queryClient.invalidateQueries({ queryKey: ["resources"] }),
+            ]);
+            setIsDirty(false);
+        },
+    });
+
+    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        const formData = new FormData(event.currentTarget);
+        saveMutation.mutate({
+            title: String(formData.get("title") || ""),
+            description: String(formData.get("description") || ""),
+            course_code: String(formData.get("course_code") || "") || null,
+            category_id: String(formData.get("category_id") || "") || null,
+            resource_type: String(formData.get("resource_type") || "other"),
+            keywords: String(formData.get("keywords") || "")
+                .split(",")
+                .map((tag) => tag.trim())
+                .filter(Boolean)
+                .slice(0, 20),
+        });
     };
 
-    const handleRemoveTag = (tagToRemove: string) => {
-        setTags(tags.filter((t) => t !== tagToRemove));
-        setIsDirty(true);
-    };
-
-    const handleSave = (e: React.FormEvent) => {
-        e.preventDefault();
-        setIsDirty(false);
-        alert("Resource metadata successfully saved!");
-    };
+    const resource = resourceQuery.data;
+    const error = resourceQuery.error || optionsQuery.error || saveMutation.error;
 
     return (
         <div className="min-h-screen w-full bg-[#F6F8FF] flex flex-col font-sans text-[#0B123D]">
-            {/* Shared Navbar */}
             <Navbar userRole="staff" />
-
-            {/* Main Container */}
             <div className="flex-1 flex flex-col md:flex-row">
-                {/* Shared Sidebar */}
                 <Sidebar userRole="staff" />
-
-                {/* Main Content Workspace */}
-                <main className="flex-1 p-4 md:p-8 space-y-6 overflow-x-hidden flex flex-col justify-between">
-                    <div className="space-y-6">
-                        {/* Back Navigation */}
+                <main className="flex-1 p-4 md:p-8">
+                    <div className="mx-auto max-w-5xl space-y-6">
                         <Link
                             href="/staff/manage-resources"
-                            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#245CFF] hover:underline"
+                            className="inline-flex items-center gap-1.5 text-sm font-semibold text-[#245CFF] hover:underline"
                         >
-                            <ChevronLeft className="w-4 h-4" />
-                            <span>Back to Manage Resources</span>
+                            <ChevronLeft className="h-4 w-4" />
+                            Back to Manage Resources
                         </Link>
 
-                        {/* Page Header */}
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                            <div>
-                                <h1 className="text-2xl md:text-3xl font-bold text-[#0B123D]">
-                                    Edit Resource Metadata
-                                </h1>
-                                <p className="text-sm text-[#64708C] mt-1">
-                                    Update resource details without losing its download history or saved links.
-                                </p>
-                            </div>
-
-                            {isDirty && (
-                                <span className="px-3 py-1 bg-[#FFF5EB] text-[#B86A17] text-xs font-semibold rounded-full self-start sm:self-auto">
-                                    Unsaved changes
-                                </span>
-                            )}
+                        <div>
+                            <h1 className="text-2xl md:text-3xl font-bold">Edit Resource Metadata</h1>
+                            <p className="mt-1 text-sm text-[#64708C]">
+                                Update the details attached to this uploaded resource.
+                            </p>
                         </div>
 
-                        {/* Unsaved Changes Banner */}
-                        {isDirty && (
-                            <div className="p-3.5 bg-[#FFF5EB] rounded-lg border border-[#FFE3C6] flex items-start gap-2.5">
-                                <AlertTriangle className="w-4 h-4 text-[#B86A17] shrink-0 mt-0.5" />
-                                <p className="text-xs text-[#B86A17] leading-relaxed">
-                                    You have unsaved changes to the title and description. Save your changes before leaving this page.
-                                </p>
+                        {!resourceId && (
+                            <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                                Choose a resource from Manage Resources to edit its metadata.
+                            </div>
+                        )}
+                        {error && (
+                            <div role="alert" className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+                                <span>{getErrorMessage(error)}</span>
+                            </div>
+                        )}
+                        {(resourceQuery.isLoading || optionsQuery.isLoading) && (
+                            <div className="rounded-xl border border-[#E1E6F3] bg-white p-8 text-center text-sm text-[#64708C]">
+                                Loading resource details…
                             </div>
                         )}
 
-                        {/* Layout Grid: Main Form (Left) + Sidebar Context (Right) */}
-                        <div className="flex flex-col lg:flex-row items-start gap-6">
-                            {/* Left Column: Form Controls */}
-                            <form onSubmit={handleSave} className="flex-1 w-full space-y-6">
-                                {/* File Card & Version Status */}
-                                <div className="bg-white p-6 rounded-xl border border-[#E1E6F3] space-y-4">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-14 bg-[#E6FAF4] rounded-lg flex items-center justify-center shrink-0">
-                                            <FileText className="w-6 h-6 text-[#009F75]" />
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h3 className="text-sm font-semibold text-[#0B123D] truncate">
-                                                Introduction_to_Algorithms_2024.pdf
-                                            </h3>
-                                            <p className="text-xs text-[#64708C] mt-0.5">
-                                                PDF · 3.4 MB · 24 pages · Version 2
-                                            </p>
-                                        </div>
-                                        <span className="px-2.5 py-1 bg-[#E6FAF4] text-[#009F75] text-xs font-semibold rounded-full shrink-0">
-                                            Published
-                                        </span>
-                                    </div>
-
-                                    <hr className="border-[#E1E6F3]" />
-
-                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                                        <span className="text-[#64708C]">
-                                            Replacing the file creates a new version.
-                                        </span>
-                                        <button
-                                            type="button"
-                                            className="h-9 px-3.5 bg-white border border-[#E1E6F3] text-[#245CFF] font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors self-start sm:self-auto"
-                                        >
-                                            <UploadCloud className="w-4 h-4" />
-                                            <span>Replace file</span>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Resource Details Form */}
-                                <div className="bg-white p-6 rounded-xl border border-[#E1E6F3] space-y-5">
-                                    <h2 className="text-lg font-bold text-[#0B123D]">
-                                        Resource Details
-                                    </h2>
-
-                                    {/* Title Field */}
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-semibold text-[#0B123D]">
-                                            Title *
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={title}
-                                            onChange={(e) => {
-                                                setTitle(e.target.value);
-                                                setIsDirty(true);
-                                            }}
-                                            required
-                                            className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
-                                        />
-                                    </div>
-
-                                    {/* Description Field */}
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-semibold text-[#0B123D]">
-                                            Description *
-                                        </label>
-                                        <textarea
-                                            rows={4}
-                                            value={description}
-                                            onChange={(e) => {
-                                                setDescription(e.target.value);
-                                                setIsDirty(true);
-                                            }}
-                                            maxLength={500}
-                                            required
-                                            className="w-full p-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] leading-relaxed focus:outline-none focus:border-[#245CFF]"
-                                        />
-                                        <div className="text-[11px] text-[#64708C]">
-                                            {description.length} / 500 characters
-                                        </div>
-                                    </div>
-
-                                    {/* Course & Category Dropdowns */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="space-y-1.5">
-                                            <label className="text-xs font-semibold text-[#0B123D]">
-                                                Course *
-                                            </label>
-                                            <div className="relative">
-                                                <select
-                                                    value={course}
-                                                    onChange={(e) => {
-                                                        setCourse(e.target.value);
-                                                        setIsDirty(true);
-                                                    }}
-                                                    className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] appearance-none focus:outline-none focus:border-[#245CFF] pr-8"
-                                                >
-                                                    <option>CS201 — Data Structures & Algorithms</option>
-                                                    <option>CS204 — Database Management Systems</option>
-                                                    <option>CS302 — Computer Networks</option>
-                                                </select>
-                                                <ChevronDown className="w-4 h-4 text-[#64708C] absolute right-3 top-3.5 pointer-events-none" />
+                        {resource && optionsQuery.data && (
+                            <form onSubmit={handleSubmit} className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
+                                <div className="space-y-6">
+                                    <section className="rounded-xl border border-[#E1E6F3] bg-white p-5 sm:p-6">
+                                        <div className="mb-5 flex items-center gap-4">
+                                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-[#E9EDFF] text-[#245CFF]">
+                                                <FileText className="h-6 w-6" />
+                                            </div>
+                                            <div className="min-w-0">
+                                                <h2 className="truncate font-semibold">{resource.original_filename || resource.title}</h2>
+                                                <p className="text-xs text-[#64708C]">
+                                                    {resource.file_type} · {(resource.file_size / (1024 * 1024)).toFixed(2)} MB
+                                                </p>
                                             </div>
                                         </div>
 
-                                        <div className="space-y-1.5">
-                                            <label className="text-xs font-semibold text-[#0B123D]">
-                                                Category *
+                                        <div className="space-y-4">
+                                            <label className="block space-y-1.5 text-sm font-medium">
+                                                Title
+                                                <input
+                                                    name="title"
+                                                    required
+                                                    maxLength={255}
+                                                    defaultValue={resource.title}
+                                                    onChange={() => setIsDirty(true)}
+                                                    className="h-11 w-full rounded-lg border border-[#E1E6F3] px-3 text-sm focus:border-[#245CFF] focus:outline-none"
+                                                />
                                             </label>
-                                            <div className="relative">
-                                                <select
-                                                    value={category}
-                                                    onChange={(e) => {
-                                                        setCategory(e.target.value);
-                                                        setIsDirty(true);
-                                                    }}
-                                                    className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] appearance-none focus:outline-none focus:border-[#245CFF] pr-8"
-                                                >
-                                                    <option>Lecture Notes</option>
-                                                    <option>Practice Set</option>
-                                                    <option>Code Samples</option>
-                                                    <option>Revision Guide</option>
-                                                </select>
-                                                <ChevronDown className="w-4 h-4 text-[#64708C] absolute right-3 top-3.5 pointer-events-none" />
-                                            </div>
-                                        </div>
-                                    </div>
 
-                                    {/* Academic Year & Resource Type */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <div className="space-y-1.5">
-                                            <label className="text-xs font-semibold text-[#0B123D]">
-                                                Academic Year
+                                            <label className="block space-y-1.5 text-sm font-medium">
+                                                Description
+                                                <textarea
+                                                    name="description"
+                                                    rows={5}
+                                                    maxLength={10000}
+                                                    defaultValue={resource.description || ""}
+                                                    onChange={() => setIsDirty(true)}
+                                                    className="w-full rounded-lg border border-[#E1E6F3] p-3 text-sm focus:border-[#245CFF] focus:outline-none"
+                                                />
                                             </label>
-                                            <div className="relative">
-                                                <select
-                                                    value={academicYear}
-                                                    onChange={(e) => {
-                                                        setAcademicYear(e.target.value);
-                                                        setIsDirty(true);
-                                                    }}
-                                                    className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] appearance-none focus:outline-none focus:border-[#245CFF] pr-8"
-                                                >
-                                                    <option>2024 / 2025</option>
-                                                    <option>2025 / 2026</option>
-                                                </select>
-                                                <ChevronDown className="w-4 h-4 text-[#64708C] absolute right-3 top-3.5 pointer-events-none" />
-                                            </div>
-                                        </div>
 
-                                        <div className="space-y-1.5">
-                                            <label className="text-xs font-semibold text-[#0B123D]">
-                                                Resource Type
-                                            </label>
-                                            <div className="relative">
-                                                <select
-                                                    value={resourceType}
-                                                    onChange={(e) => {
-                                                        setResourceType(e.target.value);
-                                                        setIsDirty(true);
-                                                    }}
-                                                    className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] appearance-none focus:outline-none focus:border-[#245CFF] pr-8"
-                                                >
-                                                    <option>Document</option>
-                                                    <option>Code Archive</option>
-                                                    <option>Presentation</option>
-                                                </select>
-                                                <ChevronDown className="w-4 h-4 text-[#64708C] absolute right-3 top-3.5 pointer-events-none" />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Tags Input */}
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-semibold text-[#0B123D]">
-                                            Tags
-                                        </label>
-                                        <div className="p-2.5 bg-white border border-[#E1E6F3] rounded-lg flex flex-wrap items-center gap-2 min-h-[44px]">
-                                            {tags.map((tag) => (
-                                                <span
-                                                    key={tag}
-                                                    className="px-2.5 py-1 bg-[#E9EDFF] text-[#245CFF] text-xs font-semibold rounded-full flex items-center gap-1"
-                                                >
-                                                    {tag}
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => handleRemoveTag(tag)}
-                                                        className="hover:text-[#0B123D]"
+                                            <div className="grid gap-4 sm:grid-cols-2">
+                                                <label className="block space-y-1.5 text-sm font-medium">
+                                                    Course
+                                                    <select
+                                                        name="course_code"
+                                                        defaultValue={resource.course_code || ""}
+                                                        onChange={() => setIsDirty(true)}
+                                                        className="h-11 w-full rounded-lg border border-[#E1E6F3] bg-white px-3 text-sm"
                                                     >
-                                                        <X className="w-3 h-3" />
-                                                    </button>
-                                                </span>
-                                            ))}
-                                            <input
-                                                type="text"
-                                                placeholder={tags.length < 10 ? "Add tag..." : "Max tags reached"}
-                                                value={tagInput}
-                                                onChange={(e) => setTagInput(e.target.value)}
-                                                onKeyDown={handleAddTag}
-                                                disabled={tags.length >= 10}
-                                                className="bg-transparent text-xs text-[#0B123D] placeholder-[#64708C] focus:outline-none flex-1 min-w-[100px]"
-                                            />
-                                        </div>
-                                        <p className="text-[11px] text-[#64708C]">
-                                            Press Enter or comma to add a tag. Max 10 tags.
-                                        </p>
-                                    </div>
+                                                        <option value="">No course assigned</option>
+                                                        {optionsQuery.data.courses.map((course) => (
+                                                            <option key={course.id} value={course.course_code}>
+                                                                {course.course_code} — {course.title}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </label>
 
-                                    {/* Visibility Selectors */}
-                                    <div className="space-y-2">
-                                        <label className="text-xs font-semibold text-[#0B123D]">
-                                            Visibility
-                                        </label>
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                                            <div
-                                                onClick={() => {
-                                                    setVisibility("public");
-                                                    setIsDirty(true);
-                                                }}
-                                                className={`p-3 rounded-lg border cursor-pointer transition-colors space-y-1 ${visibility === "public"
-                                                    ? "bg-[#F0F3FF] border-[#245CFF]"
-                                                    : "bg-white border-[#E1E6F3] hover:bg-slate-50"
-                                                    }`}
-                                            >
-                                                <div
-                                                    className={`text-xs font-semibold flex items-center gap-1.5 ${visibility === "public"
-                                                        ? "text-[#245CFF]"
-                                                        : "text-[#0B123D]"
-                                                        }`}
-                                                >
-                                                    <span>{visibility === "public" ? "◉" : "○"}</span>
-                                                    <span>Public</span>
-                                                </div>
-                                                <p className="text-[11px] text-[#64708C]">
-                                                    All registered users
-                                                </p>
+                                                <label className="block space-y-1.5 text-sm font-medium">
+                                                    Category
+                                                    <select
+                                                        name="category_id"
+                                                        defaultValue={resource.category_id || ""}
+                                                        onChange={() => setIsDirty(true)}
+                                                        className="h-11 w-full rounded-lg border border-[#E1E6F3] bg-white px-3 text-sm"
+                                                    >
+                                                        <option value="">No category assigned</option>
+                                                        {optionsQuery.data.categories.map((category) => (
+                                                            <option key={category.id} value={category.id}>{category.name}</option>
+                                                        ))}
+                                                    </select>
+                                                </label>
                                             </div>
 
-                                            <div
-                                                onClick={() => {
-                                                    setVisibility("course");
-                                                    setIsDirty(true);
-                                                }}
-                                                className={`p-3 rounded-lg border cursor-pointer transition-colors space-y-1 ${visibility === "course"
-                                                    ? "bg-[#F0F3FF] border-[#245CFF]"
-                                                    : "bg-white border-[#E1E6F3] hover:bg-slate-50"
-                                                    }`}
-                                            >
-                                                <div
-                                                    className={`text-xs font-semibold flex items-center gap-1.5 ${visibility === "course"
-                                                        ? "text-[#245CFF]"
-                                                        : "text-[#0B123D]"
-                                                        }`}
+                                            <label className="block space-y-1.5 text-sm font-medium">
+                                                Resource type
+                                                <select
+                                                    name="resource_type"
+                                                    defaultValue={resource.resource_type || "other"}
+                                                    onChange={() => setIsDirty(true)}
+                                                    className="h-11 w-full rounded-lg border border-[#E1E6F3] bg-white px-3 text-sm"
                                                 >
-                                                    <span>{visibility === "course" ? "◉" : "○"}</span>
-                                                    <span>Course Only</span>
-                                                </div>
-                                                <p className="text-[11px] text-[#64708C]">
-                                                    Enrolled in CS201
-                                                </p>
-                                            </div>
+                                                    {resourceTypes.map((type) => (
+                                                        <option key={type.value} value={type.value}>{type.label}</option>
+                                                    ))}
+                                                </select>
+                                            </label>
 
-                                            <div
-                                                onClick={() => {
-                                                    setVisibility("staff");
-                                                    setIsDirty(true);
-                                                }}
-                                                className={`p-3 rounded-lg border cursor-pointer transition-colors space-y-1 ${visibility === "staff"
-                                                    ? "bg-[#F0F3FF] border-[#245CFF]"
-                                                    : "bg-white border-[#E1E6F3] hover:bg-slate-50"
-                                                    }`}
-                                            >
-                                                <div
-                                                    className={`text-xs font-semibold flex items-center gap-1.5 ${visibility === "staff"
-                                                        ? "text-[#245CFF]"
-                                                        : "text-[#0B123D]"
-                                                        }`}
-                                                >
-                                                    <span>{visibility === "staff" ? "◉" : "○"}</span>
-                                                    <span>Staff Only</span>
-                                                </div>
-                                                <p className="text-[11px] text-[#64708C]">
-                                                    Staff members only
-                                                </p>
+                                            <div className="space-y-2">
+                                                <label htmlFor="resource-tags" className="block text-sm font-medium">Keywords</label>
+                                                <input
+                                                    id="resource-tags"
+                                                    name="keywords"
+                                                    defaultValue={(resource.keywords || []).join(", ")}
+                                                    onChange={() => setIsDirty(true)}
+                                                    maxLength={1300}
+                                                    placeholder="Separate keywords with commas"
+                                                    className="h-11 w-full rounded-lg border border-[#E1E6F3] px-3 text-sm focus:border-[#245CFF] focus:outline-none"
+                                                />
                                             </div>
                                         </div>
-                                    </div>
+                                    </section>
 
-                                    {/* Notification Checkbox */}
-                                    <label className="flex items-center gap-3 cursor-pointer text-xs text-[#0B123D] pt-1">
-                                        <input
-                                            type="checkbox"
-                                            checked={notifyStudents}
-                                            onChange={() => {
-                                                setNotifyStudents(!notifyStudents);
-                                                setIsDirty(true);
-                                            }}
-                                            className="w-4 h-4 rounded border-gray-300 text-[#245CFF] focus:ring-[#245CFF]"
-                                        />
-                                        <span>
-                                            Notify students who saved this resource about the update
+                                    <div className="flex flex-col-reverse items-center justify-between gap-3 sm:flex-row">
+                                        <span className="text-sm text-[#64708C]">
+                                            {isDirty ? "Unsaved changes" : "All changes saved"}
                                         </span>
-                                    </label>
-                                </div>
-
-                                {/* Form Action Controls */}
-                                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                                    <span className="text-xs text-[#64708C]">
-                                        Last saved 24 Oct 2026 at 10:42 AM
-                                    </span>
-                                    <div className="flex items-center gap-3 w-full sm:w-auto">
-                                        <Link
-                                            href="/staff/manage-resources"
-                                            className="flex-1 sm:flex-none h-11 px-5 bg-white border border-[#E1E6F3] text-[#245CFF] text-xs font-semibold rounded-lg flex items-center justify-center hover:bg-slate-50 transition-colors"
-                                        >
-                                            Cancel
-                                        </Link>
                                         <button
                                             type="submit"
-                                            className="flex-1 sm:flex-none h-11 px-6 bg-gradient-to-r from-[#7148FF] to-[#245CFF] text-white text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:opacity-95 shadow-sm"
+                                            disabled={!isDirty || saveMutation.isPending}
+                                            className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[#7148FF] to-[#245CFF] px-6 text-sm font-semibold text-white shadow-sm disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
                                         >
-                                            <Save className="w-4 h-4" />
-                                            <span>Save Changes</span>
+                                            <Save className="h-4 w-4" />
+                                            {saveMutation.isPending ? "Saving…" : "Save Changes"}
                                         </button>
                                     </div>
+                                    {saveMutation.isSuccess && (
+                                        <p role="status" className="text-sm font-medium text-emerald-700">
+                                            Resource metadata saved successfully.
+                                        </p>
+                                    )}
                                 </div>
-                            </form>
 
-                            {/* Right Column: Publication & Version Sidebars */}
-                            <div className="w-full lg:w-[292px] shrink-0 space-y-6">
-                                {/* Publication Details */}
-                                <div className="bg-white p-5 rounded-xl border border-[#E1E6F3] space-y-4">
-                                    <h3 className="text-base font-bold text-[#0B123D]">
-                                        Publication
-                                    </h3>
-
-                                    <div className="divide-y divide-[#E1E6F3] text-xs">
-                                        <div className="py-2.5 flex justify-between">
-                                            <span className="text-[#64708C]">Owner</span>
-                                            <span className="font-medium text-[#0B123D]">
-                                                CSE Hub Staff
-                                            </span>
+                                <aside className="h-fit space-y-4 rounded-xl border border-[#E1E6F3] bg-white p-5 text-sm">
+                                    <h2 className="font-bold">Resource details</h2>
+                                    <dl className="space-y-3">
+                                        <div className="flex justify-between gap-3">
+                                            <dt className="text-[#64708C]">Status</dt>
+                                            <dd className="font-medium">{resource.status.replaceAll("_", " ")}</dd>
                                         </div>
-
-                                        <div className="py-2.5 flex justify-between">
-                                            <span className="text-[#64708C]">Created</span>
-                                            <span className="font-medium text-[#0B123D]">
-                                                12 Sep 2024
-                                            </span>
+                                        <div className="flex justify-between gap-3">
+                                            <dt className="text-[#64708C]">Uploaded by</dt>
+                                            <dd className="text-right font-medium">{resource.uploader_name}</dd>
                                         </div>
-
-                                        <div className="py-2.5 flex justify-between">
-                                            <span className="text-[#64708C]">Updated</span>
-                                            <span className="font-medium text-[#0B123D]">
-                                                24 Oct 2026
-                                            </span>
+                                        <div className="flex justify-between gap-3">
+                                            <dt className="text-[#64708C]">Downloads</dt>
+                                            <dd className="font-medium">{resource.downloads}</dd>
                                         </div>
-
-                                        <div className="py-2.5 flex justify-between">
-                                            <span className="text-[#64708C]">Downloads</span>
-                                            <span className="font-medium text-[#0B123D]">
-                                                248 total
-                                            </span>
+                                        <div className="flex justify-between gap-3">
+                                            <dt className="text-[#64708C]">Updated</dt>
+                                            <dd className="text-right font-medium">
+                                                {resource.updated_at ? new Date(resource.updated_at).toLocaleString() : "—"}
+                                            </dd>
                                         </div>
-                                    </div>
-
-                                    <p className="text-xs text-[#64708C] leading-relaxed">
-                                        Metadata updates are applied immediately. Replaced files are reviewed before the new version is published.
-                                    </p>
-
-                                    <button
-                                        type="button"
-                                        className="w-full h-9 px-3.5 bg-white border border-[#E1E6F3] text-[#245CFF] text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors"
+                                    </dl>
+                                    <Link
+                                        href={`/resources/${resource.id}`}
+                                        className="block rounded-lg border border-[#E1E6F3] px-3 py-2 text-center font-semibold text-[#245CFF] hover:bg-[#F6F8FF]"
                                     >
-                                        <ExternalLink className="w-4 h-4" />
-                                        <span>View resource</span>
-                                    </button>
-                                </div>
-
-                                {/* Version History Side-Card */}
-                                <div className="bg-white p-5 rounded-xl border border-[#E1E6F3] space-y-4">
-                                    <h3 className="text-base font-bold text-[#0B123D]">
-                                        Version history
-                                    </h3>
-
-                                    {/* Version 2 */}
-                                    <div className="space-y-2">
-                                        <span className="px-2.5 py-1 bg-[#E6FAF4] text-[#009F75] text-[10px] font-semibold rounded-full inline-block">
-                                            Version 2 · Current
-                                        </span>
-                                        <div className="text-xs font-semibold text-[#0B123D]">
-                                            24 Oct 2026 · CSE Hub Staff
-                                        </div>
-                                        <p className="text-xs text-[#64708C] leading-relaxed">
-                                            Improved diagrams and added graph algorithm examples.
-                                        </p>
-                                        <div className="text-[11px] text-[#64708C]">
-                                            PDF · 3.4 MB
-                                        </div>
-                                        <button
-                                            type="button"
-                                            className="w-full h-9 bg-white border border-[#E1E6F3] text-[#245CFF] text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors"
-                                        >
-                                            <Download className="w-3.5 h-3.5" />
-                                            <span>Download v2</span>
-                                        </button>
-                                    </div>
-
-                                    <hr className="border-[#E1E6F3]" />
-
-                                    {/* Version 1 */}
-                                    <div className="space-y-2">
-                                        <div className="text-xs font-semibold text-[#0B123D]">
-                                            Version 1
-                                        </div>
-                                        <div className="text-[11px] text-[#64708C]">
-                                            12 Sep 2024 · CSE Hub Staff
-                                        </div>
-                                        <p className="text-xs text-[#64708C] leading-relaxed">
-                                            Original lecture notes.
-                                        </p>
-                                        <div className="text-[11px] text-[#64708C]">
-                                            PDF · 2.8 MB
-                                        </div>
-                                        <button
-                                            type="button"
-                                            className="w-full h-9 bg-white border border-[#E1E6F3] text-[#245CFF] text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-slate-50 transition-colors"
-                                        >
-                                            <Download className="w-3.5 h-3.5" />
-                                            <span>Download v1</span>
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Information Banner */}
-                                <div className="p-3.5 bg-[#F0F3FF] rounded-lg border border-[#D9E2FF] flex items-start gap-2.5">
-                                    <Info className="w-4 h-4 text-[#245CFF] shrink-0 mt-0.5" />
-                                    <p className="text-xs text-[#245CFF] leading-relaxed">
-                                        Existing bookmarks and resource links stay the same when you save changes.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                                        View resource
+                                    </Link>
+                                </aside>
+                            </form>
+                        )}
                     </div>
-
-                    {/* Shared Footer */}
                     <Footer />
                 </main>
             </div>

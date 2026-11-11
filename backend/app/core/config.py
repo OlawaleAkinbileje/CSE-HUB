@@ -1,26 +1,27 @@
-import os
+﻿import os
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
 
 class Settings(BaseSettings):
     PROJECT_NAME: str = "CSE Hub API"
     API_V1_STR: str = "/api/v1"
-    
-    # Secret Key for JWT Encoding/Decoding
+
     SECRET_KEY: str = os.getenv("SECRET_KEY", "your-super-secret-key-change-in-production")
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
-    
-    # Database Configuration
-    DATABASE_URL: str = os.getenv(
-        "DATABASE_URL", 
-        "postgresql://postgres:postgres@localhost:54332/postgres"
-    )
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
 
-    # Configure Pydantic to ignore unhandled environment variables from .env
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "")
+    SUPABASE_URL: str = os.getenv("SUPABASE_URL", "http://127.0.0.1:54321")
+    SUPABASE_SERVICE_ROLE_KEY: str = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+    SUPABASE_STORAGE_BUCKET: str = os.getenv("SUPABASE_STORAGE_BUCKET", "cse-hub-files")
+    USE_SUPABASE_STORAGE: bool = True
+
     model_config = SettingsConfigDict(
         env_file=".env",
         extra="ignore",
-        case_sensitive=True
+        case_sensitive=True,
     )
+
 
 settings = Settings()

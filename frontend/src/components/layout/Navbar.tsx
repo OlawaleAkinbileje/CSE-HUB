@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Search, Bell, ChevronDown, Menu, X, LogOut } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
 import { notifyCurrentUserChanged, useCurrentUser } from '@/lib/useCurrentUser';
 import Cookies from 'js-cookie';
 
@@ -32,9 +31,7 @@ export default function Navbar({
                 ? 'Staff'
                 : 'Student');
 
-    const handleLogout = async () => {
-        await supabase.auth.signOut();
-        // Clear all auth cookies
+    const handleLogout = () => {
         Cookies.remove('token');
         Cookies.remove('role');
         Cookies.remove('user_name');
@@ -45,10 +42,10 @@ export default function Navbar({
     };
 
     return (
-        <header className="h-[76px] bg-white border-b border-[#E1E6F3] px-4 md:px-7 flex items-center justify-between sticky top-0 z-30 w-full">
+        <header className="h-19 bg-white border-b border-[#E1E6F3] px-4 md:px-7 flex items-center justify-between sticky top-0 z-30 w-full">
             {/* Brand Header — Unified CSE Hub branding */}
-            <Link href="/" className="flex items-center gap-3 w-auto md:w-[258px]">
-                <div className="w-9 h-[38px] bg-[#245CFF] rounded-xl flex items-center justify-center font-bold text-white text-lg shadow-sm">
+            <Link href="/" className="flex items-center gap-3 w-auto md:w-64.5">
+                <div className="w-9 h-9.5 bg-[#245CFF] rounded-xl flex items-center justify-center font-bold text-white text-lg shadow-sm">
                     C
                 </div>
                 <span className="text-xl md:text-2xl font-bold text-[#0B123D]">
@@ -57,7 +54,7 @@ export default function Navbar({
             </Link>
 
             {/* Desktop Search Bar */}
-            <div className="hidden md:flex flex-1 max-w-[620px] mx-6 items-center gap-3 px-4 h-[43px] bg-white border border-[#E1E6F3] rounded-lg">
+            <div className="hidden md:flex flex-1 max-w-155 mx-6 items-center gap-3 px-4 h-10.75 bg-white border border-[#E1E6F3] rounded-lg">
                 <Search className="w-4 h-4 text-[#64708C]" />
                 <input
                     type="text"
@@ -101,7 +98,7 @@ export default function Navbar({
 
             {/* Mobile Drawer Navigation */}
             {mobileMenuOpen && (
-                <div className="md:hidden fixed inset-x-0 top-[76px] bg-white border-b border-[#E1E6F3] p-4 shadow-lg space-y-4 z-50">
+                <div className="md:hidden fixed inset-x-0 top-19 bg-white border-b border-[#E1E6F3] p-4 shadow-lg space-y-4 z-50">
                     <div className="flex items-center gap-3 px-3 py-2 bg-[#F6F8FF] rounded-lg border border-[#E1E6F3]">
                         <Search className="w-4 h-4 text-[#64708C]" />
                         <input

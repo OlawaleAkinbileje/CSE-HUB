@@ -1,28 +1,23 @@
 "use client";
 
 import React, { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import Footer from "@/components/layout/footer";
 import {
     Search,
     ChevronDown,
-    Check,
-    AlertTriangle,
     FileText,
     User,
-    History,
-    Maximize2,
     CheckCircle,
     XCircle,
-    RotateCcw,
     Clock,
-    ChevronRight,
-    Filter,
 } from "lucide-react";
-import { useStaffSubmissions, SubmissionItem } from "@/lib/queries";
+import { useStaffSubmissions } from "@/lib/queries";
 import DataContainer from "@/components/ui/DataContainer";
 import EmptyState from "@/components/ui/EmptyState";
+import { apiClient } from "@/lib/api";
 
 export default function ReviewSubmissionsPage() {
     const [activeTab, setActiveTab] = useState<"pending" | "approved" | "rejected">("pending");
@@ -30,14 +25,18 @@ export default function ReviewSubmissionsPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [sortOrder, setSortOrder] = useState("Newest first");
 
-    const { data: rawSubmissions, isLoading } = useStaffSubmissions(activeTab);
+    const queryClient = useQueryClient();
+    const { data: rawSubmissions, isLoading, error } = useStaffSubmissions(activeTab);
     const submissions = rawSubmissions || [];
 
     const filteredSubmissions = submissions.filter((item) =>
         item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.submitterName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.course.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    ).sort((left, right) => {
+        const difference = new Date(right.submittedDate).getTime() - new Date(left.submittedDate).getTime();
+        return sortOrder === "Oldest first" ? -difference : difference;
+    });
 
     // Review Checklist State
     const [checks, setChecks] = useState({
@@ -48,19 +47,35 @@ export default function ReviewSubmissionsPage() {
     });
 
     // Action Feedback Input State
-    const [feedback, setFeedback] = useState(
-        "Please add the original source and citation for the diagram on page 12 before publication."
-    );
+    const [feedback, setFeedback] = useState("");
+    const [decisionMessage, setDecisionMessage] = useState("");
 
-    const selectedSub = submissions.find((s) => s.id === selectedSubId) || submissions[0];
+    const selectedSub = filteredSubmissions.find((s) => s.id === selectedSubId) || filteredSubmissions[0];
+
+    const reviewMutation = useMutation({
+        mutationFn: async (action: "approve" | "request_changes" | "reject") => {
+            if (!selectedSub) return;
+            await apiClient.post(`/resources/${selectedSub.id}/review`, {
+                action,
+                notes: feedback.trim() || undefined,
+            });
+        },
+        onSuccess: async (_, action) => {
+            setDecisionMessage(`Submission ${action.replace("_", " ")} successfully.`);
+            setFeedback("");
+            await queryClient.invalidateQueries({ queryKey: ["staff", "submissions"] });
+            await queryClient.invalidateQueries({ queryKey: ["staff", "managed-resources"] });
+        },
+    });
 
     const handleCheckboxChange = (key: keyof typeof checks) => {
         setChecks((prev) => ({ ...prev, [key]: !prev[key] }));
     };
 
-    const handleDecision = (action: "approve" | "request-changes" | "reject") => {
+    const handleDecision = (action: "approve" | "request_changes" | "reject") => {
         if (!selectedSub) return;
-        alert(`Action "${action}" submitted for resource: ${selectedSub.title}`);
+        setDecisionMessage("");
+        reviewMutation.mutate(action);
     };
 
     return (
@@ -85,6 +100,15 @@ export default function ReviewSubmissionsPage() {
                                 Check resource quality and help students share reliable learning materials.
                             </p>
                         </div>
+
+                        {decisionMessage && (
+                            <p role="status" className="text-sm text-green-700">{decisionMessage}</p>
+                        )}
+                        {reviewMutation.error && (
+                            <p role="alert" className="text-sm text-red-600">
+                                {reviewMutation.error.message}
+                            </p>
+                        )}
 
                         {/* Queue Filter Tabs */}
                         <div className="border-b border-[#E1E6F3] flex items-center gap-2 md:gap-8">
@@ -138,9 +162,17 @@ export default function ReviewSubmissionsPage() {
 
                                     <div className="flex items-center justify-between text-xs">
                                         <span className="font-semibold text-[#0B123D]">Queue order</span>
-                                        <div className="flex items-center gap-1 text-[#245CFF] font-medium cursor-pointer">
-                                            <span>{sortOrder}</span>
-                                            <ChevronDown className="w-3.5 h-3.5" />
+                                        <div className="relative flex items-center gap-1 text-[#245CFF] font-medium">
+                                            <select
+                                                aria-label="Queue order"
+                                                value={sortOrder}
+                                                onChange={(event) => setSortOrder(event.target.value)}
+                                                className="appearance-none bg-transparent pr-4 focus:outline-none cursor-pointer"
+                                            >
+                                                <option>Newest first</option>
+                                                <option>Oldest first</option>
+                                            </select>
+                                            <ChevronDown className="w-3.5 h-3.5 absolute right-0 pointer-events-none" />
                                         </div>
                                     </div>
 
@@ -154,6 +186,7 @@ export default function ReviewSubmissionsPage() {
                                     <DataContainer
                                         isLoading={isLoading}
                                         data={filteredSubmissions}
+                                        errorMessage={error?.message}
                                         emptyIcon={FileText}
                                         emptyTitle="Queue is Empty"
                                         emptyDescription="No pending submissions in this category."
@@ -177,7 +210,7 @@ export default function ReviewSubmissionsPage() {
                                                                 <span
                                                                     className="px-2 py-0.5 text-[10px] font-semibold rounded-full bg-[#FFF5EB] text-[#B86A17]"
                                                                 >
-                                                                    {isSelected ? "Selected · Pending" : "Pending"}
+                                                                    {isSelected ? `Selected · ${item.status}` : item.status}
                                                                 </span>
                                                                 {item.urgent && (
                                                                     <span className="text-[10px] font-medium text-[#DF365B] flex items-center gap-1">
@@ -197,7 +230,7 @@ export default function ReviewSubmissionsPage() {
                                                             </div>
 
                                                             <div className="text-[10px] text-[#64708C]">
-                                                                {item.submittedDate ? item.submittedDate.split(",")[0] : "Recently"}
+                                                                {item.submittedDate ? new Date(item.submittedDate).toLocaleDateString() : "Recently"}
                                                             </div>
                                                         </div>
                                                     );
@@ -217,7 +250,7 @@ export default function ReviewSubmissionsPage() {
                                                 <div className="space-y-2">
                                                     <div className="flex items-center gap-2">
                                                         <span className="px-2.5 py-1 bg-[#FFF5EB] text-[#B86A17] text-xs font-semibold rounded-full">
-                                                            Pending verification
+                                                            {selectedSub.status}
                                                         </span>
                                                         <span className="text-xs text-[#64708C]">
                                                             Submitted {selectedSub.submittedDate}
@@ -233,6 +266,7 @@ export default function ReviewSubmissionsPage() {
 
                                                 <div className="flex items-center gap-2">
                                                     <button
+                                                        disabled={reviewMutation.isPending || selectedSub.status !== "Pending"}
                                                         onClick={() => handleDecision("approve")}
                                                         className="h-10 px-4 bg-[#009F75] text-white text-xs font-semibold rounded-lg flex items-center gap-1.5 hover:bg-[#008763] transition-colors"
                                                     >
@@ -240,6 +274,7 @@ export default function ReviewSubmissionsPage() {
                                                         <span>Approve</span>
                                                     </button>
                                                     <button
+                                                        disabled={reviewMutation.isPending || selectedSub.status !== "Pending"}
                                                         onClick={() => handleDecision("reject")}
                                                         className="h-10 px-4 border border-[#DF365B] text-[#DF365B] text-xs font-semibold rounded-lg flex items-center gap-1.5 hover:bg-[#FFF5F6] transition-colors"
                                                     >
@@ -293,10 +328,20 @@ export default function ReviewSubmissionsPage() {
                                                 <textarea
                                                     value={feedback}
                                                     onChange={(e) => setFeedback(e.target.value)}
+                                                    placeholder="Add feedback for the submitter (optional)"
                                                     rows={3}
                                                     className="w-full p-3.5 bg-white border border-[#E1E6F3] rounded-xl text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
                                                 />
                                             </div>
+                                            {selectedSub.status === "Pending" && (
+                                                <button
+                                                    disabled={reviewMutation.isPending || !feedback.trim()}
+                                                    onClick={() => handleDecision("request_changes")}
+                                                    className="h-10 px-4 border border-amber-500 text-amber-700 text-xs font-semibold rounded-lg disabled:opacity-50"
+                                                >
+                                                    Request changes
+                                                </button>
+                                            )}
                                         </div>
                                     </>
                                 ) : (

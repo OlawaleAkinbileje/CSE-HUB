@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Eye, EyeOff, Check, AlertCircle } from 'lucide-react';
 import { apiClient } from '@/lib/api';
-import { supabase } from '@/lib/supabase';
 
 export default function RegisterPage() {
     const [fullName, setFullName] = useState('');
@@ -16,31 +16,9 @@ export default function RegisterPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [oauthProvider, setOauthProvider] = useState<'google' | 'azure' | null>(null);
     const [errorMsg, setErrorMsg] = useState('');
 
     const router = useRouter();
-
-    const handleOAuthSignUp = async (provider: 'google' | 'azure') => {
-        setLoading(true);
-        setOauthProvider(provider);
-        setErrorMsg('');
-
-        try {
-            const { error } = await supabase.auth.signInWithOAuth({
-                provider,
-                options: {
-                    redirectTo: `${window.location.origin}/auth/callback`,
-                    ...(provider === 'azure' ? { scopes: 'email' } : {}),
-                },
-            });
-            if (error) throw error;
-        } catch (error: unknown) {
-            setErrorMsg(error instanceof Error ? error.message : 'Unable to start social sign-up.');
-            setLoading(false);
-            setOauthProvider(null);
-        }
-    };
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -247,43 +225,8 @@ export default function RegisterPage() {
                         </button>
                     </form>
 
-                    {/* Divider */}
-                    <div className="flex items-center gap-[20px] my-5">
-                        <div className="flex-1 h-[1px] bg-[#E1E6F3]" />
-                        <span className="text-[16px] text-[#0B123D] font-normal">OR</span>
-                        <div className="flex-1 h-[1px] bg-[#E1E6F3]" />
-                    </div>
-
-                    {/* Social Sign-Up Options */}
-                    <div className="space-y-[14px]">
-                        <button
-                            type="button"
-                            onClick={() => handleOAuthSignUp('google')}
-                            disabled={loading}
-                            className="w-full h-[58px] rounded-[8px] border border-[#E1E6F3] flex items-center justify-center gap-[18px] sm:gap-[22px] hover:bg-slate-50 transition-colors disabled:opacity-50"
-                        >
-                            <span className="text-[#4285F4] text-[25px] font-normal leading-none">G</span>
-                            <span className="text-[#0B123D] text-[16px] sm:text-[17px] font-semibold">
-                                {oauthProvider === 'google' ? 'Connecting to Google...' : 'Sign up with Google'}
-                            </span>
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={() => handleOAuthSignUp('azure')}
-                            disabled={loading}
-                            className="w-full h-[58px] rounded-[8px] border border-[#E1E6F3] flex items-center justify-center gap-[18px] sm:gap-[22px] hover:bg-slate-50 transition-colors disabled:opacity-50"
-                        >
-                            <div className="grid grid-cols-2 gap-[2px]">
-                                <div className="w-[10px] h-[10px] bg-[#F35325]" />
-                                <div className="w-[10px] h-[10px] bg-[#81BC06]" />
-                                <div className="w-[10px] h-[10px] bg-[#05A6F0]" />
-                                <div className="w-[10px] h-[10px] bg-[#FFBA08]" />
-                            </div>
-                            <span className="text-[#0B123D] text-[16px] sm:text-[17px] font-semibold">
-                                {oauthProvider === 'azure' ? 'Connecting to Microsoft...' : 'Sign up with Microsoft'}
-                            </span>
-                        </button>
+                    <div className="rounded-xl border border-[#E1E6F3] bg-[#F6F8FF] px-4 py-3 text-sm text-[#495471]">
+                        Create your account using your department email and a secure password.
                     </div>
                 </div>
 
@@ -301,9 +244,11 @@ export default function RegisterPage() {
 
                 {/* Background Overlay Image */}
                 <div className="w-full h-[220px] sm:h-[300px] xl:h-[350px] relative overflow-hidden rounded-[20px] mb-6">
-                    <img
+                    <Image
                         src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=80"
                         alt="Students Learning"
+                        fill
+                        sizes="(max-width: 1280px) 100vw, 50vw"
                         className="w-full h-full object-cover rounded-[20px]"
                     />
                 </div>

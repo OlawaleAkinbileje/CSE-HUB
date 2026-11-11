@@ -1,18 +1,6 @@
-import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1 import api_router
-from app.core.config import settings
-from app.db.session import engine, Base
-import app.models
-
-logger = logging.getLogger(__name__)
-
-# Safely attempt to create tables if database is running
-try:
-    Base.metadata.create_all(bind=engine)
-except Exception as e:
-    logger.warning("Could not auto-create tables on startup (database might be offline): %s", e)
 
 app = FastAPI(
     title="CSE Hub API",

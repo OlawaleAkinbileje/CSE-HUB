@@ -8,7 +8,6 @@ import {
     Search,
     FileText,
     FolderGit2,
-    BookMarked,
     Code,
     Bell
 } from 'lucide-react';
@@ -18,6 +17,16 @@ import { apiClient } from '@/lib/api';
 import DataContainer from '@/components/ui/DataContainer';
 import { useCurrentUser } from '@/lib/useCurrentUser';
 
+interface SearchResource {
+    id: string;
+    title: string;
+    resource_type: string;
+    file_size: number;
+    created_at: string | null;
+    downloads: number;
+    description: string | null;
+}
+
 function SearchContent() {
     const searchParams = useSearchParams();
     const initialQuery = searchParams.get('q') || '';
@@ -25,9 +34,17 @@ function SearchContent() {
     const [query, setQuery] = useState(initialQuery);
 
     const [selectedType, setSelectedType] = useState('All');
-    const [selectedDept, setSelectedDept] = useState('All Departments');
+    const [selectedDept, setSelectedDept] = useState('All Categories');
     const [selectedYear, setSelectedYear] = useState('All Years');
     const router = useRouter();
+
+    const { data: resourceOptions } = useQuery({
+        queryKey: ['resources', 'options'],
+        queryFn: async () => {
+            const res = await apiClient.get('/resources/options');
+            return res.data as { categories: { id: string; name: string; slug: string }[] };
+        },
+    });
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -36,33 +53,37 @@ function SearchContent() {
         }
     };
 
-    const { data: searchResults, isLoading } = useQuery({
-        queryKey: ['resources', 'search', query, selectedType],
+    const { data: searchResults, isLoading, error } = useQuery({
+        queryKey: ['resources', 'search', query, selectedType, selectedDept, selectedYear],
         queryFn: async () => {
-            try {
-                const params: Record<string, string> = {};
-                if (query) params.search = query;
-                if (selectedType !== 'All') {
-                    params.resource_type = selectedType.toLowerCase().replace(' ', '_');
-                }
-                const res = await apiClient.get('/resources', { params });
-                return Array.isArray(res.data) ? res.data : [];
-            } catch (err) {
-                return [];
+            const params: Record<string, string> = {};
+            if (query.trim()) params.search = query.trim();
+            const resourceTypes: Record<string, string> = {
+                'Past Questions': 'past_question',
+                Projects: 'project',
+                'Lecture Notes': 'lecture_note',
+                'Code Samples': 'code_preview',
+            };
+            if (selectedType !== 'All') {
+                params.resource_type = resourceTypes[selectedType];
             }
+            if (selectedDept !== 'All Categories') params.category_slug = selectedDept;
+            if (selectedYear !== 'All Years') params.year = selectedYear;
+            const res = await apiClient.get('/resources', { params });
+            return res.data as { data: SearchResource[]; count: number };
         },
     });
 
-    const results = (searchResults || []).map((r: any) => ({
+    const results = (searchResults?.data || []).map((r) => ({
         id: String(r.id),
         title: r.title,
-        type: r.resource_type === 'past_question' ? 'Past Questions' : (r.resource_type === 'project' ? 'Project' : 'Lecture Notes'),
+        type: r.resource_type === 'past_question' ? 'Past Questions' : (r.resource_type === 'project' ? 'Project' : (r.resource_type === 'code_preview' ? 'Code Sample' : 'Lecture Notes')),
         badgeBg: '#245CFF',
         lightBg: 'rgba(36, 92, 255, 0.09)',
         icon: r.resource_type === 'project' ? FolderGit2 : (r.resource_type === 'code_preview' ? Code : FileText),
-        size: '2.4 MB',
-        year: r.created_at ? new Date(r.created_at).getFullYear().toString() : '2026',
-        downloads: '0',
+        size: `${(Number(r.file_size || 0) / (1024 * 1024)).toFixed(1)} MB`,
+        year: r.created_at ? new Date(r.created_at).getFullYear().toString() : '',
+        downloads: String(r.downloads || 0),
         desc: r.description || 'Department academic resource file.',
     }));
 
@@ -133,19 +154,25 @@ function SearchContent() {
                             ))}
                         </div>
 
-                        {/* Filter Group: Department */}
+                        {/* Filter Group: Category */}
                         <div className="space-y-3">
-                            <h3 className="text-[16px] font-bold text-[#0B123D]">Department</h3>
-                            {['All Departments', 'Artificial Intelligence', 'Software Engineering', 'Computer Networks', 'Database Systems'].map((dept) => (
-                                <label key={dept} className="flex items-center gap-3 cursor-pointer text-[14px] text-[#64708C]">
+                            <h3 className="text-[16px] font-bold text-[#0B123D]">Category</h3>
+                            {[
+                                { name: 'All Categories', slug: 'All Categories' },
+                                ...(resourceOptions?.categories || []).map((category) => ({
+                                    name: category.name,
+                                    slug: category.slug,
+                                })),
+                            ].map((dept) => (
+                                <label key={dept.slug} className="flex items-center gap-3 cursor-pointer text-[14px] text-[#64708C]">
                                     <input
                                         type="radio"
-                                        name="department"
-                                        checked={selectedDept === dept}
-                                        onChange={() => setSelectedDept(dept)}
+                                        name="category"
+                                        checked={selectedDept === dept.slug}
+                                        onChange={() => setSelectedDept(dept.slug)}
                                         className="w-[18px] h-[18px] accent-[#245CFF]"
                                     />
-                                    <span>{dept}</span>
+                                    <span>{dept.name}</span>
                                 </label>
                             ))}
                         </div>
@@ -178,7 +205,7 @@ function SearchContent() {
                             </h1>
 
                             <div className="flex items-center justify-between text-[14px] sm:text-[15px] text-[#64708C]">
-                                <span>Found {results.length} results</span>
+                                <span>Found {searchResults?.count ?? 0} results</span>
                                 <div className="flex items-center gap-3">
                                     <span>Sort by:</span>
                                     <div className="px-4 py-2 bg-white rounded-[7px] border border-[#E1E6F3] text-[#0B123D] font-normal cursor-pointer text-sm">
@@ -192,6 +219,7 @@ function SearchContent() {
                         <DataContainer
                             isLoading={isLoading}
                             data={results}
+                            errorMessage={error?.message}
                             emptyIcon={Search}
                             emptyTitle="No Records Found"
                             emptyDescription={
@@ -204,7 +232,7 @@ function SearchContent() {
                                 onClick: () => {
                                     setQuery('');
                                     setSelectedType('All');
-                                    setSelectedDept('All Departments');
+                                    setSelectedDept('All Categories');
                                     setSelectedYear('All Years');
                                 },
                             }}

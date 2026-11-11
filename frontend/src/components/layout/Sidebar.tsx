@@ -25,7 +25,6 @@ import {
     Info,
     LogOut,
 } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
 import { notifyCurrentUserChanged, useCurrentUser } from '@/lib/useCurrentUser';
 import Cookies from 'js-cookie';
 
@@ -46,9 +45,7 @@ function SidebarContent({ userRole }: SidebarProps) {
             ? 'Administrator'
             : currentUser.username || 'Student';
 
-    const handleLogout = async () => {
-        await supabase.auth.signOut();
-        // Clear all auth cookies
+    const handleLogout = () => {
         Cookies.remove('token');
         Cookies.remove('role');
         Cookies.remove('user_name');
@@ -67,7 +64,7 @@ function SidebarContent({ userRole }: SidebarProps) {
         { label: 'Lecture Notes', icon: BookMarked, href: '/student/search?category=lecture-notes' },
         { label: 'Code Samples', icon: Code, href: '/code-preview' },
         { label: 'Knowledge Hub', icon: Layers, href: '/knowledge' },
-        { label: 'My Resources', icon: Bookmark, href: '/my-resources' },
+        { label: 'Resources', icon: Bookmark, href: '/my-resources' },
         { label: 'Notifications', icon: Bell, href: '/notifications' },
         { label: 'Help & Support', icon: HelpCircle, href: '/support' },
         { label: 'Profile', icon: User, href: '/profile' },
@@ -78,7 +75,7 @@ function SidebarContent({ userRole }: SidebarProps) {
         { label: 'Upload Resource', icon: UploadCloud, href: '/staff/upload' },
         { label: 'Manage Resources', icon: FolderKanban, href: '/staff/manage-resources' },
         { label: 'Review Submissions', icon: FileSearch, href: '/staff/review-submissions' },
-        { label: 'My Resources', icon: Bookmark, href: '/my-resources' },
+        { label: 'Resources', icon: Bookmark, href: '/my-resources' },
         { label: 'Notifications', icon: Bell, href: '/notifications' },
         { label: 'Help & Support', icon: HelpCircle, href: '/support' },
         { label: 'Profile', icon: User, href: '/profile' },

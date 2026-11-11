@@ -1,21 +1,21 @@
-import os
+﻿import os
+
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import declarative_base, sessionmaker
 
-# PostgreSQL connection string (adjust credentials/host/port as needed)
-# Example: postgresql://user:password@localhost:54332/postgres
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", 
-    "postgresql://postgres:postgres@localhost:54332/postgres"
-)
 
-# Engine & Session Setup
+DATABASE_URL = os.getenv("DATABASE_URL", "")
+if not DATABASE_URL:
+    raise RuntimeError(
+        "DATABASE_URL is required. Configure it to your Supabase PostgreSQL connection string."
+    )
+
+
 engine = create_engine(DATABASE_URL, pool_pre_ping=True)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
 Base = declarative_base()
 
-# FastAPI Dependency for Database Sessions
+
 def get_db():
     db = SessionLocal()
     try:

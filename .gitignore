@@ -10,6 +10,8 @@ frontend/.env*
 venv/
 .venv/
 backend/venv/
+backend/..venvScriptActivate.ps1/
+backend/uploads/
 __pycache__/
 *.py[cod]
 

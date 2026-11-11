@@ -18,11 +18,15 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## Authentication setup
+## Authentication and storage setup
 
-Email/password registration uses the CSE Hub API. Google and Microsoft sign-up/sign-in use Supabase OAuth and exchange the verified Supabase session for a CSE Hub API token.
+CSE Hub uses FastAPI for authentication and authorization, and Supabase for the PostgreSQL database and file storage layer.
 
-Configure `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` for the frontend, and `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` for the backend. Keep the service role key server-side only. In Supabase, enable the Google and Azure (Microsoft) providers and allow `http://localhost:3000/auth/callback` (plus the equivalent URL for each deployed environment) in the authentication redirect URL settings.
+- Email/password authentication is handled by the FastAPI backend.
+- Supabase is used for database connectivity and object storage, not for app login/session management.
+- Configure `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` for browser-side storage access when needed.
+- Configure `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `SUPABASE_STORAGE_BUCKET` on the backend for uploads and file retrieval.
+- Keep the service role key server-side only.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 

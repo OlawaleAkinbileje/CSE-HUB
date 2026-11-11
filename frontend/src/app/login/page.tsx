@@ -1,13 +1,13 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Eye, EyeOff, Check, AlertCircle } from 'lucide-react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { apiClient } from '@/lib/api';
-import { supabase } from '@/lib/supabase';
 import { notifyCurrentUserChanged } from '@/lib/useCurrentUser';
 
 export default function LoginPage() {
@@ -16,31 +16,9 @@ export default function LoginPage() {
     const [rememberMe, setRememberMe] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [oauthProvider, setOauthProvider] = useState<'google' | 'azure' | null>(null);
     const [errorMsg, setErrorMsg] = useState('');
 
     const router = useRouter();
-
-    const handleOAuthLogin = async (provider: 'google' | 'azure') => {
-        setLoading(true);
-        setOauthProvider(provider);
-        setErrorMsg('');
-
-        try {
-            const { error } = await supabase.auth.signInWithOAuth({
-                provider,
-                options: {
-                    redirectTo: `${window.location.origin}/auth/callback`,
-                    ...(provider === 'azure' ? { scopes: 'email' } : {}),
-                },
-            });
-            if (error) throw error;
-        } catch (error: unknown) {
-            setErrorMsg(error instanceof Error ? error.message : 'Unable to start social sign-in.');
-            setLoading(false);
-            setOauthProvider(null);
-        }
-    };
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -189,43 +167,8 @@ export default function LoginPage() {
                         </button>
                     </form>
 
-                    {/* Divider */}
-                    <div className="flex items-center gap-[20px] my-6">
-                        <div className="flex-1 h-[1px] bg-[#E1E6F3]" />
-                        <span className="text-[16px] text-[#0B123D] font-normal">OR</span>
-                        <div className="flex-1 h-[1px] bg-[#E1E6F3]" />
-                    </div>
-
-                    {/* Social Logins */}
-                    <div className="space-y-[14px]">
-                        <button
-                            type="button"
-                            onClick={() => handleOAuthLogin('google')}
-                            disabled={loading}
-                            className="w-full h-[58px] rounded-[8px] border border-[#E1E6F3] flex items-center justify-center gap-[18px] sm:gap-[22px] hover:bg-slate-50 transition-colors disabled:opacity-50"
-                        >
-                            <span className="text-[#4285F4] text-[25px] font-normal leading-none">G</span>
-                            <span className="text-[#0B123D] text-[16px] sm:text-[17px] font-semibold">
-                                {oauthProvider === 'google' ? 'Connecting to Google...' : 'Continue with Google'}
-                            </span>
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={() => handleOAuthLogin('azure')}
-                            disabled={loading}
-                            className="w-full h-[58px] rounded-[8px] border border-[#E1E6F3] flex items-center justify-center gap-[18px] sm:gap-[22px] hover:bg-slate-50 transition-colors disabled:opacity-50"
-                        >
-                            <div className="grid grid-cols-2 gap-[2px]">
-                                <div className="w-[10px] h-[10px] bg-[#F35325]" />
-                                <div className="w-[10px] h-[10px] bg-[#81BC06]" />
-                                <div className="w-[10px] h-[10px] bg-[#05A6F0]" />
-                                <div className="w-[10px] h-[10px] bg-[#FFBA08]" />
-                            </div>
-                            <span className="text-[#0B123D] text-[16px] sm:text-[17px] font-semibold">
-                                {oauthProvider === 'azure' ? 'Connecting to Microsoft...' : 'Continue with Microsoft'}
-                            </span>
-                        </button>
+                    <div className="rounded-xl border border-[#E1E6F3] bg-[#F6F8FF] px-4 py-3 text-sm text-[#495471]">
+                        Use your department email and password to access the CSE Hub dashboard.
                     </div>
                 </div>
 
@@ -241,10 +184,12 @@ export default function LoginPage() {
             {/* RIGHT COLUMN: BRAND BANNER & QUOTE */}
             <div className="flex-1 bg-gradient-to-br from-[#18233D] to-[#444C97] flex flex-col justify-between overflow-hidden min-h-[300px] xl:min-h-full">
                 <div className="relative w-full h-[240px] sm:h-[320px] xl:h-[420px] overflow-hidden">
-                    <img
+                    <Image
                         src="https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&w=1200&q=80"
                         alt="Students Studying"
-                        className="w-full h-full object-cover opacity-60 mix-blend-overlay"
+                        fill
+                        sizes="(max-width: 1280px) 100vw, 50vw"
+                        className="object-cover opacity-60 mix-blend-overlay"
                     />
                 </div>
 

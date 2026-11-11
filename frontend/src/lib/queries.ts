@@ -11,7 +11,7 @@ export interface StudentDashboardData {
     bookmarks: number;
     recentSearches: number;
   };
-  recentResources: any[];
+  recentResources: Record<string, unknown>[];
   categories: { title: string; cat: string }[];
 }
 
@@ -51,7 +51,7 @@ export interface StaffDashboardData {
     totalDownloads: number;
     activeUsers: number;
   };
-  recentSubmissions: any[];
+  recentSubmissions: Record<string, unknown>[];
 }
 
 export function useStaffDashboard() {
@@ -85,7 +85,7 @@ export interface AdminDashboardData {
     totalDownloads: number;
   };
   userDistribution: { label: string; percentage: string; color: string }[];
-  resourceGrowth: any[];
+  resourceGrowth: Record<string, unknown>[];
 }
 
 export function useAdminDashboard() {
@@ -128,11 +128,11 @@ export function usePastQuestions() {
     queryFn: async () => {
       try {
         const res = await apiClient.get("/resources/past-questions");
-        const data = res.data;
+        const data = res.data as { created_at: string | null }[];
         if (Array.isArray(data) && data.length > 0) {
           // Group by year
           const yearMap = new Map<number, number>();
-          data.forEach((item: any) => {
+          data.forEach((item) => {
             const yr = item.created_at ? new Date(item.created_at).getFullYear() : 2026;
             yearMap.set(yr, (yearMap.get(yr) || 0) + 1);
           });
@@ -220,18 +220,28 @@ export interface SavedResourceItem {
   iconColor: string;
   iconBg: string;
   file_url?: string;
+  status?: string;
 }
 
 export function useMyResources(tab: string = "saved") {
   return useQuery<SavedResourceItem[]>({
     queryKey: ["resources", "my-resources", tab],
     queryFn: async () => {
-      try {
-        const res = await apiClient.get(`/resources/my-resources?tab=${tab}`);
-        return Array.isArray(res.data) ? res.data : [];
-      } catch (err) {
-        return [];
+      const res = await apiClient.get(`/resources/my-resources?tab=${tab}`);
+      if (!Array.isArray(res.data)) {
+        throw new Error("The resource list response was invalid.");
       }
+      const categories: Record<string, string> = {
+        lecture_note: "Lecture Notes",
+        past_question: "Past Questions",
+        project: "Projects",
+        code_preview: "Code Samples",
+        other: "Other",
+      };
+      return res.data.map((resource: SavedResourceItem) => ({
+        ...resource,
+        category: categories[resource.category] || resource.category,
+      }));
     },
   });
 }
@@ -255,7 +265,7 @@ export interface SubmissionItem {
   visibility: string;
   tags: string[];
   submittedDate: string;
-  status: "Pending" | "Approved" | "Rejected" | "Changes Requested";
+  status: "Pending" | "Approved" | "Rejected" | "Changes Requested" | "Archived";
   urgent?: boolean;
 }
 
@@ -263,13 +273,12 @@ export function useStaffSubmissions(status?: string) {
   return useQuery<SubmissionItem[]>({
     queryKey: ["staff", "submissions", status],
     queryFn: async () => {
-      try {
-        const url = status ? `/resources/submissions?status=${status}` : "/resources/submissions";
-        const res = await apiClient.get(url);
-        return Array.isArray(res.data) ? res.data : [];
-      } catch (err) {
-        return [];
+      const url = status ? `/resources/submissions?status=${status}` : "/resources/submissions";
+      const res = await apiClient.get(url);
+      if (!Array.isArray(res.data)) {
+        throw new Error("The submission list response was invalid.");
       }
+      return res.data;
     },
   });
 }
@@ -282,34 +291,43 @@ export interface ManagedResourceItem {
   fileSize: string;
   course: string;
   category: string;
-  status: "Published" | "Draft" | "Pending" | "Archived";
+  status: "Published" | "Draft" | "Pending" | "Changes Requested" | "Rejected" | "Archived";
   updatedDate: string;
   downloads: number;
+}
+
+interface ResourceListApiItem {
+  id: string;
+  title: string;
+  file_type?: string;
+  file_size?: number;
+  course_code?: string;
+  resource_type?: string;
+  status: string;
+  created_at?: string | null;
+  updated_at?: string | null;
+  downloads?: number;
 }
 
 export function useStaffManagedResources() {
   return useQuery<ManagedResourceItem[]>({
     queryKey: ["staff", "managed-resources"],
     queryFn: async () => {
-      try {
-        const res = await apiClient.get("/resources?limit=100");
-        if (Array.isArray(res.data)) {
-          return res.data.map((r: any) => ({
+      const res = await apiClient.get("/resources?limit=100");
+      if (Array.isArray(res.data?.data)) {
+          return (res.data.data as ResourceListApiItem[]).map((r) => ({
             id: String(r.id),
             title: r.title,
-            fileType: "PDF",
-            fileSize: "2.4 MB",
+            fileType: r.file_type || "File",
+            fileSize: `${(Number(r.file_size || 0) / (1024 * 1024)).toFixed(1)} MB`,
             course: r.course_code || "CSE",
             category: r.resource_type || "Document",
-            status: r.status === "approved" ? "Published" : (r.status === "pending" ? "Pending" : "Draft"),
-            updatedDate: r.created_at ? new Date(r.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "Recently",
-            downloads: 0,
+            status: r.status === "approved" ? "Published" : (r.status === "pending" ? "Pending" : (r.status === "changes_requested" ? "Changes Requested" : (r.status === "rejected" ? "Rejected" : "Archived"))),
+            updatedDate: r.updated_at ? new Date(r.updated_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "Recently",
+            downloads: Number(r.downloads || 0),
           }));
-        }
-        return [];
-      } catch (err) {
-        return [];
       }
+      throw new Error("The resource list response was invalid.");
     },
   });
 }
@@ -432,13 +450,11 @@ export function useNotifications() {
   return useQuery<NotificationItem[]>({
     queryKey: ["notifications"],
     queryFn: async () => {
-      try {
-        const res = await apiClient.get("/notifications");
-        return Array.isArray(res.data) ? res.data : [];
-      } catch (err) {
-        return [];
+      const res = await apiClient.get("/notifications");
+      if (!Array.isArray(res.data)) {
+        throw new Error("The notification list response was invalid.");
       }
+      return res.data;
     },
   });
 }
-

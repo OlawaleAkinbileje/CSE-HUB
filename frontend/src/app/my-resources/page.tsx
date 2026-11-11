@@ -1,36 +1,43 @@
 "use client";
 
 import React, { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import Sidebar from "@/components/layout/Sidebar";
 import Footer from "@/components/layout/footer";
 import {
-    BookOpen,
     Search,
     Download,
     Bookmark,
     Trash2,
     ExternalLink,
     ChevronDown,
-    ChevronLeft,
-    ChevronRight,
     FileText,
-    FileCode,
-    Layers,
-    Sparkles,
 } from "lucide-react";
 import { useMyResources } from "@/lib/queries";
 import DataContainer from "@/components/ui/DataContainer";
+import { apiClient } from "@/lib/api";
+import { useCurrentUser } from "@/lib/useCurrentUser";
 
 export default function StudentResourcesPage() {
-    const [activeTab, setActiveTab] = useState<"saved" | "downloaded" | "readingList">("saved");
+    const currentUser = useCurrentUser();
+    const [selectedTab, setSelectedTab] = useState<"saved" | "downloaded" | "uploads" | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedType, setSelectedType] = useState("All resource types");
     const [sortBy, setSortBy] = useState("Recently saved");
-    const [currentPage, setCurrentPage] = useState(1);
 
-    const { data: userResources, isLoading } = useMyResources(activeTab);
+    const router = useRouter();
+    const queryClient = useQueryClient();
+    const isStaff = currentUser.role === "staff" || currentUser.role === "admin";
+    const activeTab = selectedTab ?? (isStaff ? "uploads" : "saved");
+    const { data: userResources, isLoading, error } = useMyResources(activeTab);
     const resourcesList = userResources || [];
+    const removeMutation = useMutation({
+        mutationFn: (id: string) => apiClient.delete(`/resources/${id}/bookmark`),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ["resources", "my-resources"] }),
+    });
 
     const filteredResources = resourcesList.filter((item) => {
         const matchesSearch =
@@ -40,21 +47,21 @@ export default function StudentResourcesPage() {
         const matchesType =
             selectedType === "All resource types" || item.category === selectedType;
         return matchesSearch && matchesType;
+    }).sort((left, right) => {
+        if (sortBy === "Course (A-Z)") return left.course.localeCompare(right.course);
+        if (sortBy === "Title (A-Z)") return left.title.localeCompare(right.title);
+        return new Date(right.savedDate).getTime() - new Date(left.savedDate).getTime();
     });
-
-    const handleAction = (message: string) => {
-        alert(message);
-    };
 
     return (
         <div className="min-h-screen w-full bg-[#F6F8FF] flex flex-col font-sans text-[#0B123D]">
             {/* Standard Shared Navbar */}
-            <Navbar userRole="student" />
+            <Navbar userRole={currentUser.role} />
 
             {/* Main Layout Shell */}
             <div className="flex-1 flex flex-col md:flex-row">
                 {/* Standard Shared Sidebar */}
-                <Sidebar userRole="student" />
+                <Sidebar userRole={currentUser.role} />
 
                 {/* Main Content Area */}
                 <main className="flex-1 p-4 md:p-8 space-y-6 overflow-x-hidden flex flex-col justify-between">
@@ -63,26 +70,28 @@ export default function StudentResourcesPage() {
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div>
                                 <h1 className="text-2xl md:text-3xl font-bold text-[#0B123D]">
-                                    My Resources
+                                    {isStaff ? "My Resource Contributions" : "My Resources"}
                                 </h1>
                                 <p className="text-sm text-[#64708C] mt-1">
-                                    Your saved materials, downloads and reading list — all in one place.
+                                    {isStaff
+                                        ? "Review your uploaded resources, saved materials and downloads."
+                                        : "Your saved materials, downloads and reading list — all in one place."}
                                 </p>
                             </div>
 
                             <button
-                                onClick={() => (window.location.href = "/student/search")}
+                                onClick={() => router.push(isStaff ? "/staff/manage-resources" : "/student/search")}
                                 className="h-11 px-5 bg-white border border-[#E1E6F3] text-[#245CFF] text-xs font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#F6F8FF] transition-colors shadow-sm self-start sm:self-auto"
                             >
                                 <Search className="w-4 h-4 text-[#245CFF]" />
-                                <span>Browse Resources</span>
+                                <span>{isStaff ? "Manage Resources" : "Browse Resources"}</span>
                             </button>
                         </div>
 
                         {/* Sub-Navigation Tabs */}
                         <div className="border-b border-[#E1E6F3] flex items-center gap-2 overflow-x-auto no-scrollbar">
                             <button
-                                onClick={() => setActiveTab("saved")}
+                                onClick={() => setSelectedTab("saved")}
                                 className={`py-3 px-4 text-xs font-semibold border-b-2 transition-all whitespace-nowrap ${activeTab === "saved"
                                     ? "border-[#245CFF] text-[#245CFF]"
                                     : "border-transparent text-[#64708C] hover:text-[#0B123D]"
@@ -91,7 +100,7 @@ export default function StudentResourcesPage() {
                                 Saved ({activeTab === "saved" ? resourcesList.length : 0})
                             </button>
                             <button
-                                onClick={() => setActiveTab("downloaded")}
+                                onClick={() => setSelectedTab("downloaded")}
                                 className={`py-3 px-4 text-xs font-semibold border-b-2 transition-all whitespace-nowrap ${activeTab === "downloaded"
                                     ? "border-[#245CFF] text-[#245CFF]"
                                     : "border-transparent text-[#64708C] hover:text-[#0B123D]"
@@ -100,13 +109,13 @@ export default function StudentResourcesPage() {
                                 Downloaded ({activeTab === "downloaded" ? resourcesList.length : 0})
                             </button>
                             <button
-                                onClick={() => setActiveTab("readingList")}
-                                className={`py-3 px-4 text-xs font-semibold border-b-2 transition-all whitespace-nowrap ${activeTab === "readingList"
+                                onClick={() => setSelectedTab("uploads")}
+                                className={`py-3 px-4 text-xs font-semibold border-b-2 transition-all whitespace-nowrap ${activeTab === "uploads"
                                     ? "border-[#245CFF] text-[#245CFF]"
                                     : "border-transparent text-[#64708C] hover:text-[#0B123D]"
                                     }`}
                             >
-                                Reading List (0)
+                                My Uploads ({activeTab === "uploads" ? resourcesList.length : 0})
                             </button>
                         </div>
 
@@ -157,16 +166,17 @@ export default function StudentResourcesPage() {
                         </div>
 
                         {/* TAB CONTENT: SAVED RESOURCES */}
-                        {activeTab === "saved" && (
+                        {(activeTab === "saved" || activeTab === "uploads") && (
                             <DataContainer
                                 isLoading={isLoading}
                                 data={filteredResources}
-                                emptyIcon={Bookmark}
-                                emptyTitle={searchQuery ? "No Matching Saved Resources" : "No Saved Resources Yet"}
+                                errorMessage={error?.message}
+                                emptyIcon={activeTab === "saved" ? Bookmark : FileText}
+                                emptyTitle={searchQuery ? "No Matching Resources" : (activeTab === "saved" ? "No Saved Resources Yet" : "No Uploaded Resources Yet")}
                                 emptyDescription={
                                     searchQuery
-                                        ? `No saved materials matched "${searchQuery}".`
-                                        : "You haven't bookmarked or saved any academic resources to this collection yet."
+                                        ? `No resources matched "${searchQuery}".`
+                                        : (activeTab === "saved" ? "You haven't saved any academic resources yet." : "You haven't uploaded any resources yet.")
                                 }
                                 emptyAction={{
                                     label: "Browse All Resources",
@@ -192,12 +202,16 @@ export default function StudentResourcesPage() {
                                                                     {item.category}
                                                                 </span>
                                                             </div>
-                                                            <button
-                                                                onClick={() => handleAction(`Removed ${item.title} from saved`)}
-                                                                className="text-[#64708C] hover:text-[#DF365B] p-1 rounded-md transition-colors"
-                                                            >
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </button>
+                                                            {activeTab === "saved" && (
+                                                                <button
+                                                                    onClick={() => removeMutation.mutate(item.id)}
+                                                                    disabled={removeMutation.isPending}
+                                                                    aria-label={`Remove ${item.title} from saved resources`}
+                                                                    className="text-[#64708C] hover:text-[#DF365B] p-1 rounded-md transition-colors disabled:opacity-50"
+                                                                >
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </button>
+                                                            )}
                                                         </div>
 
                                                         <h3 className="text-sm font-bold text-[#0B123D] leading-snug line-clamp-2 group-hover:text-[#245CFF] transition-colors">
@@ -211,13 +225,13 @@ export default function StudentResourcesPage() {
 
                                                     <div className="pt-4 border-t border-[#F0F3FA] mt-4 flex items-center justify-between text-xs text-[#64708C]">
                                                         <span>{item.savedDate}</span>
-                                                        <a
+                                                        <Link
                                                             href={`/resources/${item.id}`}
                                                             className="text-[#245CFF] font-semibold flex items-center gap-1 hover:underline"
                                                         >
                                                             <span>Open</span>
                                                             <ExternalLink className="w-3.5 h-3.5" />
-                                                        </a>
+                                                        </Link>
                                                     </div>
                                                 </div>
                                             ))}
@@ -232,6 +246,7 @@ export default function StudentResourcesPage() {
                             <DataContainer
                                 isLoading={isLoading}
                                 data={filteredResources}
+                                errorMessage={error?.message}
                                 emptyIcon={Download}
                                 emptyTitle="No Downloads Yet"
                                 emptyDescription="You have not downloaded any study materials or files to your device yet."
@@ -270,12 +285,12 @@ export default function StudentResourcesPage() {
                                                     </div>
 
                                                     <div className="flex items-center gap-2 self-end sm:self-auto shrink-0">
-                                                        <a
+                                                        <Link
                                                             href={`/resources/${item.id}`}
                                                             className="h-9 px-3 border border-[#E1E6F3] bg-white text-[#245CFF] text-xs font-semibold rounded-lg hover:bg-[#F6F8FF] transition-colors flex items-center"
                                                         >
                                                             Open file
-                                                        </a>
+                                                        </Link>
                                                     </div>
                                                 </div>
                                             ))}
@@ -285,30 +300,7 @@ export default function StudentResourcesPage() {
                             </DataContainer>
                         )}
 
-                        {/* TAB CONTENT: READING LIST (EMPTY STATE) */}
-                        {activeTab === "readingList" && (
-                            <div className="p-8 bg-[#E9EDFF] rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-                                <div className="flex items-start gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-white/60 flex items-center justify-center shrink-0">
-                                        <Bookmark className="w-5 h-5 text-[#245CFF]" />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <h3 className="text-base font-bold text-[#0B123D]">
-                                            Your Reading List is empty
-                                        </h3>
-                                        <p className="text-xs text-[#64708C] max-w-md">
-                                            Save articles, documentation, or lecture notes to read offline or during your revision sessions.
-                                        </p>
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={() => (window.location.href = "/student/search")}
-                                    className="h-10 px-4 bg-[#245CFF] text-white text-xs font-semibold rounded-lg hover:bg-[#1d4bd8] transition-colors shrink-0"
-                                >
-                                    Explore Library
-                                </button>
-                            </div>
-                        )}
+                        {removeMutation.error && <p role="alert" className="text-sm text-red-600">{removeMutation.error.message}</p>}
                     </div>
 
                     {/* Standard Shared Footer */}
