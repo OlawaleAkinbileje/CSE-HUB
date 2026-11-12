@@ -212,10 +212,10 @@ export default function StudentDashboardPage() {
                         </DataContainer>
                     </div>
 
+                    <Footer />
                 </main>
-                <Footer />
 
             </div>
-            </div>
+        </div>
     );
 }
