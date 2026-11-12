@@ -1,6 +1,6 @@
 # CSE Hub: Project and Operations Guide
 
-**Review date:** 11 November 2026
+**Review date:** 12 November 2026
 **Purpose:** Single reference for the application, local development, data model,
 workflows, deployment readiness, and search-engine optimization.
 
@@ -18,7 +18,8 @@ Authenticated users can access role-specific functionality:
   courses, view analytics, persist application preferences, and triage support
   tickets.
 
-Self-registration and first-time OAuth provisioning create student accounts.
+Self-registration creates student accounts through FastAPI email/password
+authentication. OAuth login is not currently exposed by the application.
 Staff and administrator access must be assigned by an existing administrator.
 Guest support tickets can be submitted with a contact name and email.
 
@@ -31,7 +32,6 @@ Browser
         │                                ├── JWT authentication and role checks
         │                                ├── SQLAlchemy + PostgreSQL
         │                                └── Supabase Storage API
-        └── Supabase browser client (OAuth sign-in)
 ```
 
 - The frontend is in `frontend/`; FastAPI code is in `backend/app/`.
@@ -54,7 +54,7 @@ Browser
 - `/resources/[id]` — resource details, preview, downloads, comments, and
   authenticated save actions
 - `/about`, `/knowledge`, `/projects`, `/past-questions`, `/code-preview`
-- `/login`, `/register`, and `/auth/callback`
+- `/login` and `/register`
 - `/support` — help content and persistent support request form
 
 ### Student
@@ -89,7 +89,7 @@ treated as an API security boundary.
 
 All routes are mounted under `/api/v1`.
 
-- `/auth`: registration, password login, OAuth exchange, current profile
+- `/auth`: registration, password login, and current profile
 - `/resources`: public search and resource details, preview/download, upload,
   review, comments, bookmarks, user resources, resource options, and stats
 - `/dashboard`: student, staff, and admin metrics
@@ -115,10 +115,12 @@ Core data entities include:
 - `support_tickets`: persisted user/guest requests and their statuses
 - `backend_search_events`: search counts without retaining search terms
 
-Migration history currently includes initial schema, application backend
-workflows, Storage bucket setup, and admin/support workflows. The latest
-admin/support and API-only RLS migrations are applied to the **local** Supabase
-stack. These do not apply to a hosted database.
+Migration history includes the initial schema, application backend workflows,
+Storage setup, admin/support workflows, API-only RLS, and a new comment-reply
+integrity migration. The admin/support and API-only RLS migrations were
+previously applied to the **local** Supabase stack; the new comment integrity
+migration has not been applied or runtime-verified. Local migration state does
+not prove the state of a hosted database.
 
 To apply pending migrations to local Supabase:
 
@@ -166,15 +168,13 @@ needed.
 - `NEXT_PUBLIC_API_URL`: deployed FastAPI base URL including `/api/v1`
 - `NEXT_PUBLIC_SITE_URL`: canonical public website origin, e.g.
   `https://hub.example.edu` (must be set for production indexing metadata)
-- `NEXT_PUBLIC_SUPABASE_URL`: Supabase project API URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: publishable/anon key only; never put the
-  service role key in a `NEXT_PUBLIC_*` variable
 
 ### Backend
 
 - `DATABASE_URL`: PostgreSQL connection string
 - `SUPABASE_URL`: Supabase project API URL
-- `SUPABASE_SERVICE_ROLE_KEY`: server-only key for storage and OAuth
+- `SUPABASE_SERVICE_ROLE_KEY`: server-only key for Storage; never put it in a
+  `NEXT_PUBLIC_*` variable
 - `SUPABASE_STORAGE_BUCKET`: `cse-hub-files`
 - `SECRET_KEY`: unique, random JWT signing secret
 - `ENVIRONMENT`: use `production` in the hosted API environment

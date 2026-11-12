@@ -26,7 +26,7 @@ export default function ProjectsPage() {
     const [projectSearch, setProjectSearch] = useState('');
     const [selectedDept, setSelectedDept] = useState('All Departments');
 
-    const { data: rawProjects, isLoading } = useProjects();
+    const { data: rawProjects, isLoading, error } = useProjects();
     const projectsList = rawProjects || [];
 
     // Filter project cards by search query and selected department
@@ -101,6 +101,7 @@ export default function ProjectsPage() {
                         <DataContainer
                             isLoading={isLoading}
                             data={filteredProjects}
+                            errorMessage={error instanceof Error ? error.message : undefined}
                             emptyIcon={Folder}
                             emptyTitle={projectSearch ? "No Projects Found" : "No Projects Yet"}
                             emptyDescription={

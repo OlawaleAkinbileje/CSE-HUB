@@ -100,7 +100,7 @@ export default function AdminDashboardPage() {
 
                             {/* Simplified Custom Line Graph Visual */}
                             <div className="w-full min-h-[210px] mt-2 flex items-end justify-around gap-3 border-b border-[#E9EDF7] px-2">
-                                {isLoading ? <span className="mb-4 text-xs text-[#64708C]">Loading resource growth...</span> : resourceGrowth.length ? resourceGrowth.map((item) => (
+                                {isLoading ? <span className="mb-4 text-xs text-[#64708C]">Loading resource growth...</span> : error ? <span role="alert" className="mb-4 text-xs text-[#DF365B]">Resource growth is unavailable.</span> : resourceGrowth.length ? resourceGrowth.map((item) => (
                                     <div key={item.month} className="flex h-[190px] min-w-0 flex-1 flex-col items-center justify-end gap-2">
                                         <span className="text-[11px] text-[#64708C]">{item.count}</span>
                                         <div
@@ -144,7 +144,9 @@ export default function AdminDashboardPage() {
 
                             {/* Legend List */}
                             <div className="space-y-2 pt-2 border-t border-[#F0F3FA]">
-                                {userDistribution.map((item, idx) => (
+                                {error ? (
+                                    <p role="alert" className="text-xs text-[#DF365B]">User distribution is unavailable.</p>
+                                ) : userDistribution.map((item, idx) => (
                                     <div key={idx} className="flex items-center justify-between text-xs">
                                         <div className="flex items-center gap-2">
                                             <div

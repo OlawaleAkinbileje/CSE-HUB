@@ -1,24 +1,23 @@
-from typing import Optional
-
 from fastapi import APIRouter, Depends
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.api.deps import RoleChecker, get_optional_current_user
+from app.api.deps import RoleChecker
 from app.db.session import get_db
 from app.models.user import User
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 allow_staff = RoleChecker(["staff", "admin"])
 allow_admin = RoleChecker(["admin"])
+allow_student = RoleChecker(["student"])
 
 
 @router.get("/student")
 def get_student_dashboard_metrics(
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(get_optional_current_user),
+    current_user: User = Depends(allow_student),
 ):
-    user_id = current_user.id if current_user else None
+    user_id = current_user.id
     metrics = db.execute(
         text(
             """

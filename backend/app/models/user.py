@@ -40,3 +40,8 @@ class User(Base):
         back_populates="uploader",
         foreign_keys="Resource.backend_uploader_id",
     )
+    search_events = relationship(
+        "SearchEvent",
+        back_populates="user",
+        passive_deletes=True,
+    )

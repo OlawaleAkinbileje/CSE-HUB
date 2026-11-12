@@ -2,6 +2,7 @@ import enum
 from sqlalchemy import (
     BigInteger,
     Column,
+    CheckConstraint,
     Computed,
     DateTime,
     Enum,
@@ -40,7 +41,6 @@ class Resource(Base):
     file_size = Column(BigInteger, nullable=False)
     course_id = Column(UUID(as_uuid=True), ForeignKey("courses.id", ondelete="RESTRICT"))
     category_id = Column(UUID(as_uuid=True), ForeignKey("categories.id", ondelete="RESTRICT"))
-    uploader_id = Column(UUID(as_uuid=True), ForeignKey("profiles.id", ondelete="SET NULL"))
     programming_language = Column(String(50))
     keywords = Column(ARRAY(Text))
     status = Column(
@@ -61,9 +61,9 @@ class Resource(Base):
         ),
     )
     resource_type = Column(String(32), nullable=False, default=ResourceType.OTHER.value)
-    storage_key = Column(Text)
+    storage_key = Column(Text, nullable=False)
     backend_uploader_id = Column(
-        Integer, ForeignKey("users.id", ondelete="SET NULL"), index=True
+        Integer, ForeignKey("users.id", ondelete="RESTRICT"), index=True, nullable=False
     )
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(
@@ -71,3 +71,5 @@ class Resource(Base):
     )
 
     uploader = relationship("User", back_populates="resources")
+    course = relationship("Course", back_populates="resources")
+    category = relationship("Category", back_populates="resources")

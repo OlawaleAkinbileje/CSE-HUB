@@ -28,6 +28,7 @@ from app.api.deps import (
     get_optional_current_user,
 )
 from app.db.session import get_db
+from app.models.search_event import SearchEvent
 from app.models.user import User
 from app.services.storage import read_stored_bytes, save_uploaded_bytes
 
@@ -261,6 +262,11 @@ def get_resources(
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_optional_current_user),
 ):
+    if search is not None:
+        search = search.strip()
+        if not search:
+            raise HTTPException(status_code=422, detail="Search term cannot be empty")
+
     selected_status = status_filter
     staff_view = current_user is not None and _role_name(current_user) in {"staff", "admin"}
     if selected_status is None and not staff_view:
@@ -292,15 +298,30 @@ def get_resources(
         limit=limit,
         offset=offset,
     )
-    if search:
-        db.execute(
-            text(
-                "INSERT INTO public.backend_search_events (user_id) VALUES (:user_id)"
-            ),
-            {"user_id": current_user.id if current_user else None},
-        )
+    if search and current_user:
+        db.add(SearchEvent(user_id=current_user.id, query_text=search.strip()))
         db.commit()
     return {"data": data, "count": count}
+
+
+@router.get("/search-history")
+def get_search_history(
+    limit: int = Query(20, ge=1, le=100),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    rows = db.query(SearchEvent).filter(
+        SearchEvent.user_id == current_user.id,
+        SearchEvent.query_text.is_not(None),
+    ).order_by(SearchEvent.created_at.desc(), SearchEvent.id.desc()).limit(limit).all()
+    return [
+        {
+            "id": row.id,
+            "query": row.query_text,
+            "created_at": row.created_at.isoformat() if row.created_at else None,
+        }
+        for row in rows
+    ]
 
 
 @router.get("/past-questions")
@@ -601,7 +622,7 @@ def update_resource_metadata(
         course_code = (updates["course_code"] or "").strip()
         course = (
             db.execute(
-                text("SELECT id FROM public.courses WHERE course_code = :course_code"),
+                text("SELECT id, category_id FROM public.courses WHERE course_code = :course_code"),
                 {"course_code": course_code},
             ).first()
             if course_code
@@ -623,6 +644,18 @@ def update_resource_metadata(
             ).first():
                 raise HTTPException(status_code=422, detail="Category not found")
         values["category_id"] = category_id
+    effective_course_id = values.get("course_id", resource["course_id"])
+    effective_category_id = values.get("category_id", resource["category_id"])
+    if effective_course_id and effective_category_id:
+        course_category_id = db.execute(
+            text("SELECT category_id FROM public.courses WHERE id = :course_id"),
+            {"course_id": effective_course_id},
+        ).scalar_one()
+        if course_category_id and course_category_id != effective_category_id:
+            raise HTTPException(
+                status_code=422,
+                detail="The selected category does not match the course category",
+            )
     if "keywords" in updates:
         values["keywords"] = list(dict.fromkeys(
             tag.strip()[:64] for tag in (updates["keywords"] or []) if tag.strip()
@@ -660,6 +693,9 @@ def upload_resource(
 ):
     if resource_type not in RESOURCE_TYPES:
         raise HTTPException(status_code=422, detail="Unsupported resource type")
+    title = title.strip()
+    if not title:
+        raise HTTPException(status_code=422, detail="Title cannot be empty")
     original_filename = re.split(r"[/\\]", file.filename or "upload")[-1]
     extension = Path(original_filename).suffix.lower()
     file_info = ALLOWED_EXTENSIONS.get(extension)
@@ -681,11 +717,20 @@ def upload_resource(
     selected_course_id = None
     if course_code:
         course = db.execute(
-            text("SELECT id FROM public.courses WHERE course_code = :course_code"),
+            text("SELECT id, category_id FROM public.courses WHERE course_code = :course_code"),
             {"course_code": course_code.strip()},
         ).first()
         if not course:
             raise HTTPException(status_code=422, detail="Course not found")
+        if (
+            selected_category_id
+            and course.category_id
+            and course.category_id != selected_category_id
+        ):
+            raise HTTPException(
+                status_code=422,
+                detail="The selected category does not match the course category",
+            )
         selected_course_id = course.id
 
     clean_keywords = list(dict.fromkeys(
@@ -719,7 +764,7 @@ def upload_resource(
                 """
             ),
             {
-                "title": title.strip(),
+                "title": title,
                 "description": description.strip(),
                 "file_url": "",
                 "file_type": file_info[0],

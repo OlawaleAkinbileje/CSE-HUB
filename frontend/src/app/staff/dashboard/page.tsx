@@ -14,40 +14,35 @@ import { useCurrentUser } from '@/lib/useCurrentUser';
 
 export default function StaffDashboardPage() {
     const currentUser = useCurrentUser();
-    const { data: staffData, isLoading } = useStaffDashboard();
+    const { data: staffData, isLoading, error } = useStaffDashboard();
 
-    const staffMetrics = staffData?.metrics || {
-        totalResources: 0,
-        pendingReview: 0,
-        totalDownloads: 0,
-        activeUsers: 0,
-    };
+    const staffMetrics = staffData?.metrics;
 
     const metrics = [
         {
             label: 'Total Resources',
-            count: staffMetrics.totalResources.toLocaleString(),
+            count: staffMetrics?.totalResources.toLocaleString() ?? 'Unavailable',
             bgColor: 'rgba(0, 197, 138, 0.09)',
             iconColor: '#00C58A',
             icon: FileText
         },
         {
             label: 'Pending Review',
-            count: staffMetrics.pendingReview.toLocaleString(),
+            count: staffMetrics?.pendingReview.toLocaleString() ?? 'Unavailable',
             bgColor: 'rgba(255, 146, 53, 0.09)',
             iconColor: '#FF9235',
             icon: Clock
         },
         {
             label: 'Total Downloads',
-            count: staffMetrics.totalDownloads.toLocaleString(),
+            count: staffMetrics?.totalDownloads.toLocaleString() ?? 'Unavailable',
             bgColor: 'rgba(36, 92, 255, 0.09)',
             iconColor: '#245CFF',
             icon: Download
         },
         {
             label: 'Active Users',
-            count: staffMetrics.activeUsers.toLocaleString(),
+            count: staffMetrics?.activeUsers.toLocaleString() ?? 'Unavailable',
             bgColor: 'rgba(113, 72, 255, 0.09)',
             iconColor: '#7148FF',
             icon: Users
@@ -60,6 +55,11 @@ export default function StaffDashboardPage() {
             <div className="flex-1 flex flex-col md:flex-row">
                 <Sidebar />
                 <main className="flex-1 p-4 md:p-8 space-y-6">
+                    {error && (
+                        <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                            Dashboard data could not be loaded. Please try again later.
+                        </p>
+                    )}
 
                     {/* WELCOME BANNER */}
                     <div className="relative p-6 sm:p-9 bg-gradient-to-br from-[#DDF7FE] via-[#E7DCFF] to-[#D6F6FF] rounded-2xl flex flex-col gap-2 overflow-hidden border border-[#E1E6F3]/50">

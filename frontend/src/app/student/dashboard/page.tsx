@@ -25,7 +25,7 @@ export default function StudentDashboardPage() {
     const currentUser = useCurrentUser();
     const firstName = (currentUser.full_name || currentUser.username || 'Student').split(' ')[0];
 
-    const { data: dashboardData, isLoading } = useStudentDashboard();
+    const { data: dashboardData, isLoading, error } = useStudentDashboard();
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -42,38 +42,33 @@ export default function StudentDashboardPage() {
         { name: 'Code Samples', active: activeCategory === 'Code Samples' },
     ];
 
-    const studentMetrics = dashboardData?.metrics || {
-        totalResources: 0,
-        downloads: 0,
-        bookmarks: 0,
-        recentSearches: 0,
-    };
+    const studentMetrics = dashboardData?.metrics;
 
     const metrics = [
         {
             label: 'Total Resources',
-            count: studentMetrics.totalResources.toLocaleString(),
+            count: studentMetrics?.totalResources.toLocaleString() ?? 'Unavailable',
             bgColor: 'rgba(0, 197, 138, 0.09)',
             iconColor: '#00C58A',
             icon: FileText
         },
         {
             label: 'Downloads',
-            count: studentMetrics.downloads.toLocaleString(),
+            count: studentMetrics?.downloads.toLocaleString() ?? 'Unavailable',
             bgColor: 'rgba(36, 92, 255, 0.09)',
             iconColor: '#245CFF',
             icon: Download
         },
         {
             label: 'Bookmarks',
-            count: studentMetrics.bookmarks.toLocaleString(),
+            count: studentMetrics?.bookmarks.toLocaleString() ?? 'Unavailable',
             bgColor: 'rgba(255, 146, 53, 0.09)',
             iconColor: '#FF9235',
             icon: Bookmark
         },
         {
             label: 'Recent Searches',
-            count: studentMetrics.recentSearches.toLocaleString(),
+            count: studentMetrics?.recentSearches.toLocaleString() ?? 'Unavailable',
             bgColor: 'rgba(36, 92, 255, 0.09)',
             iconColor: '#245CFF',
             icon: Search
@@ -93,6 +88,11 @@ export default function StudentDashboardPage() {
             <div className="flex-1 flex flex-col md:flex-row">
                 <Sidebar userRole={currentUser.role} />
                 <main className="flex-1 p-4 md:p-8 space-y-6">
+                    {error && (
+                        <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                            Dashboard data could not be loaded. Please try again later.
+                        </p>
+                    )}
                     <div className="space-y-6 max-w-5xl mx-auto w-full">
                         {/* BANNER WITH SEARCH ENGINE & PILLS */}
                         <div className="relative p-6 sm:p-[36px] bg-gradient-to-br from-[#DDF7FE] via-[#E7DCFF] to-[#D6F6FF] rounded-[16px] flex flex-col gap-[24px] overflow-hidden border border-[#E1E6F3]/50">
@@ -174,6 +174,7 @@ export default function StudentDashboardPage() {
                             <DataContainer
                                 isLoading={isLoading}
                                 data={popularCollectionCards}
+                                errorMessage={error ? 'Dashboard data is currently unavailable.' : undefined}
                                 emptyTitle="No Categories Found"
                                 emptyDescription="There are currently no active course categories configured."
                                 emptyAction={{ label: "Browse All Resources", href: "/search" }}

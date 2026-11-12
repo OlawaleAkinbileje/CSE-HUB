@@ -79,25 +79,15 @@ export function usePastQuestions() {
   return useQuery<PastQuestionYear[]>({
     queryKey: ["resources", "past-questions"],
     queryFn: async () => {
-      try {
-        const res = await apiClient.get("/resources/past-questions");
-        const data = res.data as { created_at: string | null }[];
-        if (Array.isArray(data) && data.length > 0) {
-          // Group by year
-          const yearMap = new Map<number, number>();
-          data.forEach((item) => {
-            const yr = item.created_at ? new Date(item.created_at).getFullYear() : 2026;
-            yearMap.set(yr, (yearMap.get(yr) || 0) + 1);
-          });
-          return Array.from(yearMap.entries()).map(([year, count]) => ({
-            year,
-            count,
-          }));
-        }
-        return [];
-      } catch (err) {
-        return [];
-      }
+      const res = await apiClient.get("/resources/past-questions");
+      const data = res.data as { created_at: string | null }[];
+      const yearMap = new Map<number, number>();
+      data.forEach((item) => {
+        if (!item.created_at) return;
+        const year = new Date(item.created_at).getFullYear();
+        if (Number.isFinite(year)) yearMap.set(year, (yearMap.get(year) || 0) + 1);
+      });
+      return Array.from(yearMap.entries()).map(([year, count]) => ({ year, count }));
     },
   });
 }
@@ -118,12 +108,8 @@ export function useProjects() {
   return useQuery<ProjectItem[]>({
     queryKey: ["resources", "projects"],
     queryFn: async () => {
-      try {
-        const res = await apiClient.get("/resources/projects");
-        return Array.isArray(res.data) ? res.data : [];
-      } catch (err) {
-        return [];
-      }
+      const res = await apiClient.get("/resources/projects");
+      return Array.isArray(res.data) ? res.data : [];
     },
   });
 }
@@ -142,19 +128,8 @@ export function useCodePreview() {
   return useQuery<CodePreviewData>({
     queryKey: ["resources", "code-preview"],
     queryFn: async () => {
-      try {
-        const res = await apiClient.get("/resources/code-preview");
-        return res.data;
-      } catch (err) {
-        return {
-          id: "1",
-          title: "No Code Preview Available",
-          description: "No code snippets have been published yet.",
-          code: "# No code records yet\n",
-          language: "python",
-          filename: "empty.py",
-        };
-      }
+      const res = await apiClient.get("/resources/code-preview");
+      return res.data;
     },
   });
 }

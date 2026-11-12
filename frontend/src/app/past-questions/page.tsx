@@ -15,7 +15,7 @@ import DataContainer from '@/components/ui/DataContainer';
 
 export default function PastQuestionsPage() {
     const [searchQuery, setSearchQuery] = useState('');
-    const { data: pastQuestionYears, isLoading } = usePastQuestions();
+    const { data: pastQuestionYears, isLoading, error } = usePastQuestions();
 
     const filteredYears = (pastQuestionYears || []).filter((item) =>
         searchQuery ? String(item.year).includes(searchQuery) : true
@@ -58,6 +58,7 @@ export default function PastQuestionsPage() {
                         <DataContainer
                             isLoading={isLoading}
                             data={filteredYears}
+                            errorMessage={error instanceof Error ? error.message : undefined}
                             emptyIcon={FileQuestion}
                             emptyTitle="No Past Questions Found"
                             emptyDescription={

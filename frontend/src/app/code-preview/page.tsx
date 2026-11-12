@@ -16,7 +16,7 @@ import DataContainer from '@/components/ui/DataContainer';
 export default function CodePreviewPage() {
     const [copied, setCopied] = useState(false);
 
-    const { data: codeData, isLoading } = useCodePreview();
+    const { data: codeData, isLoading, error } = useCodePreview();
 
     const rawCode = codeData?.code || '';
     const codeLines = rawCode
@@ -93,6 +93,7 @@ export default function CodePreviewPage() {
                         <DataContainer
                             isLoading={isLoading}
                             data={codeLines}
+                            errorMessage={error instanceof Error ? error.message : undefined}
                             emptyIcon={Code}
                             emptyTitle="No Code Available"
                             emptyDescription="There are currently no code snippets or preview files uploaded to display."

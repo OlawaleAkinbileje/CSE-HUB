@@ -24,7 +24,6 @@ CSE Hub uses FastAPI for authentication and authorization, and Supabase for the 
 
 - Email/password authentication is handled by the FastAPI backend.
 - Supabase is used for database connectivity and object storage, not for app login/session management.
-- Configure `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` for browser-side storage access when needed.
 - Configure `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `SUPABASE_STORAGE_BUCKET` on the backend for uploads and file retrieval.
 - Keep the service role key server-side only.
 
