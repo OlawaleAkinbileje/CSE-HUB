@@ -27,7 +27,7 @@ CREATE INDEX IF NOT EXISTS resources_created_at_idx
     ON public.resources (created_at DESC);
 
 CREATE TABLE IF NOT EXISTS public.backend_comments (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     resource_id UUID NOT NULL REFERENCES public.resources(id) ON DELETE CASCADE,
     user_id INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     parent_id UUID REFERENCES public.backend_comments(id) ON DELETE CASCADE,
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS public.backend_saved_resources (
 );
 
 CREATE TABLE IF NOT EXISTS public.backend_downloads (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
     resource_id UUID NOT NULL REFERENCES public.resources(id) ON DELETE CASCADE,
     downloaded_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
@@ -58,7 +58,7 @@ CREATE INDEX IF NOT EXISTS backend_downloads_user_idx
     ON public.backend_downloads (user_id, downloaded_at DESC);
 
 CREATE TABLE IF NOT EXISTS public.backend_notifications (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id INTEGER NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
     message TEXT NOT NULL,

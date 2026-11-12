@@ -19,7 +19,7 @@ CREATE TABLE public.profiles (
 
 -- 3. Categories Table
 CREATE TABLE public.categories (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(100) UNIQUE NOT NULL,
     slug VARCHAR(100) UNIQUE NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
@@ -27,7 +27,7 @@ CREATE TABLE public.categories (
 
 -- 4. Courses Table
 CREATE TABLE public.courses (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     course_code VARCHAR(20) UNIQUE NOT NULL, -- e.g., CSC 201
     title VARCHAR(255) NOT NULL,
     level INTEGER NOT NULL, -- 100, 200, 300, 400, 500
@@ -37,7 +37,7 @@ CREATE TABLE public.courses (
 
 -- 5. Resources Table
 CREATE TABLE public.resources (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title VARCHAR(255) NOT NULL,
     description TEXT,
     file_url TEXT NOT NULL,
@@ -67,7 +67,7 @@ CREATE INDEX resources_status_idx ON public.resources (status);
 
 -- 6. Comments & Discussion Table
 CREATE TABLE public.comments (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     resource_id UUID NOT NULL REFERENCES public.resources(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     parent_id UUID REFERENCES public.comments(id) ON DELETE CASCADE,
@@ -85,7 +85,7 @@ CREATE TABLE public.saved_resources (
 
 -- 8. Download Tracking
 CREATE TABLE public.downloads (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
     resource_id UUID REFERENCES public.resources(id) ON DELETE CASCADE,
     downloaded_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
@@ -93,7 +93,7 @@ CREATE TABLE public.downloads (
 
 -- 9. Notifications Table
 CREATE TABLE public.notifications (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
     title VARCHAR(255) NOT NULL,
     message TEXT NOT NULL,

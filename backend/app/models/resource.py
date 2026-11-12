@@ -32,7 +32,7 @@ class ResourceStatus(str, enum.Enum):
 class Resource(Base):
     __tablename__ = "resources"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, server_default=func.uuid_generate_v4())
+    id = Column(UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid())
     title = Column(String(255), nullable=False, index=True)
     description = Column(Text, nullable=True)
     file_url = Column(Text, nullable=False)

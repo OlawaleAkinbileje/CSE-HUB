@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS public.admin_settings (
 );
 
 CREATE TABLE IF NOT EXISTS public.support_tickets (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id INTEGER REFERENCES public.users(id) ON DELETE SET NULL,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(320) NOT NULL,
