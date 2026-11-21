@@ -9,9 +9,22 @@ from app.schemas.user import Token, UserLogin, UserRegister, UserResponse
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
+INSTITUTIONAL_EMAIL_DOMAINS = {"oauife.edu.ng", "students.oauife.edu.ng"}
+INSTITUTIONAL_EMAIL_ERROR = (
+    "Registration requires an OAU-issued email address. "
+    "Use an @oauife.edu.ng or @students.oauife.edu.ng address."
+)
+
 
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def register(user_in: UserRegister, db: Session = Depends(get_db)):
+    email_domain = str(user_in.email).rsplit("@", 1)[-1].lower()
+    if email_domain not in INSTITUTIONAL_EMAIL_DOMAINS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=INSTITUTIONAL_EMAIL_ERROR,
+        )
+
     existing_user = db.query(User).filter(
         (User.email == user_in.email) | (User.username == user_in.username)
     ).first()

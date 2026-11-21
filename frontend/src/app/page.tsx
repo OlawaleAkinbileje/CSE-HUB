@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import Navbar from '@/components/layout/Navbar';
 import SearchInput from '@/components/ui/SearchInput';
 import CategoryCard from '@/components/ui/CategoryCard';
@@ -88,6 +89,13 @@ export default function LandingPage() {
 
             {/* Reusable Search Component */}
             <SearchInput onSearch={handleSearch} />
+
+            <Link
+              href="/register"
+              className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#245CFF] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+            >
+              Create your free account
+            </Link>
 
             {/* Popular Search Tags */}
             <div className="flex flex-wrap items-center gap-2.5 pt-1">

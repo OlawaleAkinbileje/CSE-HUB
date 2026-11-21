@@ -109,12 +109,20 @@ export default function Navbar({
                         </Link>
                     </>
                 ) : (
-                    <Link
-                        href="/login"
-                        className="hidden rounded-lg bg-[#245CFF] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 sm:inline-flex"
-                    >
-                        Sign in
-                    </Link>
+                    <div className="hidden items-center gap-2 sm:flex">
+                        <Link
+                            href="/login"
+                            className="rounded-lg border border-[#245CFF] px-4 py-2 text-sm font-semibold text-[#245CFF] transition-colors hover:bg-[#F6F8FF]"
+                        >
+                            Sign in
+                        </Link>
+                        <Link
+                            href="/register"
+                            className="rounded-lg bg-[#245CFF] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+                        >
+                            Sign up
+                        </Link>
+                    </div>
                 )}
 
                 {/* Mobile Hamburger Toggle */}
@@ -339,6 +347,13 @@ export default function Navbar({
                                     className={mobileLinkClass('/login')}
                                 >
                                     Sign in
+                                </Link>
+                                <Link
+                                    href="/register"
+                                    onClick={() => setMobileMenuOpen(false)}
+                                    className={mobileLinkClass('/register')}
+                                >
+                                    Create an account
                                 </Link>
                             </div>
                         )}

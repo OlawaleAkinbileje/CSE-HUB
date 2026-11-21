@@ -1,11 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Eye, EyeOff, Check, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Check, AlertCircle, CircleCheck } from 'lucide-react';
 import { apiClient } from '@/lib/api';
+
+const INSTITUTIONAL_EMAIL_DOMAINS = new Set([
+    'oauife.edu.ng',
+    'students.oauife.edu.ng',
+]);
 
 export default function RegisterPage() {
     const [fullName, setFullName] = useState('');
@@ -17,13 +21,22 @@ export default function RegisterPage() {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
-
-    const router = useRouter();
+    const [successMsg, setSuccessMsg] = useState('');
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setErrorMsg('');
+        setSuccessMsg('');
+
+        const emailDomain = email.trim().toLowerCase().split('@').pop();
+        if (!emailDomain || !INSTITUTIONAL_EMAIL_DOMAINS.has(emailDomain)) {
+            setErrorMsg(
+                'Registration requires an OAU-issued email address. Use an @oauife.edu.ng or @students.oauife.edu.ng address.'
+            );
+            setLoading(false);
+            return;
+        }
 
         // Client-side validations
         if (!fullName.trim()) {
@@ -54,8 +67,10 @@ export default function RegisterPage() {
                 role: 'student',
             });
 
-            // Redirect to login page on success
-            router.push('/login');
+            setSuccessMsg('Registration successful. Your account has been created. You can now sign in.');
+            setPassword('');
+            setConfirmPassword('');
+            setLoading(false);
         } catch (err: unknown) {
             const response = typeof err === 'object' && err !== null && 'response' in err ? err.response : undefined;
             const data = typeof response === 'object' && response !== null && 'data' in response ? response.data : undefined;
@@ -111,6 +126,23 @@ export default function RegisterPage() {
                         </div>
                     )}
 
+                    {successMsg && (
+                        <div role="status" aria-live="polite" className="mb-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+                            <div className="flex items-start gap-3">
+                                <CircleCheck className="mt-0.5 h-5 w-5 shrink-0" />
+                                <div className="flex-1">
+                                    <p>{successMsg}</p>
+                                    <Link
+                                        href="/login"
+                                        className="mt-3 inline-flex min-h-10 items-center justify-center rounded-lg bg-green-700 px-4 py-2 font-semibold text-white hover:bg-green-800"
+                                    >
+                                        Continue to sign in
+                                    </Link>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Form Fields */}
                     <form onSubmit={handleRegister} className="space-y-[16px]">
 
@@ -141,11 +173,18 @@ export default function RegisterPage() {
                                     type="email"
                                     required
                                     value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
+                                    onChange={(e) => {
+                                        setEmail(e.target.value);
+                                        setErrorMsg('');
+                                        setSuccessMsg('');
+                                    }}
                                     placeholder="Enter your email"
                                     className="w-full bg-transparent text-[#0B123D] text-[16px] placeholder-[#64708C] focus:outline-none"
                                 />
                             </div>
+                            <p className="text-[13px] text-[#64708C]">
+                                Use the email address issued to you by your school or organisation. Personal email addresses are not accepted.
+                            </p>
                         </div>
 
                         {/* Student Matric Number */}
@@ -218,15 +257,15 @@ export default function RegisterPage() {
                         {/* Submit Button */}
                         <button
                             type="submit"
-                            disabled={loading}
+                            disabled={loading || Boolean(successMsg)}
                             className="w-full h-[48px] sm:h-[52px] bg-gradient-to-r from-[#7148FF] to-[#245CFF] rounded-[8px] text-white text-[16px] font-semibold leading-[23.2px] flex items-center justify-center hover:opacity-95 transition-opacity disabled:opacity-50 mt-4"
                         >
-                            {loading ? 'Creating Account...' : 'Create Account'}
+                            {loading ? 'Creating Account...' : successMsg ? 'Account Created' : 'Create Account'}
                         </button>
                     </form>
 
                     <div className="rounded-xl border border-[#E1E6F3] bg-[#F6F8FF] px-4 py-3 text-sm text-[#495471]">
-                        Create your account using your department email and a secure password.
+                        Registration is for members of the school or organisation. Use your institution-assigned email address and a secure password.
                     </div>
                 </div>
 

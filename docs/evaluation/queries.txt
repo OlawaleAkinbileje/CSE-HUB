@@ -1,0 +1,2 @@
+# Add one query from the fixed evaluation query set per line.
+# Base the queries on the actual resource collection and keep the final list unchanged.

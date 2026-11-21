@@ -234,9 +234,10 @@ has not been performed.
    `CORS_ORIGINS`, and database/storage configuration in the hosting platform.
 3. Set `NEXT_PUBLIC_API_URL`, `NEXT_PUBLIC_SITE_URL`, and Supabase public
    configuration for the production frontend.
-4. Configure production email verification and confirm the authoritative
-   student email domains. Registration currently validates email syntax but
-   does not verify ownership or enforce an institutional domain.
+4. Configure production email verification. Self-registration accepts only
+   addresses ending in `@oauife.edu.ng` or `@students.oauife.edu.ng`; this
+   domain check does not verify that the registrant owns or can access the
+   address.
 5. Decide how staff/admin accounts are provisioned and verify admin bootstrap,
    account suspension, and role changes on the hosted database.
 6. Add backend tests for role authorization, account registration, SQL-backed
