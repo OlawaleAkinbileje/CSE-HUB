@@ -49,7 +49,7 @@ export default function SystemSettingsPage() {
     const [userAccess, setUserAccess] = useState({
         defaultRole: "Student",
         sessionTimeout: "60 minutes",
-        approvedDomains: "cse.edu.ng, student.cse.edu.ng",
+        approvedDomains: "oauife.edu.ng, student.oauife.ng",
         requireVerifiedEmail: true,
         requireAdmin2FA: true,
         allowSelfRegistration: true,

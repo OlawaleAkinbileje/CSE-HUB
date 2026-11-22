@@ -353,7 +353,7 @@ export default function Navbar({
                                     onClick={() => setMobileMenuOpen(false)}
                                     className={mobileLinkClass('/register')}
                                 >
-                                    Create an account
+                                    Sign up
                                 </Link>
                             </div>
                         )}

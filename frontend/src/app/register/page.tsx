@@ -3,7 +3,9 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Eye, EyeOff, Check, AlertCircle, CircleCheck } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Eye, EyeOff, Check, AlertCircle } from 'lucide-react';
+import axios from 'axios';
 import { apiClient } from '@/lib/api';
 
 const INSTITUTIONAL_EMAIL_DOMAINS = new Set([
@@ -12,6 +14,7 @@ const INSTITUTIONAL_EMAIL_DOMAINS = new Set([
 ]);
 
 export default function RegisterPage() {
+    const router = useRouter();
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [matricNumber, setMatricNumber] = useState('');
@@ -21,13 +24,13 @@ export default function RegisterPage() {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
-    const [successMsg, setSuccessMsg] = useState('');
+    const [showSignInLink, setShowSignInLink] = useState(false);
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setErrorMsg('');
-        setSuccessMsg('');
+        setShowSignInLink(false);
 
         const emailDomain = email.trim().toLowerCase().split('@').pop();
         if (!emailDomain || !INSTITUTIONAL_EMAIL_DOMAINS.has(emailDomain)) {
@@ -67,22 +70,46 @@ export default function RegisterPage() {
                 role: 'student',
             });
 
-            setSuccessMsg('Your OAU Hub account was created successfully. Sign in with your new account to continue.');
-            setPassword('');
-            setConfirmPassword('');
-            setLoading(false);
+            router.push('/register/success');
         } catch (err: unknown) {
             const response = typeof err === 'object' && err !== null && 'response' in err ? err.response : undefined;
             const data = typeof response === 'object' && response !== null && 'data' in response ? response.data : undefined;
             const detail = typeof data === 'object' && data !== null && 'detail' in data ? data.detail : undefined;
+            const status = typeof response === 'object' && response !== null && 'status' in response ? response.status : undefined;
+            const duplicateAccount = typeof detail === 'string' && detail.toLowerCase().includes('already exists');
 
-            const message = typeof detail === 'string'
+            if (duplicateAccount) {
+                try {
+                    await apiClient.post('/auth/login', {
+                        email: email.trim(),
+                        password,
+                    });
+                    router.push('/register/success?existing=1');
+                    return;
+                } catch (signInError: unknown) {
+                    if (!axios.isAxiosError(signInError) || !signInError.response) {
+                        setErrorMsg('An account already exists for these details, but we could not verify the sign-in. Try signing in directly.');
+                        setShowSignInLink(true);
+                        setLoading(false);
+                        return;
+                    }
+                }
+            }
+
+            const message = duplicateAccount
+                ? typeof detail === 'string'
+                    ? detail
+                    : 'An account already exists. Please sign in or use different registration details.'
+                : typeof detail === 'string'
                 ? detail
                 : Array.isArray(detail) && detail[0]?.msg
                     ? detail[0].msg
-                    : 'An unexpected error occurred during account creation.';
+                    : axios.isAxiosError(err) && (!err.response || (typeof status === 'number' && status >= 500))
+                        ? 'We could not confirm the registration result. Your account may already have been created. Try signing in before submitting the registration form again.'
+                        : 'We could not complete registration. Please review your details and try again.';
 
             setErrorMsg(message);
+            setShowSignInLink(duplicateAccount || (axios.isAxiosError(err) && (!err.response || (typeof status === 'number' && status >= 500))));
             setLoading(false);
         }
     };
@@ -111,7 +138,7 @@ export default function RegisterPage() {
                     {/* Heading */}
                     <div className="space-y-1 mb-6">
                         <h1 className="text-[30px] sm:text-[34px] font-bold leading-[1.3] text-[#0B123D]">
-                            Create Your Account
+                            Sign up
                         </h1>
                         <p className="text-[15px] sm:text-[16px] font-normal leading-[21.75px] text-[#64708C]">
                             Join the CSE Resource Search Hub today
@@ -122,28 +149,19 @@ export default function RegisterPage() {
                     {errorMsg && (
                         <div className="mb-4 bg-red-50 border border-red-200 text-red-600 px-4 py-2.5 rounded-xl flex items-center gap-3 text-sm">
                             <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                            <span>{errorMsg}</span>
+                            <div>
+                                <span>{errorMsg}</span>
+                                {showSignInLink && (
+                                    <p className="mt-2">
+                                        <Link href="/login" className="font-semibold underline">
+                                            Go to sign in
+                                        </Link>
+                                    </p>
+                                )}
+                            </div>
                         </div>
                     )}
 
-                    {successMsg ? (
-                        <div role="status" aria-live="polite" className="rounded-xl border border-green-200 bg-green-50 px-5 py-5 text-green-900">
-                            <div className="flex items-start gap-3">
-                                <CircleCheck className="mt-0.5 h-6 w-6 shrink-0 text-green-700" />
-                                <div>
-                                    <h2 className="font-semibold">Registration successful</h2>
-                                    <p className="mt-1 text-sm">{successMsg}</p>
-                                    <Link
-                                        href="/login"
-                                        className="mt-4 inline-flex min-h-11 items-center justify-center rounded-lg bg-green-700 px-5 py-2 font-semibold text-white hover:bg-green-800"
-                                    >
-                                        Continue to sign in
-                                    </Link>
-                                </div>
-                            </div>
-                        </div>
-                    ) : (
-                    <>
                     {/* Form Fields */}
                     <form onSubmit={handleRegister} className="space-y-[16px]">
 
@@ -177,7 +195,6 @@ export default function RegisterPage() {
                                     onChange={(e) => {
                                         setEmail(e.target.value);
                                         setErrorMsg('');
-                                        setSuccessMsg('');
                                     }}
                                     placeholder="Enter your email"
                                     className="w-full bg-transparent text-[#0B123D] text-[16px] placeholder-[#64708C] focus:outline-none"
@@ -261,15 +278,13 @@ export default function RegisterPage() {
                             disabled={loading}
                             className="w-full h-[48px] sm:h-[52px] bg-gradient-to-r from-[#7148FF] to-[#245CFF] rounded-[8px] text-white text-[16px] font-semibold leading-[23.2px] flex items-center justify-center hover:opacity-95 transition-opacity disabled:opacity-50 mt-4"
                         >
-                            {loading ? 'Creating Account...' : 'Create Account'}
+                            {loading ? 'Signing up...' : 'Sign up'}
                         </button>
                     </form>
 
                     <div className="rounded-xl border border-[#E1E6F3] bg-[#F6F8FF] px-4 py-3 text-sm text-[#495471]">
                         Registration is for members of the school or organisation. Use your institution-assigned email address and a secure password.
                     </div>
-                    </>
-                    )}
                 </div>
 
                 {/* Footer Redirect */}

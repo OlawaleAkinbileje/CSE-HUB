@@ -94,7 +94,7 @@ export default function LandingPage() {
               href="/register"
               className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#245CFF] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
             >
-              Create your free account
+              Sign up
             </Link>
 
             {/* Popular Search Tags */}

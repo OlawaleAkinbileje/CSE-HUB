@@ -47,9 +47,19 @@ def register(user_in: UserRegister, db: Session = Depends(get_db)):
         is_active=True,
     )
     db.add(user)
-    db.commit()
+    db.flush()
     db.refresh(user)
-    return user
+    response = UserResponse(
+        id=str(user.id),
+        email=user.email,
+        username=user.username,
+        full_name=user.full_name,
+        role=user.role.value if isinstance(user.role, UserRole) else str(user.role),
+        is_active=user.is_active,
+        created_at=user.created_at,
+    )
+    db.commit()
+    return response
 
 
 @router.post("/login", response_model=Token)
