@@ -29,7 +29,7 @@ def register(user_in: UserRegister, db: Session = Depends(get_db)):
             detail=INSTITUTIONAL_EMAIL_ERROR,
         )
 
-    existing_user = db.query(User).filter(
+    existing_user = db.query(User.id).filter(
         (User.email == user_in.email) | (User.username == user_in.username)
     ).first()
     if existing_user:
@@ -48,7 +48,6 @@ def register(user_in: UserRegister, db: Session = Depends(get_db)):
     )
     db.add(user)
     db.flush()
-    db.refresh(user)
     response = UserResponse(
         id=str(user.id),
         email=user.email,
