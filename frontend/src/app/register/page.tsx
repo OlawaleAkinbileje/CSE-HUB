@@ -8,7 +8,7 @@ import { apiClient } from '@/lib/api';
 
 const INSTITUTIONAL_EMAIL_DOMAINS = new Set([
     'oauife.edu.ng',
-    'students.oauife.edu.ng',
+    'student.oauife.ng',
 ]);
 
 export default function RegisterPage() {
@@ -32,7 +32,7 @@ export default function RegisterPage() {
         const emailDomain = email.trim().toLowerCase().split('@').pop();
         if (!emailDomain || !INSTITUTIONAL_EMAIL_DOMAINS.has(emailDomain)) {
             setErrorMsg(
-                'Registration requires an OAU-issued email address. Use an @oauife.edu.ng or @students.oauife.edu.ng address.'
+                'Registration requires an OAU-issued email address. Students should use @student.oauife.ng; staff should use @oauife.edu.ng.'
             );
             setLoading(false);
             return;
@@ -67,7 +67,7 @@ export default function RegisterPage() {
                 role: 'student',
             });
 
-            setSuccessMsg('Registration successful. Your account has been created. You can now sign in.');
+            setSuccessMsg('Your OAU Hub account was created successfully. Sign in with your new account to continue.');
             setPassword('');
             setConfirmPassword('');
             setLoading(false);
@@ -126,23 +126,24 @@ export default function RegisterPage() {
                         </div>
                     )}
 
-                    {successMsg && (
-                        <div role="status" aria-live="polite" className="mb-4 rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">
+                    {successMsg ? (
+                        <div role="status" aria-live="polite" className="rounded-xl border border-green-200 bg-green-50 px-5 py-5 text-green-900">
                             <div className="flex items-start gap-3">
-                                <CircleCheck className="mt-0.5 h-5 w-5 shrink-0" />
-                                <div className="flex-1">
-                                    <p>{successMsg}</p>
+                                <CircleCheck className="mt-0.5 h-6 w-6 shrink-0 text-green-700" />
+                                <div>
+                                    <h2 className="font-semibold">Registration successful</h2>
+                                    <p className="mt-1 text-sm">{successMsg}</p>
                                     <Link
                                         href="/login"
-                                        className="mt-3 inline-flex min-h-10 items-center justify-center rounded-lg bg-green-700 px-4 py-2 font-semibold text-white hover:bg-green-800"
+                                        className="mt-4 inline-flex min-h-11 items-center justify-center rounded-lg bg-green-700 px-5 py-2 font-semibold text-white hover:bg-green-800"
                                     >
                                         Continue to sign in
                                     </Link>
                                 </div>
                             </div>
                         </div>
-                    )}
-
+                    ) : (
+                    <>
                     {/* Form Fields */}
                     <form onSubmit={handleRegister} className="space-y-[16px]">
 
@@ -257,16 +258,18 @@ export default function RegisterPage() {
                         {/* Submit Button */}
                         <button
                             type="submit"
-                            disabled={loading || Boolean(successMsg)}
+                            disabled={loading}
                             className="w-full h-[48px] sm:h-[52px] bg-gradient-to-r from-[#7148FF] to-[#245CFF] rounded-[8px] text-white text-[16px] font-semibold leading-[23.2px] flex items-center justify-center hover:opacity-95 transition-opacity disabled:opacity-50 mt-4"
                         >
-                            {loading ? 'Creating Account...' : successMsg ? 'Account Created' : 'Create Account'}
+                            {loading ? 'Creating Account...' : 'Create Account'}
                         </button>
                     </form>
 
                     <div className="rounded-xl border border-[#E1E6F3] bg-[#F6F8FF] px-4 py-3 text-sm text-[#495471]">
                         Registration is for members of the school or organisation. Use your institution-assigned email address and a secure password.
                     </div>
+                    </>
+                    )}
                 </div>
 
                 {/* Footer Redirect */}

@@ -9,10 +9,14 @@ from app.schemas.user import Token, UserLogin, UserRegister, UserResponse
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
-INSTITUTIONAL_EMAIL_DOMAINS = {"oauife.edu.ng", "students.oauife.edu.ng"}
+INSTITUTIONAL_EMAIL_DOMAINS = {"oauife.edu.ng", "student.oauife.ng"}
 INSTITUTIONAL_EMAIL_ERROR = (
     "Registration requires an OAU-issued email address. "
-    "Use an @oauife.edu.ng or @students.oauife.edu.ng address."
+    "Students should use @student.oauife.ng; staff should use @oauife.edu.ng."
+)
+ACCOUNT_EXISTS_ERROR = (
+    "An account with this email address or username already exists. "
+    "Please sign in or use a different email address or matric number."
 )
 
 
@@ -31,7 +35,7 @@ def register(user_in: UserRegister, db: Session = Depends(get_db)):
     if existing_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="User with this email or username already exists.",
+            detail=ACCOUNT_EXISTS_ERROR,
         )
 
     user = User(
