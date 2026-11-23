@@ -92,7 +92,6 @@ function SidebarContent({ userRole }: SidebarProps) {
         { label: 'Dashboard', icon: LayoutDashboard, href: '/staff/dashboard' },
         { label: 'Upload Resource', icon: UploadCloud, href: '/staff/upload' },
         { label: 'Manage Resources', icon: FolderKanban, href: '/staff/manage-resources' },
-        { label: 'Review Submissions', icon: FileSearch, href: '/staff/review-submissions' },
         { label: 'Resources', icon: Bookmark, href: '/my-resources' },
         { label: 'Notifications', icon: Bell, href: '/notifications' },
         { label: 'Help & Support', icon: HelpCircle, href: '/support' },

@@ -4,7 +4,6 @@ import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
 import {
     FileText,
-    Clock,
     Download,
     Users,
 } from 'lucide-react';
@@ -27,11 +26,11 @@ export default function StaffDashboardPage() {
             icon: FileText
         },
         {
-            label: 'Pending Review',
-            count: staffMetrics?.pendingReview.toLocaleString() ?? 'Unavailable',
-            bgColor: 'rgba(255, 146, 53, 0.09)',
-            iconColor: '#FF9235',
-            icon: Clock
+            label: 'Published Resources',
+            count: staffMetrics?.publishedResources.toLocaleString() ?? 'Unavailable',
+            bgColor: 'rgba(0, 159, 117, 0.09)',
+            iconColor: '#009F75',
+            icon: FileText
         },
         {
             label: 'Total Downloads',

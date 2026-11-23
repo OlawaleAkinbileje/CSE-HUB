@@ -197,7 +197,7 @@ function SearchContent() {
                             <p className="text-sm font-semibold text-[#245CFF]">CSE HUB RESOURCE LIBRARY</p>
                             <h1 className="mt-1 text-2xl font-bold sm:text-3xl">Search resources</h1>
                             <p className="mt-2 text-sm text-[#64708C]">
-                                Search approved CSE learning materials. You can browse without an account.
+                                Search CSE learning materials. You can browse without an account.
                             </p>
                         </div>
 
@@ -211,130 +211,82 @@ function SearchContent() {
                             sortBy={sortBy}
                         />
 
-                        <div className="grid items-start gap-6 lg:grid-cols-[280px_minmax(0,1fr)]">
-                            <aside className="self-start rounded-2xl border border-[#E1E6F3] bg-white p-4 shadow-sm lg:sticky lg:top-24">
-                                <div className="mb-3 flex items-center justify-between gap-2">
-                                    <div className="flex items-center gap-2">
-                                        <SlidersHorizontal className="h-4 w-4 text-[#245CFF]" />
-                                        <h2 className="font-bold">Filters</h2>
-                                        {activeFilterCount > 0 && (
-                                            <span className="rounded-full bg-[#E9EDFF] px-2 py-0.5 text-xs font-semibold text-[#245CFF]">
-                                                {activeFilterCount}
+                        <div className="mb-4 flex items-start gap-2">
+                            <details className="group min-w-0 flex-1 rounded-xl border border-[#E1E6F3] bg-white shadow-sm">
+                                <summary className="flex h-11 cursor-pointer list-none items-center gap-2.5 px-3 text-sm font-semibold sm:px-4">
+                                    <SlidersHorizontal className="h-4 w-4 shrink-0 text-[#245CFF]" />
+                                    <span>Filters</span>
+                                    {activeFilterCount > 0 && (
+                                        <span className="rounded-full bg-[#E9EDFF] px-2 py-0.5 text-xs font-semibold text-[#245CFF]">
+                                            {activeFilterCount}
+                                        </span>
+                                    )}
+                                    <span className="hidden text-xs font-normal text-[#64708C] sm:inline">
+                                        Narrow results by type, category or year
+                                    </span>
+                                    <ChevronDown className="ml-auto h-4 w-4 shrink-0 text-[#64708C] transition-transform group-open:rotate-180" />
+                                </summary>
+                                <div className="grid gap-3 border-t border-[#E1E6F3] p-3 sm:grid-cols-2 lg:grid-cols-3">
+                                    <label className="min-w-0 space-y-1 text-xs font-medium text-[#475569]">
+                                        Resource type
+                                        <select
+                                            value={selectedType}
+                                            onChange={(event) => setSelectedType(event.target.value)}
+                                            className="h-9 w-full rounded-lg border border-[#D8DFEC] bg-white px-2.5 text-sm text-[#0B123D] outline-none focus:border-[#245CFF] focus:ring-2 focus:ring-[#245CFF]/20"
+                                        >
+                                            {resourceTypes.map((type) => (
+                                                <option key={type.value} value={type.value}>{type.label}</option>
+                                            ))}
+                                        </select>
+                                    </label>
+                                    <label className="min-w-0 space-y-1 text-xs font-medium text-[#475569]">
+                                        Category
+                                        <select
+                                            value={selectedCategory}
+                                            onChange={(event) => setSelectedCategory(event.target.value)}
+                                            className="h-9 w-full rounded-lg border border-[#D8DFEC] bg-white px-2.5 text-sm text-[#0B123D] outline-none focus:border-[#245CFF] focus:ring-2 focus:ring-[#245CFF]/20"
+                                        >
+                                            <option value="">All categories</option>
+                                            {(optionsQuery.data?.categories || []).map((category) => (
+                                                <option key={category.id} value={category.slug}>{category.name}</option>
+                                            ))}
+                                        </select>
+                                        {optionsQuery.error && (
+                                            <span role="alert" className="block text-xs text-red-600">
+                                                Could not load categories.
                                             </span>
                                         )}
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={clearFilters}
-                                        disabled={activeFilterCount === 0 && sortBy === 'relevance'}
-                                        className="text-xs font-semibold text-[#245CFF] hover:underline disabled:text-[#94A3B8] disabled:no-underline"
-                                    >
-                                        Clear all
-                                    </button>
-                                </div>
-                                <p className="mb-2 text-xs leading-5 text-[#64708C]">
-                                    Filters narrow the results. Sorting only changes their order.
-                                </p>
-
-                                <div className="divide-y divide-[#E1E6F3]">
-                                    <details open className="group py-3">
-                                        <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-semibold">
-                                            Resource type
-                                            <ChevronDown className="h-4 w-4 text-[#64708C] transition-transform group-open:rotate-180" />
-                                        </summary>
-                                        <div className="mt-3 space-y-2">
-                                            {resourceTypes.map((type) => (
-                                                <label key={type.value} className="flex cursor-pointer items-center gap-2.5 text-sm text-[#475569]">
-                                                    <input
-                                                        type="radio"
-                                                        name="resource-type"
-                                                        checked={selectedType === type.value}
-                                                        onChange={() => setSelectedType(type.value)}
-                                                        className="h-4 w-4 accent-[#245CFF]"
-                                                    />
-                                                    {type.label}
-                                                </label>
-                                            ))}
-                                        </div>
-                                    </details>
-
-                                    <details open className="group py-3">
-                                        <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-semibold">
-                                            Category
-                                            <ChevronDown className="h-4 w-4 text-[#64708C] transition-transform group-open:rotate-180" />
-                                        </summary>
-                                        <div className="mt-3 max-h-52 space-y-2 overflow-y-auto">
-                                            <label className="flex cursor-pointer items-center gap-2.5 text-sm text-[#475569]">
-                                                <input
-                                                    type="radio"
-                                                    name="resource-category"
-                                                    checked={!selectedCategory}
-                                                    onChange={() => setSelectedCategory('')}
-                                                    className="h-4 w-4 accent-[#245CFF]"
-                                                />
-                                                All categories
-                                            </label>
-                                            {(optionsQuery.data?.categories || []).map((category) => (
-                                                <label key={category.id} className="flex cursor-pointer items-center gap-2.5 text-sm text-[#475569]">
-                                                    <input
-                                                        type="radio"
-                                                        name="resource-category"
-                                                        checked={selectedCategory === category.slug}
-                                                        onChange={() => setSelectedCategory(category.slug)}
-                                                        className="h-4 w-4 accent-[#245CFF]"
-                                                    />
-                                                    <span className="truncate">{category.name}</span>
-                                                </label>
-                                            ))}
-                                            {!optionsQuery.isLoading && !optionsQuery.error && !optionsQuery.data?.categories.length && (
-                                                <p className="text-xs text-[#64708C]">No categories available.</p>
-                                            )}
-                                            {optionsQuery.error && (
-                                                <p role="alert" className="text-xs text-red-600">
-                                                    Could not load categories.
-                                                </p>
-                                            )}
-                                        </div>
-                                    </details>
-
-                                    <details open className="group py-3">
-                                        <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-semibold">
-                                            Year
-                                            <ChevronDown className="h-4 w-4 text-[#64708C] transition-transform group-open:rotate-180" />
-                                        </summary>
-                                        <div className="mt-3 max-h-44 space-y-2 overflow-y-auto">
-                                            <label className="flex cursor-pointer items-center gap-2.5 text-sm text-[#475569]">
-                                                <input
-                                                    type="radio"
-                                                    name="resource-year"
-                                                    checked={!selectedYear}
-                                                    onChange={() => setSelectedYear('')}
-                                                    className="h-4 w-4 accent-[#245CFF]"
-                                                />
-                                                All years
-                                            </label>
+                                    </label>
+                                    <label className="min-w-0 space-y-1 text-xs font-medium text-[#475569]">
+                                        Year
+                                        <select
+                                            value={selectedYear}
+                                            onChange={(event) => setSelectedYear(event.target.value)}
+                                            className="h-9 w-full rounded-lg border border-[#D8DFEC] bg-white px-2.5 text-sm text-[#0B123D] outline-none focus:border-[#245CFF] focus:ring-2 focus:ring-[#245CFF]/20"
+                                        >
+                                            <option value="">All years</option>
                                             {(optionsQuery.data?.years || []).map((year) => (
-                                                <label key={year} className="flex cursor-pointer items-center gap-2.5 text-sm text-[#475569]">
-                                                    <input
-                                                        type="radio"
-                                                        name="resource-year"
-                                                        checked={selectedYear === String(year)}
-                                                        onChange={() => setSelectedYear(String(year))}
-                                                        className="h-4 w-4 accent-[#245CFF]"
-                                                    />
-                                                    {year}
-                                                </label>
+                                                <option key={year} value={String(year)}>{year}</option>
                                             ))}
-                                        </div>
-                                    </details>
+                                        </select>
+                                    </label>
                                 </div>
-                            </aside>
+                            </details>
+                            <button
+                                type="button"
+                                onClick={clearFilters}
+                                disabled={activeFilterCount === 0 && sortBy === 'relevance'}
+                                className="h-11 shrink-0 rounded-lg border border-[#E1E6F3] bg-white px-3 text-xs font-semibold text-[#245CFF] transition-colors hover:bg-[#F6F8FF] disabled:text-[#94A3B8] disabled:hover:bg-white sm:px-4"
+                            >
+                                Clear
+                            </button>
+                        </div>
 
-                            <section className="min-w-0">
+                        <section className="min-w-0">
                                 <div className="mb-4 flex flex-col gap-3 rounded-xl border border-[#E1E6F3] bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
                                     <div>
                                         <h2 className="font-bold">
-                                            {query ? `Results for “${query}”` : 'Approved resources'}
+                                            {query ? `Results for “${query}”` : 'Available resources'}
                                         </h2>
                                         <p className="mt-1 text-sm text-[#64708C]">
                                             {isLoading ? 'Searching…' : `${searchResults?.count ?? 0} resources found`}
@@ -421,8 +373,7 @@ function SearchContent() {
                                         </div>
                                     )}
                                 </DataContainer>
-                            </section>
-                        </div>
+                        </section>
                     </main>
                     <Footer />
                 </div>

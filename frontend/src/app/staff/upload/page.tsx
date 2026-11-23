@@ -71,14 +71,14 @@ export default function UploadResourcePage() {
             return response.data as { status: string };
         },
         onSuccess: async () => {
-            setSuccessMessage('Resource submitted for review.');
+            setSuccessMessage('Resource uploaded and published. Students can now find it in search.');
             setFile(null);
             setTitle('');
             setDescription('');
             setKeywords('');
             await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ['staff', 'submissions'] }),
                 queryClient.invalidateQueries({ queryKey: ['staff', 'managed-resources'] }),
+                queryClient.invalidateQueries({ queryKey: ['resources'] }),
             ]);
         },
     });
@@ -99,7 +99,7 @@ export default function UploadResourcePage() {
                         <div>
                             <h1 className="text-2xl md:text-3xl font-bold">Upload a Resource</h1>
                             <p className="mt-1 text-sm text-[#64708C]">
-                                Add an academic file. It will be reviewed before it becomes visible to students.
+                                Add an academic file. It will be published immediately and made available to students.
                             </p>
                         </div>
 

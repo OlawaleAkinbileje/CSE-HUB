@@ -238,13 +238,6 @@ export default function Navbar({
                                     Manage Resources
                                 </Link>
                                 <Link
-                                    href="/staff/review-submissions"
-                                    onClick={() => setMobileMenuOpen(false)}
-                                    className={mobileLinkClass('/staff/review-submissions')}
-                                >
-                                    Review Submissions
-                                </Link>
-                                <Link
                                     href="/my-resources"
                                     onClick={() => setMobileMenuOpen(false)}
                                     className={mobileLinkClass('/my-resources')}

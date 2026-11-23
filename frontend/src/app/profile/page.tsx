@@ -7,7 +7,6 @@ import {
     BarChart2,
     Bell,
     CircleUserRound,
-    FileSearch,
     FolderKanban,
     Home,
     HelpCircle,
@@ -49,7 +48,6 @@ export default function ProfilePage() {
                 { label: 'Home', href: '/staff/dashboard', icon: Home },
                 { label: 'Upload', href: '/staff/upload', icon: UploadCloud },
                 { label: 'Manage', href: '/staff/manage-resources', icon: FolderKanban },
-                { label: 'Review', href: '/staff/review-submissions', icon: FileSearch },
                 { label: 'Profile', href: '/profile', icon: CircleUserRound },
             ]
             : [

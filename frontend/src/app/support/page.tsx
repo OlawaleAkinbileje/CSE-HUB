@@ -73,7 +73,7 @@ export default function HelpAndSupportPage() {
             id: "faq-3",
             question: "Can I upload my own lecture notes?",
             answerText1:
-                "Students can upload course materials for approval if peer contributions are enabled by your department. Staff members can upload files directly through the Staff Workspace.",
+                "Staff members can upload course materials directly through the Staff Workspace. New uploads are published immediately and made available to students.",
         },
         {
             id: "faq-4",
@@ -106,8 +106,8 @@ export default function HelpAndSupportPage() {
             href: "#",
         },
         {
-            title: "Sharing & Reviews",
-            description: "Uploads and approval guidance",
+            title: "Sharing Resources",
+            description: "Upload and resource guidance",
             articleCount: "7 articles →",
             icon: Share2,
             href: "#",

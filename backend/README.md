@@ -14,9 +14,11 @@ storage are provided by Supabase.
    npx supabase migration up --local
    ```
 
-   The migration creates the private `cse-hub-files` Storage bucket. This
-   project configures Studio on port `54326`, the Supabase API on `54322`, and
-   PostgreSQL on `54332`.
+   Migrations keep the database schema aligned, publish existing resources that
+   were waiting for review, and configure the private `cse-hub-files` Storage
+   bucket. New staff uploads are published immediately. This project configures
+   Studio on port `54326`, the Supabase API on `54322`, and PostgreSQL on
+   `54332`.
 3. Configure `backend/.env` with:
    - `DATABASE_URL` pointing to the Supabase PostgreSQL database
    - `SUPABASE_URL` set to `http://127.0.0.1:54322` for local development

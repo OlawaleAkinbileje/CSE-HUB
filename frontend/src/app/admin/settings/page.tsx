@@ -41,7 +41,6 @@ export default function SystemSettingsPage() {
         maxFileSize: "20 MB",
         defaultVisibility: "Public — Registered users",
         allowedFormats: "PDF, DOC, DOCX, PPT, ZIP, RAR, JPG, PNG",
-        requireApproval: true,
         detectDuplicates: true,
         scanThreats: true,
     });
@@ -56,8 +55,6 @@ export default function SystemSettingsPage() {
     });
 
     const [notifications, setNotifications] = useState({
-        reviewQueueAlerts: true,
-        decisionEmails: true,
         systemAnnouncements: true,
         activityDigest: "Weekly — Monday",
         deliveryTime: "08:00 WAT",
@@ -84,9 +81,18 @@ export default function SystemSettingsPage() {
             const settings = data.settings;
             if (settings.generalSettings) setGeneralSettings(settings.generalSettings);
             if (settings.searchSettings) setSearchSettings(settings.searchSettings);
-            if (settings.resourcePolicy) setResourcePolicy(settings.resourcePolicy);
+            if (settings.resourcePolicy) {
+                const resourcePolicySettings = { ...settings.resourcePolicy };
+                delete resourcePolicySettings.requireApproval;
+                setResourcePolicy(resourcePolicySettings);
+            }
             if (settings.userAccess) setUserAccess(settings.userAccess);
-            if (settings.notifications) setNotifications(settings.notifications);
+            if (settings.notifications) {
+                const notificationSettings = { ...settings.notifications };
+                delete notificationSettings.reviewQueueAlerts;
+                delete notificationSettings.decisionEmails;
+                setNotifications(notificationSettings);
+            }
             if (settings.backupSettings) setBackupSettings(settings.backupSettings);
             setSettingsLoadedAt(data.updatedAt);
             setIsLoadingSettings(false);
@@ -509,37 +515,10 @@ export default function SystemSettingsPage() {
                                         <div className="flex items-center justify-between gap-4">
                                             <div>
                                                 <div className="text-xs font-semibold text-[#0B123D]">
-                                                    Require approval before publication
-                                                </div>
-                                                <div className="text-xs text-[#64708C] mt-0.5">
-                                                    New uploads and replacement files must pass staff review.
-                                                </div>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    setResourcePolicy({
-                                                        ...resourcePolicy,
-                                                        requireApproval: !resourcePolicy.requireApproval,
-                                                    })
-                                                }
-                                                className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${resourcePolicy.requireApproval ? "bg-[#245CFF]" : "bg-[#B0BAD3]"
-                                                    }`}
-                                            >
-                                                <span
-                                                    className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${resourcePolicy.requireApproval ? "translate-x-5" : ""
-                                                        }`}
-                                                />
-                                            </button>
-                                        </div>
-
-                                        <div className="flex items-center justify-between gap-4">
-                                            <div>
-                                                <div className="text-xs font-semibold text-[#0B123D]">
                                                     Detect duplicate submissions
                                                 </div>
                                                 <div className="text-xs text-[#64708C] mt-0.5">
-                                                    Flag matching files and similar resource titles for review.
+                                                    Flag matching files and similar resource titles for follow-up.
                                                 </div>
                                             </div>
                                             <button
@@ -751,60 +730,6 @@ export default function SystemSettingsPage() {
                                     </div>
 
                                     <div className="space-y-4">
-                                        <div className="flex items-center justify-between gap-4">
-                                            <div>
-                                                <div className="text-xs font-semibold text-[#0B123D]">
-                                                    Review queue alerts
-                                                </div>
-                                                <div className="text-xs text-[#64708C] mt-0.5">
-                                                    Notify assigned staff when a resource is submitted or resubmitted.
-                                                </div>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    setNotifications({
-                                                        ...notifications,
-                                                        reviewQueueAlerts: !notifications.reviewQueueAlerts,
-                                                    })
-                                                }
-                                                className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${notifications.reviewQueueAlerts ? "bg-[#245CFF]" : "bg-[#B0BAD3]"
-                                                    }`}
-                                            >
-                                                <span
-                                                    className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${notifications.reviewQueueAlerts ? "translate-x-5" : ""
-                                                        }`}
-                                                />
-                                            </button>
-                                        </div>
-
-                                        <div className="flex items-center justify-between gap-4">
-                                            <div>
-                                                <div className="text-xs font-semibold text-[#0B123D]">
-                                                    Decision emails
-                                                </div>
-                                                <div className="text-xs text-[#64708C] mt-0.5">
-                                                    Email contributors when resources are approved or need changes.
-                                                </div>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    setNotifications({
-                                                        ...notifications,
-                                                        decisionEmails: !notifications.decisionEmails,
-                                                    })
-                                                }
-                                                className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${notifications.decisionEmails ? "bg-[#245CFF]" : "bg-[#B0BAD3]"
-                                                    }`}
-                                            >
-                                                <span
-                                                    className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${notifications.decisionEmails ? "translate-x-5" : ""
-                                                        }`}
-                                                />
-                                            </button>
-                                        </div>
-
                                         <div className="flex items-center justify-between gap-4">
                                             <div>
                                                 <div className="text-xs font-semibold text-[#0B123D]">

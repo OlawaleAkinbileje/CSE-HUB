@@ -84,7 +84,7 @@ def get_staff_dashboard_metrics(
             """
             SELECT
                 (SELECT count(*) FROM public.resources) AS total_resources,
-                (SELECT count(*) FROM public.resources WHERE status::text = 'pending') AS pending_review,
+                (SELECT count(*) FROM public.resources WHERE status::text = 'approved') AS published_resources,
                 (SELECT count(*) FROM public.backend_downloads) AS total_downloads,
                 (SELECT count(*) FROM public.users WHERE is_active) AS active_users
             """
@@ -107,7 +107,7 @@ def get_staff_dashboard_metrics(
     return {
         "metrics": {
             "totalResources": metrics["total_resources"],
-            "pendingReview": metrics["pending_review"],
+            "publishedResources": metrics["published_resources"],
             "totalDownloads": metrics["total_downloads"],
             "activeUsers": metrics["active_users"],
         },
@@ -136,7 +136,7 @@ def get_admin_dashboard_metrics(
             SELECT
                 (SELECT count(*) FROM public.resources) AS total_resources,
                 (SELECT count(*) FROM public.users) AS total_users,
-                (SELECT count(*) FROM public.resources WHERE status::text = 'pending') AS pending_review,
+                (SELECT count(*) FROM public.resources WHERE status::text = 'approved') AS published_resources,
                 (SELECT count(*) FROM public.backend_downloads) AS total_downloads
             """
         )
@@ -177,7 +177,7 @@ def get_admin_dashboard_metrics(
         "metrics": {
             "totalResources": metrics["total_resources"],
             "totalUsers": total_users,
-            "pendingReview": metrics["pending_review"],
+            "publishedResources": metrics["published_resources"],
             "totalDownloads": metrics["total_downloads"],
         },
         "userDistribution": distribution,

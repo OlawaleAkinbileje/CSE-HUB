@@ -29,7 +29,7 @@ export function useStudentDashboard() {
 export interface StaffDashboardData {
   metrics: {
     totalResources: number;
-    pendingReview: number;
+    publishedResources: number;
     totalDownloads: number;
     activeUsers: number;
   };
@@ -51,7 +51,7 @@ export interface AdminDashboardData {
   metrics: {
     totalResources: number;
     totalUsers: number;
-    pendingReview: number;
+    publishedResources: number;
     totalDownloads: number;
   };
   userDistribution: { label: string; count: number; percentage: string; color: string }[];
@@ -170,43 +170,6 @@ export function useMyResources(tab: string = "saved") {
         ...resource,
         category: categories[resource.category] || resource.category,
       }));
-    },
-  });
-}
-
-// Staff Submissions Query
-export interface SubmissionItem {
-  id: string;
-  title: string;
-  submitterName: string;
-  submitterRole: string;
-  submitterEmail: string;
-  submitterId: string;
-  course: string;
-  courseTitle: string;
-  academicYear: string;
-  category: string;
-  fileType: string;
-  fileName: string;
-  fileSize: string;
-  pageCount: number;
-  visibility: string;
-  tags: string[];
-  submittedDate: string;
-  status: "Pending" | "Approved" | "Rejected" | "Changes Requested" | "Archived";
-  urgent?: boolean;
-}
-
-export function useStaffSubmissions(status?: string) {
-  return useQuery<SubmissionItem[]>({
-    queryKey: ["staff", "submissions", status],
-    queryFn: async () => {
-      const url = status ? `/resources/submissions?status=${status}` : "/resources/submissions";
-      const res = await apiClient.get(url);
-      if (!Array.isArray(res.data)) {
-        throw new Error("The submission list response was invalid.");
-      }
-      return res.data;
     },
   });
 }

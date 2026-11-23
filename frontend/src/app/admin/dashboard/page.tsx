@@ -5,7 +5,6 @@ import Sidebar from '@/components/layout/Sidebar';
 import {
     FileText,
     Users,
-    Clock,
     Download,
 } from 'lucide-react';
 import Footer from '@/components/layout/footer';
@@ -33,11 +32,11 @@ export default function AdminDashboardPage() {
             icon: Users
         },
         {
-            label: 'Pending Review',
-            count: adminMetrics?.pendingReview.toLocaleString() ?? 'Unavailable',
-            bgColor: 'rgba(255, 72, 105, 0.09)',
-            iconColor: '#FF4869',
-            icon: Clock
+            label: 'Published Resources',
+            count: adminMetrics?.publishedResources.toLocaleString() ?? 'Unavailable',
+            bgColor: 'rgba(0, 159, 117, 0.09)',
+            iconColor: '#009F75',
+            icon: FileText
         },
         {
             label: 'Total Downloads',

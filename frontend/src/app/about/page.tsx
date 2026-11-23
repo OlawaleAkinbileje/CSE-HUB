@@ -76,7 +76,7 @@ export default function AboutPage() {
         {
             title: "Staff",
             description:
-                "Share learning materials, keep resources up to date and review student contributions.",
+                "Share learning materials and keep department resources up to date.",
             icon: UserCheck,
         },
         {
@@ -104,7 +104,7 @@ export default function AboutPage() {
             step: 3,
             title: "Contribute responsibly",
             description:
-                "Upload useful content with clear metadata. Staff review submissions before publication.",
+                "Upload useful content with clear metadata. New staff uploads are available to students immediately.",
         },
     ];
 
@@ -238,7 +238,7 @@ export default function AboutPage() {
                                         Resources &amp; Community
                                     </h3>
                                     <p className="text-xs text-[#64708C] leading-relaxed">
-                                        Explore Lecture Notes, Past Questions, Projects, Code Samples and the Knowledge Hub. Resources are contributed by members of the department and reviewed for relevance and quality.
+                                        Explore Lecture Notes, Past Questions, Projects, Code Samples and the Knowledge Hub. Resources are contributed by members of the department and shared with students.
                                     </p>
                                     <hr className="border-[#E1E6F3]" />
                                     <h4 className="text-xs font-semibold text-[#0B123D]">

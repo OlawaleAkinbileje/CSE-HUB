@@ -11,7 +11,6 @@ import {
     Plus,
     FileText,
     CheckCircle2,
-    Clock,
     Download,
     Edit2,
     Archive,
@@ -41,7 +40,6 @@ export default function ManageResourcesPage() {
     });
 
     const publishedCount = resources.filter((r) => r.status === "Published").length;
-    const pendingCount = resources.filter((r) => r.status === "Pending").length;
     const draftCount = resources.filter((r) => r.status === "Draft").length;
     const archivedCount = resources.filter((r) => r.status === "Archived").length;
     const totalDownloads = resources.reduce((acc, r) => acc + (r.downloads || 0), 0);
@@ -144,12 +142,12 @@ export default function ManageResourcesPage() {
                             </div>
 
                             <div className="bg-white p-5 rounded-2xl border border-[#E1E6F3] shadow-[0px_5px_18px_rgba(39,63,121,0.06)] flex items-center gap-4">
-                                <div className="w-[50px] h-[54px] bg-[rgba(184,106,23,0.09)] rounded-xl flex items-center justify-center">
-                                    <Clock className="w-6 h-6 text-[#B86A17]" />
+                                <div className="w-[50px] h-[54px] bg-[rgba(113,72,255,0.09)] rounded-xl flex items-center justify-center">
+                                    <Archive className="w-6 h-6 text-[#7148FF]" />
                                 </div>
                                 <div>
-                                    <div className="text-2xl font-bold text-[#0B123D]">{isLoading ? '...' : pendingCount}</div>
-                                    <div className="text-xs text-[#64708C]">Pending review</div>
+                                    <div className="text-2xl font-bold text-[#0B123D]">{isLoading ? '...' : archivedCount}</div>
+                                    <div className="text-xs text-[#64708C]">Archived</div>
                                 </div>
                             </div>
 
@@ -185,7 +183,6 @@ export default function ManageResourcesPage() {
                                     >
                                         <option value="All statuses">All statuses</option>
                                         <option value="Published">Published</option>
-                                        <option value="Pending">Pending</option>
                                         <option value="Draft">Draft</option>
                                         <option value="Archived">Archived</option>
                                     </select>
@@ -205,9 +202,6 @@ export default function ManageResourcesPage() {
                                 </span>
                                 <span className="px-2.5 py-1 bg-[#F6F8FF] text-[#64708C] text-xs font-semibold rounded-full">
                                     Draft {draftCount}
-                                </span>
-                                <span className="px-2.5 py-1 bg-[#FFF5EB] text-[#B86A17] text-xs font-semibold rounded-full">
-                                    Pending {pendingCount}
                                 </span>
                                 <span className="px-2.5 py-1 bg-[#F6F8FF] text-[#64708C] text-xs font-semibold rounded-full">
                                     Archived {archivedCount}

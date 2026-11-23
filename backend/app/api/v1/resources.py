@@ -82,11 +82,6 @@ class CommentCreate(BaseModel):
     parent_id: Optional[uuid.UUID] = None
 
 
-class ReviewDecision(BaseModel):
-    action: str
-    notes: Optional[str] = Field(default=None, max_length=2000)
-
-
 class ResourceMetadataUpdate(BaseModel):
     title: Optional[str] = Field(default=None, min_length=1, max_length=255)
     description: Optional[str] = Field(default=None, max_length=10000)
@@ -406,7 +401,7 @@ def get_code_preview(db: Session = Depends(get_db)):
         )
     ).mappings().first()
     if resource is None:
-        raise HTTPException(status_code=404, detail="No approved code samples are available")
+        raise HTTPException(status_code=404, detail="No published code samples are available")
 
     values = _resource_values(resource)
     code = resource["description"] or ""
@@ -481,116 +476,6 @@ def get_my_resources(
         resource["downloadStatus"] = "Downloaded" if tab == "downloaded" else "Saved"
         result.append(resource)
     return result
-
-
-@router.get("/submissions")
-def get_staff_submissions(
-    status_filter: str = Query("pending", alias="status"),
-    db: Session = Depends(get_db),
-    current_user: User = Depends(allow_staff_or_admin),
-):
-    if status_filter not in {"pending", "approved", "changes_requested", "rejected", "archived"}:
-        raise HTTPException(status_code=422, detail="Unsupported resource status")
-    rows, _ = _resource_query(
-        db,
-        status_filter=status_filter,
-        limit=100,
-        offset=0,
-    )
-    return [
-        {
-            **row,
-            "submitterName": row["uploader_name"],
-            "submitterRole": "staff",
-            "submitterEmail": "",
-            "course": row["course_code"] or "CSE",
-            "courseTitle": row["course_title"] or "",
-            "category": row["category"],
-            "fileType": row["file_type"],
-            "fileName": row["original_filename"] or row["title"],
-            "fileSize": f"{row['file_size'] / (1024 * 1024):.1f} MB",
-            "submittedDate": row["created_at"],
-            "status": row["status"].replace("_", " ").title(),
-        }
-        for row in rows
-    ]
-
-
-def _review_resource(
-    resource_id: str,
-    action: str,
-    notes: Optional[str],
-    current_user: User,
-    db: Session,
-):
-    status_by_action = {
-        "approve": "approved",
-        "request_changes": "changes_requested",
-        "reject": "rejected",
-    }
-    new_status = status_by_action.get(action)
-    if new_status is None:
-        raise HTTPException(
-            status_code=422,
-            detail="Action must be approve, request_changes, or reject",
-        )
-    parsed_id = _resource_id(resource_id)
-    result = db.execute(
-        text(
-            """
-            UPDATE public.resources
-            SET status = CAST(:new_status AS public.resource_status),
-                updated_at = NOW()
-            WHERE id = :resource_id AND status::text = 'pending'
-            RETURNING id, title, backend_uploader_id
-            """
-        ),
-        {"new_status": new_status, "resource_id": parsed_id},
-    ).mappings().first()
-    if result is None:
-        exists = db.execute(
-            text("SELECT 1 FROM public.resources WHERE id = :resource_id"),
-            {"resource_id": parsed_id},
-        ).first()
-        if exists is None:
-            raise HTTPException(status_code=404, detail="Resource not found")
-        raise HTTPException(status_code=409, detail="Resource is no longer pending review")
-
-    uploader_id = result["backend_uploader_id"]
-    if uploader_id is not None:
-        message = {
-            "approved": "Your resource has been approved and is now available.",
-            "changes_requested": notes or "Please update your resource and resubmit it.",
-            "rejected": notes or "Your resource submission was not approved.",
-        }[new_status]
-        _notify_user(
-            db,
-            uploader_id,
-            f"Resource {new_status.replace('_', ' ')}",
-            f"{result['title']}: {message}",
-            "resource_review",
-        )
-    db.commit()
-    return {"id": str(result["id"]), "status": new_status}
-
-
-@router.post("/approve/{resource_id}")
-def approve_resource(
-    resource_id: str,
-    current_user: User = Depends(allow_staff_or_admin),
-    db: Session = Depends(get_db),
-):
-    return _review_resource(resource_id, "approve", None, current_user, db)
-
-
-@router.post("/{resource_id}/review")
-def review_resource(
-    resource_id: str,
-    decision: ReviewDecision,
-    current_user: User = Depends(allow_staff_or_admin),
-    db: Session = Depends(get_db),
-):
-    return _review_resource(resource_id, decision.action, decision.notes, current_user, db)
 
 
 @router.patch("/{resource_id}")
@@ -758,7 +643,7 @@ def upload_resource(
                 VALUES
                     (:title, :description, :file_url, :file_type, :file_size, :course_id,
                      :category_id, :programming_language, :keywords,
-                     'pending'::public.resource_status, :resource_type,
+                     'approved'::public.resource_status, :resource_type,
                      :storage_key, :original_filename, :uploader_id)
                 RETURNING id
                 """
@@ -787,9 +672,9 @@ def upload_resource(
         _notify_user(
             db,
             current_user.id,
-            "Resource submitted",
-            f"{title.strip()} is awaiting review.",
-            "resource_submission",
+            "Resource published",
+            f"{title.strip()} is now available to students.",
+            "resource_publication",
         )
         db.commit()
     except HTTPException:
@@ -802,7 +687,7 @@ def upload_resource(
     finally:
         file.file.close()
 
-    return {"id": str(resource_id), "status": "pending", "file_url": file_url}
+    return {"id": str(resource_id), "status": "approved", "file_url": file_url}
 
 
 @router.get("/{resource_id}/comments")
