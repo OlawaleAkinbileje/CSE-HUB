@@ -147,7 +147,7 @@ export default function StudentDashboardPage() {
                             {metrics.map((item, idx) => (
                                 <div
                                     key={idx}
-                                    className="h-[123px] p-[22px] bg-white rounded-[16px] shadow-[0px_5px_18px_rgba(39,63,121,0.06)] border border-[#E1E6F3]/50 flex items-center gap-[18px]"
+                                    className="motion-card h-[123px] p-[22px] bg-white rounded-[16px] shadow-[0px_5px_18px_rgba(39,63,121,0.06)] border border-[#E1E6F3]/50 flex items-center gap-[18px]"
                                 >
                                     <div
                                         style={{ backgroundColor: item.bgColor }}
@@ -185,7 +185,7 @@ export default function StudentDashboardPage() {
                                             <div
                                                 key={idx}
                                                 onClick={() => router.push(`/search?category=${card.cat}`)}
-                                                className="h-[138px] p-[22px] bg-white rounded-[16px] shadow-[0px_5px_18px_rgba(39,63_121,0.06)] border border-[#E1E6F3]/50 flex items-center gap-[18px] cursor-pointer hover:border-[#245CFF] transition-all group"
+                                                className="motion-card h-[138px] p-[22px] bg-white rounded-[16px] shadow-[0px_5px_18px_rgba(39,63_121,0.06)] border border-[#E1E6F3]/50 flex items-center gap-[18px] cursor-pointer hover:border-[#245CFF] transition-all group"
                                             >
                                                 {/* Category Square Badge */}
                                                 <div

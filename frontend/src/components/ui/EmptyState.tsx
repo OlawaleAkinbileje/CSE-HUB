@@ -28,7 +28,7 @@ export default function EmptyState({
 }: EmptyStateProps) {
   return (
     <div
-      className={`w-full flex flex-col items-center justify-center p-8 sm:p-12 text-center rounded-2xl border border-dashed border-[#E1E6F3] bg-white/70 ${className}`}
+      className={`motion-card w-full flex flex-col items-center justify-center p-8 sm:p-12 text-center rounded-2xl border border-dashed border-[#E1E6F3] bg-white/70 ${className}`}
     >
       <div className="w-14 h-14 rounded-2xl bg-[#F0F4FF] border border-[#E1E6F3] flex items-center justify-center text-[#245CFF] mb-4 shadow-sm">
         <Icon className="w-7 h-7" />
@@ -62,4 +62,3 @@ export default function EmptyState({
     </div>
   );
 }
-
