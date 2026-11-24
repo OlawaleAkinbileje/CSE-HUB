@@ -10,6 +10,12 @@ from sqlalchemy.orm import Session
 from app.api.deps import RoleChecker, get_optional_current_user
 from app.db.session import get_db
 from app.models.user import User, UserRole
+from app.services.admin_settings import (
+    load_admin_settings,
+    normalize_admin_settings,
+    public_admin_settings,
+    validate_admin_settings,
+)
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
 support_router = APIRouter(prefix="/support", tags=["Support"])
@@ -42,6 +48,11 @@ class CourseCreate(BaseModel):
 
 class SettingsUpdate(BaseModel):
     settings: dict
+
+
+class AnnouncementCreate(BaseModel):
+    title: str = Field(min_length=3, max_length=255)
+    message: str = Field(min_length=5, max_length=4000)
 
 
 class SupportTicketCreate(BaseModel):
@@ -379,14 +390,46 @@ def get_admin_settings(
     _: User = Depends(allow_admin),
 ):
     row = db.execute(
-        text("SELECT settings, updated_at FROM public.admin_settings WHERE id = 1")
+        text("SELECT updated_at FROM public.admin_settings WHERE id = 1")
     ).mappings().first()
     if row is None:
-        return {"settings": None, "updatedAt": None}
+        return {"settings": load_admin_settings(db), "updatedAt": None}
     return {
-        "settings": row["settings"],
+        "settings": load_admin_settings(db),
         "updatedAt": row["updated_at"].isoformat() if row["updated_at"] else None,
     }
+
+
+@router.get("/public-settings")
+def get_public_admin_settings(db: Session = Depends(get_db)):
+    return public_admin_settings(db)
+
+
+@router.post("/announcements", status_code=201)
+def create_system_announcement(
+    body: AnnouncementCreate,
+    db: Session = Depends(get_db),
+    _: User = Depends(allow_admin),
+):
+    settings = load_admin_settings(db)
+    if not settings["notifications"]["systemAnnouncements"]:
+        raise HTTPException(
+            status_code=409,
+            detail="System announcements are disabled in administrator settings.",
+        )
+    result = db.execute(
+        text(
+            """
+            INSERT INTO public.backend_notifications (user_id, title, message, notification_type)
+            SELECT id, :title, :message, 'system_announcement'
+            FROM public.users
+            WHERE is_active = TRUE
+            """
+        ),
+        {"title": body.title.strip(), "message": body.message.strip()},
+    )
+    db.commit()
+    return {"recipients": result.rowcount}
 
 
 @router.put("/settings")
@@ -397,6 +440,11 @@ def save_admin_settings(
 ):
     import json
 
+    normalized_settings = normalize_admin_settings(body.settings)
+    try:
+        validate_admin_settings(normalized_settings)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     row = db.execute(
         text(
             """
@@ -407,10 +455,10 @@ def save_admin_settings(
             RETURNING updated_at
             """
         ),
-        {"settings": json.dumps(body.settings)},
+        {"settings": json.dumps(normalized_settings)},
     ).mappings().one()
     db.commit()
-    return {"settings": body.settings, "updatedAt": row["updated_at"].isoformat()}
+    return {"settings": normalized_settings, "updatedAt": row["updated_at"].isoformat()}
 
 
 @support_router.post("/tickets", status_code=201)

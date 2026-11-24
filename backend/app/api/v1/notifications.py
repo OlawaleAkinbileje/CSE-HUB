@@ -44,7 +44,7 @@ def get_user_notifications(
                 "Reviews"
                 if row["notification_type"] in {"resource_review", "resource_submission"}
                 else "Resources"
-                if row["notification_type"] == "resource_comment"
+                if row["notification_type"] in {"resource_comment", "resource_reply", "resource_publication"}
                 else "System"
             ),
             "timestamp": row["created_at"].isoformat(),

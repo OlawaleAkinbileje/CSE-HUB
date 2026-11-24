@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useCurrentUser } from '@/lib/useCurrentUser';
 import { apiClient } from "@/lib/api";
+import { usePublicAppSettings } from "@/lib/queries";
 
 interface FAQItem {
     id: string;
@@ -31,6 +32,8 @@ interface FAQItem {
 
 export default function HelpAndSupportPage() {
     const currentUser = useCurrentUser();
+    const { data: appSettings } = usePublicAppSettings();
+    const supportEmail = appSettings?.supportEmail || "support@oauife.edu.ng";
     const resourceLinkByRole = {
         student: "/search",
         staff: "/staff/manage-resources",
@@ -61,7 +64,7 @@ export default function HelpAndSupportPage() {
             answerText2:
                 "If you see “Access denied” for a course you are enrolled in, contact support with the resource title, course code and a screenshot. Do not include your password.",
             linkText: "Contact support about download issues →",
-            linkHref: "mailto:support@cse.edu.ng?subject=Download%20troubleshooting",
+            linkHref: `mailto:${supportEmail}?subject=Download%20troubleshooting`,
         },
         {
             id: "faq-2",
@@ -434,10 +437,10 @@ export default function HelpAndSupportPage() {
                                         Email the platform team
                                     </p>
                                     <a
-                                        href="mailto:support@cse.edu.ng"
+                                        href={`mailto:${supportEmail}`}
                                         className="text-xs text-[#245CFF] hover:underline block"
                                     >
-                                        support@cse.edu.ng
+                                        {supportEmail}
                                     </a>
                                 </div>
 

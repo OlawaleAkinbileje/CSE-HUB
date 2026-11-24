@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Search, Bell, ChevronDown, Menu, X, LogOut } from 'lucide-react';
 import { notifyCurrentUserChanged, useCurrentUser } from '@/lib/useCurrentUser';
+import UserAvatar from '@/components/ui/UserAvatar';
+import { usePublicAppSettings } from '@/lib/queries';
 import Cookies from 'js-cookie';
 
 interface NavbarProps {
@@ -21,6 +23,7 @@ export default function Navbar({
     const router = useRouter();
     const pathname = usePathname();
     const currentUser = useCurrentUser();
+    const { data: appSettings } = usePublicAppSettings();
 
     const resolvedRole = userRole || currentUser.role || 'student';
     const resolvedName = currentUser.full_name || currentUser.username || currentUser.email || 'User';
@@ -39,6 +42,10 @@ export default function Navbar({
         Cookies.remove('user_name');
         Cookies.remove('user_username');
         Cookies.remove('user_email');
+        Cookies.remove('user_avatar_url');
+        Cookies.remove('user_department_id');
+        Cookies.remove('user_is_verified');
+        Cookies.remove('profile_loaded');
         notifyCurrentUserChanged();
         router.push('/login');
     };
@@ -67,7 +74,7 @@ export default function Navbar({
                     C
                 </div>
                 <span className="text-xl md:text-2xl font-bold text-[#0B123D]">
-                    CSE Hub
+                    {appSettings?.appName || 'CSE Hub'}
                 </span>
             </Link>
 
@@ -96,9 +103,11 @@ export default function Navbar({
                             <Bell className="w-5 h-5 text-[#0B123D]" />
                         </Link>
                         <Link href="/profile" className="flex items-center gap-3 cursor-pointer">
-                            <div className="w-9 h-9 rounded-full bg-[#245CFF]/10 text-[#245CFF] overflow-hidden relative border border-[#E1E6F3] flex items-center justify-center font-bold text-xs">
-                                {currentUser.initials || resolvedName.slice(0, 2).toUpperCase()}
-                            </div>
+                            <UserAvatar
+                                name={resolvedName}
+                                avatarUrl={currentUser.avatar_url}
+                                className="h-9 w-9 border border-[#E1E6F3] text-xs"
+                            />
                             <div className="hidden sm:flex flex-col text-left">
                                 <span className="text-sm font-bold text-[#0B123D] leading-tight">
                                     {resolvedName}

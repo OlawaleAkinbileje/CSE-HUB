@@ -4,8 +4,9 @@ import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
 import {
     FileText,
+    CheckCircle2,
+    Clock,
     Download,
-    Users,
 } from 'lucide-react';
 import Footer from '@/components/layout/footer';
 import { useStaffDashboard } from '@/lib/queries';
@@ -19,32 +20,32 @@ export default function StaffDashboardPage() {
 
     const metrics = [
         {
-            label: 'Total Resources',
-            count: staffMetrics?.totalResources.toLocaleString() ?? 'Unavailable',
+            label: 'My Uploads',
+            count: staffMetrics?.personalUploads.toLocaleString() ?? 'Unavailable',
             bgColor: 'rgba(0, 197, 138, 0.09)',
             iconColor: '#00C58A',
             icon: FileText
         },
         {
-            label: 'Published Resources',
-            count: staffMetrics?.publishedResources.toLocaleString() ?? 'Unavailable',
+            label: 'Published Uploads',
+            count: staffMetrics?.publishedUploads.toLocaleString() ?? 'Unavailable',
             bgColor: 'rgba(0, 159, 117, 0.09)',
             iconColor: '#009F75',
-            icon: FileText
+            icon: CheckCircle2
         },
         {
-            label: 'Total Downloads',
-            count: staffMetrics?.totalDownloads.toLocaleString() ?? 'Unavailable',
+            label: 'Downloads of My Resources',
+            count: staffMetrics?.resourceDownloads.toLocaleString() ?? 'Unavailable',
             bgColor: 'rgba(36, 92, 255, 0.09)',
             iconColor: '#245CFF',
             icon: Download
         },
         {
-            label: 'Active Users',
-            count: staffMetrics?.activeUsers.toLocaleString() ?? 'Unavailable',
-            bgColor: 'rgba(113, 72, 255, 0.09)',
-            iconColor: '#7148FF',
-            icon: Users
+            label: 'My Resource Downloads · 30 days',
+            count: staffMetrics?.recentResourceDownloads.toLocaleString() ?? 'Unavailable',
+            bgColor: 'rgba(255, 146, 53, 0.09)',
+            iconColor: '#FF9235',
+            icon: Clock
         },
     ];
 

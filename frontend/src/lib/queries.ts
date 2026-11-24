@@ -3,11 +3,45 @@
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
 
+export interface PublicAppSettings {
+  appName: string;
+  academicYear: string;
+  department: string;
+  supportEmail: string;
+  maintenanceMode: boolean;
+  search: {
+    defaultSort: string;
+    resultsPerPage: number;
+    fullTextSearch: boolean;
+  };
+  resourcePolicy: {
+    maxFileSize: string;
+    defaultVisibility: string;
+    allowedFormats: string;
+    detectDuplicates: boolean;
+  };
+  userAccess: {
+    approvedDomains: string;
+    allowSelfRegistration: boolean;
+  };
+}
+
+export function usePublicAppSettings() {
+  return useQuery<PublicAppSettings>({
+    queryKey: ["app", "public-settings"],
+    queryFn: async () => {
+      const response = await apiClient.get<PublicAppSettings>("/admin/public-settings");
+      return response.data;
+    },
+    staleTime: 60_000,
+  });
+}
+
 // Student Dashboard Data
 export interface StudentDashboardData {
   metrics: {
-    totalResources: number;
     downloads: number;
+    recentDownloads: number;
     bookmarks: number;
     recentSearches: number;
   };
@@ -28,10 +62,10 @@ export function useStudentDashboard() {
 // Staff Dashboard Data
 export interface StaffDashboardData {
   metrics: {
-    totalResources: number;
-    publishedResources: number;
-    totalDownloads: number;
-    activeUsers: number;
+    personalUploads: number;
+    publishedUploads: number;
+    resourceDownloads: number;
+    recentResourceDownloads: number;
   };
   recentSubmissions: Record<string, unknown>[];
 }

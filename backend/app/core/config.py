@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     SUPABASE_SERVICE_ROLE_KEY: str = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
     SUPABASE_STORAGE_BUCKET: str = os.getenv("SUPABASE_STORAGE_BUCKET", "cse-hub-files")
     USE_SUPABASE_STORAGE: bool = True
+    RESEND_API_KEY: str = ""
+    EMAIL_FROM: str = ""
+    FRONTEND_URL: str = ""
 
     model_config = SettingsConfigDict(
         env_file=".env",

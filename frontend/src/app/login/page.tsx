@@ -31,7 +31,16 @@ export default function LoginPage() {
                 password,
             });
 
-            const { access_token, role, full_name, username, email: userEmail } = response.data;
+            const {
+                access_token,
+                role,
+                full_name,
+                username,
+                email: userEmail,
+                avatar_url,
+                department_id,
+                is_verified,
+            } = response.data;
 
             // Set cookie expiration based on 'Remember Me'
             const cookieOptions = rememberMe ? { expires: 7 } : {};
@@ -40,6 +49,10 @@ export default function LoginPage() {
             Cookies.set('user_name', full_name || username || '', cookieOptions);
             Cookies.set('user_username', username || '', cookieOptions);
             Cookies.set('user_email', userEmail || '', cookieOptions);
+            Cookies.set('user_avatar_url', avatar_url || '', cookieOptions);
+            Cookies.set('user_department_id', department_id || '', cookieOptions);
+            Cookies.set('user_is_verified', String(Boolean(is_verified)), cookieOptions);
+            Cookies.set('profile_loaded', 'true', cookieOptions);
             notifyCurrentUserChanged();
 
             // Role-based redirect routing
@@ -51,13 +64,16 @@ export default function LoginPage() {
                 router.push('/student/dashboard');
             }
         } catch (err: unknown) {
-            const response = (err as { response?: { data?: { detail?: unknown } } }).response;
+            const response = (err as { response?: { status?: number; data?: { detail?: unknown } } }).response;
             const message = typeof response?.data?.detail === 'string'
                 ? response.data.detail
                 : axios.isAxiosError(err) && !err.response
                     ? 'Unable to reach the CSE Hub server. Check that the backend is running and try again.'
                     : 'An unexpected error occurred during login.';
             setErrorMsg(message);
+            if (response?.status === 403 && message.toLowerCase().includes('verify')) {
+                setErrorMsg(`${message} Use the link below to request another verification email.`);
+            }
             setLoading(false);
         }
     };
@@ -90,7 +106,17 @@ export default function LoginPage() {
                     {errorMsg && (
                         <div className="mb-6 bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-xl flex items-center gap-3 text-sm">
                             <AlertCircle className="w-5 h-5 flex-shrink-0" />
-                            <span>{errorMsg}</span>
+                            <div>
+                                <span>{errorMsg}</span>
+                                {errorMsg.toLowerCase().includes('verify') && (
+                                    <Link
+                                        href={`/verify-email?email=${encodeURIComponent(email.trim())}`}
+                                        className="mt-2 block font-semibold underline"
+                                    >
+                                        Resend verification email
+                                    </Link>
+                                )}
+                            </div>
                         </div>
                     )}
 

@@ -32,8 +32,12 @@ class User(Base):
     )
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)
+    verification_token_hash = Column(String(64), nullable=True)
+    verification_expires_at = Column(DateTime(timezone=True), nullable=True)
+    verification_sent_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    avatar_key = Column(String, nullable=True)
 
     resources = relationship(
         "Resource",

@@ -19,6 +19,7 @@ import Footer from '@/components/layout/footer';
 import DataContainer from '@/components/ui/DataContainer';
 import { apiClient } from '@/lib/api';
 import { useCurrentUser } from '@/lib/useCurrentUser';
+import { usePublicAppSettings } from '@/lib/queries';
 
 interface SearchResource {
     id: string;
@@ -127,6 +128,7 @@ function SearchContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const currentUser = useCurrentUser();
+    const { data: appSettings } = usePublicAppSettings();
     const query = searchParams.get('q') || '';
     const categoryParam = searchParams.get('category') || '';
     const [selectedType, setSelectedType] = useState(
@@ -138,7 +140,14 @@ function SearchContent() {
         ''
     );
     const [selectedYear, setSelectedYear] = useState(searchParams.get('year') || '');
-    const [sortBy, setSortBy] = useState(searchParams.get('sort_by') || 'relevance');
+    const [sortByOverride, setSortByOverride] = useState<string | null>(
+        searchParams.get('sort_by')
+    );
+    const sortBy =
+        searchParams.get('sort_by')
+        || sortByOverride
+        || appSettings?.search.defaultSort
+        || 'relevance';
 
     const optionsQuery = useQuery({
         queryKey: ['resources', 'options'],
@@ -157,9 +166,13 @@ function SearchContent() {
             selectedCategory,
             selectedYear,
             sortBy,
+            appSettings?.search.resultsPerPage,
         ],
         queryFn: async () => {
-            const params: Record<string, string> = { sort_by: sortBy };
+            const params: Record<string, string> = {
+                sort_by: sortBy,
+                limit: String(appSettings?.search.resultsPerPage || 20),
+            };
             if (query.trim()) params.search = query.trim();
             if (selectedType) params.resource_type = selectedType;
             if (selectedCategory) params.category_slug = selectedCategory;
@@ -173,7 +186,7 @@ function SearchContent() {
         setSelectedType('');
         setSelectedCategory('');
         setSelectedYear('');
-        setSortBy('relevance');
+        setSortByOverride(null);
         router.replace(query ? `/search?q=${encodeURIComponent(query)}` : '/search');
     };
 
@@ -275,7 +288,10 @@ function SearchContent() {
                             <button
                                 type="button"
                                 onClick={clearFilters}
-                                disabled={activeFilterCount === 0 && sortBy === 'relevance'}
+                                disabled={
+                                    activeFilterCount === 0
+                                    && sortBy === (appSettings?.search.defaultSort || 'relevance')
+                                }
                                 className="h-11 shrink-0 rounded-lg border border-[#E1E6F3] bg-white px-3 text-xs font-semibold text-[#245CFF] transition-colors hover:bg-[#F6F8FF] disabled:text-[#94A3B8] disabled:hover:bg-white sm:px-4"
                             >
                                 Clear
@@ -296,7 +312,7 @@ function SearchContent() {
                                         <span className="shrink-0 font-medium">Sort by</span>
                                         <select
                                             value={sortBy}
-                                            onChange={(event) => setSortBy(event.target.value)}
+                                            onChange={(event) => setSortByOverride(event.target.value)}
                                             aria-label="Sort search results"
                                             className="min-w-40 rounded-lg border border-[#D8DFEC] bg-white px-3 py-2 text-sm text-[#0B123D] outline-none focus:border-[#245CFF] focus:ring-2 focus:ring-[#245CFF]/20"
                                         >

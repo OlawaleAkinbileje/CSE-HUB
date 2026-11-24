@@ -10,8 +10,6 @@ import {
     Shield,
     Users,
     Bell,
-    Database,
-    AlertTriangle,
     Info,
     Save,
 } from "lucide-react";
@@ -23,47 +21,36 @@ export default function SystemSettingsPage() {
     // Form State Management
     const [generalSettings, setGeneralSettings] = useState({
         appName: "CSE Hub",
-        academicYear: "2024 / 2025",
-        department: "Computer Science and Engineering",
-        timeZone: "Africa/Lagos (WAT)",
-        supportEmail: "support@cse.edu.ng",
+        academicYear: "2026 / 2027",
+        department: "Faculty of Computer Science and Engineering",
+        supportEmail: "support@oauife.edu.ng",
         maintenanceMode: false,
     });
 
     const [searchSettings, setSearchSettings] = useState({
-        defaultSort: "Relevance",
+        defaultSort: "relevance",
         resultsPerPage: "20",
         fullTextSearch: true,
-        automaticIndexing: true,
     });
 
     const [resourcePolicy, setResourcePolicy] = useState({
         maxFileSize: "20 MB",
-        defaultVisibility: "Public — Registered users",
-        allowedFormats: "PDF, DOC, DOCX, PPT, ZIP, RAR, JPG, PNG",
+        defaultVisibility: "Public — all visitors",
+        allowedFormats: "PDF, DOC, DOCX, PPT, PPTX, TXT, MD, PY, JS, JSX, TS, TSX, JAVA, C, H, CPP, SQL, HTML, CSS, JSON",
         detectDuplicates: true,
-        scanThreats: true,
     });
 
     const [userAccess, setUserAccess] = useState({
-        defaultRole: "Student",
-        sessionTimeout: "60 minutes",
-        approvedDomains: "oauife.edu.ng, student.oauife.ng",
-        requireVerifiedEmail: true,
-        requireAdmin2FA: true,
+        approvedDomains: "oauife.edu.ng, student.oauife.edu.ng, pg-student.oauife.edu.ng",
         allowSelfRegistration: true,
     });
 
     const [notifications, setNotifications] = useState({
         systemAnnouncements: true,
-        activityDigest: "Weekly — Monday",
-        deliveryTime: "08:00 WAT",
     });
-
-    const [backupSettings, setBackupSettings] = useState({
-        schedule: "Daily at 02:00 WAT",
-        retention: "30 days",
-    });
+    const [announcementTitle, setAnnouncementTitle] = useState("");
+    const [announcementMessage, setAnnouncementMessage] = useState("");
+    const [isSendingAnnouncement, setIsSendingAnnouncement] = useState(false);
     const [settingsLoadedAt, setSettingsLoadedAt] = useState<string | null>(null);
     const [isLoadingSettings, setIsLoadingSettings] = useState(true);
     const [settingsError, setSettingsError] = useState("");
@@ -81,19 +68,15 @@ export default function SystemSettingsPage() {
             const settings = data.settings;
             if (settings.generalSettings) setGeneralSettings(settings.generalSettings);
             if (settings.searchSettings) setSearchSettings(settings.searchSettings);
-            if (settings.resourcePolicy) {
-                const resourcePolicySettings = { ...settings.resourcePolicy };
-                delete resourcePolicySettings.requireApproval;
-                setResourcePolicy(resourcePolicySettings);
+            if (settings.resourcePolicy) setResourcePolicy(settings.resourcePolicy);
+            if (settings.userAccess) {
+                const userAccessSettings = { ...settings.userAccess };
+                setUserAccess(userAccessSettings);
             }
-            if (settings.userAccess) setUserAccess(settings.userAccess);
             if (settings.notifications) {
                 const notificationSettings = { ...settings.notifications };
-                delete notificationSettings.reviewQueueAlerts;
-                delete notificationSettings.decisionEmails;
                 setNotifications(notificationSettings);
             }
-            if (settings.backupSettings) setBackupSettings(settings.backupSettings);
             setSettingsLoadedAt(data.updatedAt);
             setIsLoadingSettings(false);
         }).catch((error: unknown) => {
@@ -117,7 +100,6 @@ export default function SystemSettingsPage() {
                     resourcePolicy,
                     userAccess,
                     notifications,
-                    backupSettings,
                 },
             });
             setSettingsLoadedAt(response.data.updatedAt);
@@ -129,13 +111,35 @@ export default function SystemSettingsPage() {
         }
     };
 
+    const handleSendAnnouncement = async () => {
+        if (!announcementTitle.trim() || !announcementMessage.trim()) {
+            setSettingsError("Enter both an announcement title and message.");
+            return;
+        }
+        setSettingsError("");
+        setSettingsNotice("");
+        setIsSendingAnnouncement(true);
+        try {
+            const response = await apiClient.post("/admin/announcements", {
+                title: announcementTitle.trim(),
+                message: announcementMessage.trim(),
+            });
+            setSettingsNotice(`Announcement sent to ${response.data.recipients} active accounts.`);
+            setAnnouncementTitle("");
+            setAnnouncementMessage("");
+        } catch (error) {
+            setSettingsError(error instanceof Error ? error.message : "Could not send the announcement.");
+        } finally {
+            setIsSendingAnnouncement(false);
+        }
+    };
+
     const sectionTabs = [
         { id: "general", label: "General", icon: Settings },
         { id: "search", label: "Search & Indexing", icon: Search },
         { id: "policy", label: "Resource Policy", icon: Shield },
         { id: "access", label: "User & Access", icon: Users },
         { id: "notifications", label: "Notifications", icon: Bell },
-        { id: "backup", label: "Backup", icon: Database },
     ];
 
     return (
@@ -236,16 +240,15 @@ export default function SystemSettingsPage() {
                                             <label className="text-xs font-semibold text-[#0B123D]">
                                                 Academic year
                                             </label>
-                                            <select
+                                            <input
+                                                type="text"
                                                 value={generalSettings.academicYear}
                                                 onChange={(e) =>
                                                     setGeneralSettings({ ...generalSettings, academicYear: e.target.value })
                                                 }
+                                                maxLength={20}
                                                 className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
-                                            >
-                                                <option value="2024 / 2025">2024 / 2025</option>
-                                                <option value="2025 / 2026">2025 / 2026</option>
-                                            </select>
+                                            />
                                         </div>
                                     </div>
 
@@ -262,36 +265,19 @@ export default function SystemSettingsPage() {
                                         />
                                     </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        {/* Time zone */}
-                                        <div className="space-y-1.5">
-                                            <label className="text-xs font-semibold text-[#0B123D]">Time zone</label>
-                                            <select
-                                                value={generalSettings.timeZone}
-                                                onChange={(e) =>
-                                                    setGeneralSettings({ ...generalSettings, timeZone: e.target.value })
-                                                }
-                                                className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
-                                            >
-                                                <option value="Africa/Lagos (WAT)">Africa/Lagos (WAT)</option>
-                                                <option value="UTC">UTC</option>
-                                            </select>
-                                        </div>
-
-                                        {/* Support email */}
-                                        <div className="space-y-1.5">
-                                            <label className="text-xs font-semibold text-[#0B123D]">
-                                                Support email
-                                            </label>
-                                            <input
-                                                type="email"
-                                                value={generalSettings.supportEmail}
-                                                onChange={(e) =>
-                                                    setGeneralSettings({ ...generalSettings, supportEmail: e.target.value })
-                                                }
-                                                className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
-                                            />
-                                        </div>
+                                    {/* Support email */}
+                                    <div className="space-y-1.5">
+                                        <label className="text-xs font-semibold text-[#0B123D]">
+                                            Support email
+                                        </label>
+                                        <input
+                                            type="email"
+                                            value={generalSettings.supportEmail}
+                                            onChange={(e) =>
+                                                setGeneralSettings({ ...generalSettings, supportEmail: e.target.value })
+                                            }
+                                            className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
+                                        />
                                     </div>
 
                                     {/* Maintenance Mode Toggle */}
@@ -329,17 +315,9 @@ export default function SystemSettingsPage() {
                                         <div>
                                             <h3 className="text-lg font-bold text-[#0B123D]">Search & Indexing</h3>
                                             <p className="text-xs text-[#64708C] mt-1">
-                                                1,250 / 1,250 resources indexed · 0 failed · Queue: 0
+                                                Configure the resource search behavior used throughout the library.
                                             </p>
                                         </div>
-                                        <span className="px-2.5 py-1 bg-[#E6FAF4] text-[#009F75] text-xs font-semibold rounded-full">
-                                            Healthy
-                                        </span>
-                                    </div>
-
-                                    <div className="text-xs text-[#64708C] border-b border-[#E1E6F3] pb-3 flex items-center gap-2">
-                                        <span className="font-semibold text-[#0B123D]">Last indexed:</span>
-                                        <span>4 Nov 2026, 9:28 AM · Completed in 42 seconds</span>
                                     </div>
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -355,9 +333,9 @@ export default function SystemSettingsPage() {
                                                 }
                                                 className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
                                             >
-                                                <option value="Relevance">Relevance</option>
-                                                <option value="Newest First">Newest First</option>
-                                                <option value="Most Downloaded">Most Downloaded</option>
+                                                <option value="relevance">Relevance</option>
+                                                <option value="newest">Newest First</option>
+                                                <option value="downloads">Most Downloaded</option>
                                             </select>
                                         </div>
 
@@ -388,7 +366,7 @@ export default function SystemSettingsPage() {
                                                     Full-text search
                                                 </div>
                                                 <div className="text-xs text-[#64708C] mt-0.5">
-                                                    Search within supported PDF and document content.
+                                                    Match query terms against the indexed resource title and description.
                                                 </div>
                                             </div>
                                             <button
@@ -409,37 +387,11 @@ export default function SystemSettingsPage() {
                                             </button>
                                         </div>
 
-                                        <div className="flex items-center justify-between gap-4">
-                                            <div>
-                                                <div className="text-xs font-semibold text-[#0B123D]">
-                                                    Automatic indexing
-                                                </div>
-                                                <div className="text-xs text-[#64708C] mt-0.5">
-                                                    Reindex resources when files or metadata change.
-                                                </div>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    setSearchSettings({
-                                                        ...searchSettings,
-                                                        automaticIndexing: !searchSettings.automaticIndexing,
-                                                    })
-                                                }
-                                                className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${searchSettings.automaticIndexing ? "bg-[#245CFF]" : "bg-[#B0BAD3]"
-                                                    }`}
-                                            >
-                                                <span
-                                                    className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${searchSettings.automaticIndexing ? "translate-x-5" : ""
-                                                        }`}
-                                                />
-                                            </button>
-                                        </div>
                                     </div>
 
                                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-2">
                                         <p className="text-xs text-[#64708C]">
-                                            Search uses database-managed full-text indexes. A manual rebuild operation is not configured.
+                                            Search indexes are maintained automatically when resource metadata changes.
                                         </p>
                                     </div>
                                 </div>
@@ -484,8 +436,8 @@ export default function SystemSettingsPage() {
                                                 }
                                                 className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
                                             >
-                                                <option value="Public — Registered users">
-                                                    Public — Registered users
+                                                <option value="Public — all visitors">
+                                                    Public — all visitors
                                                 </option>
                                                 <option value="Staff Only">Staff Only</option>
                                             </select>
@@ -518,7 +470,7 @@ export default function SystemSettingsPage() {
                                                     Detect duplicate submissions
                                                 </div>
                                                 <div className="text-xs text-[#64708C] mt-0.5">
-                                                    Flag matching files and similar resource titles for follow-up.
+                                                    Reject a file when the exact same file has already been uploaded.
                                                 </div>
                                             </div>
                                             <button
@@ -539,32 +491,6 @@ export default function SystemSettingsPage() {
                                             </button>
                                         </div>
 
-                                        <div className="flex items-center justify-between gap-4">
-                                            <div>
-                                                <div className="text-xs font-semibold text-[#0B123D]">
-                                                    Scan files for threats
-                                                </div>
-                                                <div className="text-xs text-[#64708C] mt-0.5">
-                                                    Quarantine potentially unsafe attachments before they are accessible.
-                                                </div>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    setResourcePolicy({
-                                                        ...resourcePolicy,
-                                                        scanThreats: !resourcePolicy.scanThreats,
-                                                    })
-                                                }
-                                                className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${resourcePolicy.scanThreats ? "bg-[#245CFF]" : "bg-[#B0BAD3]"
-                                                    }`}
-                                            >
-                                                <span
-                                                    className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${resourcePolicy.scanThreats ? "translate-x-5" : ""
-                                                        }`}
-                                                />
-                                            </button>
-                                        </div>
                                     </div>
 
                                     <div className="p-3.5 bg-[#F0F3FF] rounded-lg flex items-center gap-2 text-xs text-[#245CFF]">
@@ -579,43 +505,6 @@ export default function SystemSettingsPage() {
                                 <div id="access" className="bg-white p-6 rounded-xl border border-[#E1E6F3] shadow-sm space-y-5">
                                     <div className="border-b border-[#E1E6F3] pb-4">
                                         <h3 className="text-lg font-bold text-[#0B123D]">User & Access</h3>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        {/* Role */}
-                                        <div className="space-y-1.5">
-                                            <label className="text-xs font-semibold text-[#0B123D]">
-                                                Default registration role
-                                            </label>
-                                            <select
-                                                value={userAccess.defaultRole}
-                                                onChange={(e) =>
-                                                    setUserAccess({ ...userAccess, defaultRole: e.target.value })
-                                                }
-                                                className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
-                                            >
-                                                <option value="Student">Student</option>
-                                                <option value="Staff">Staff</option>
-                                            </select>
-                                        </div>
-
-                                        {/* Timeout */}
-                                        <div className="space-y-1.5">
-                                            <label className="text-xs font-semibold text-[#0B123D]">
-                                                Session timeout
-                                            </label>
-                                            <select
-                                                value={userAccess.sessionTimeout}
-                                                onChange={(e) =>
-                                                    setUserAccess({ ...userAccess, sessionTimeout: e.target.value })
-                                                }
-                                                className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
-                                            >
-                                                <option value="30 minutes">30 minutes</option>
-                                                <option value="60 minutes">60 minutes</option>
-                                                <option value="120 minutes">120 minutes</option>
-                                            </select>
-                                        </div>
                                     </div>
 
                                     {/* Domains */}
@@ -635,60 +524,6 @@ export default function SystemSettingsPage() {
 
                                     {/* Access Toggles */}
                                     <div className="space-y-4 pt-2">
-                                        <div className="flex items-center justify-between gap-4">
-                                            <div>
-                                                <div className="text-xs font-semibold text-[#0B123D]">
-                                                    Require verified university email
-                                                </div>
-                                                <div className="text-xs text-[#64708C] mt-0.5">
-                                                    Only verified departmental accounts can access resources.
-                                                </div>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    setUserAccess({
-                                                        ...userAccess,
-                                                        requireVerifiedEmail: !userAccess.requireVerifiedEmail,
-                                                    })
-                                                }
-                                                className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${userAccess.requireVerifiedEmail ? "bg-[#245CFF]" : "bg-[#B0BAD3]"
-                                                    }`}
-                                            >
-                                                <span
-                                                    className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${userAccess.requireVerifiedEmail ? "translate-x-5" : ""
-                                                        }`}
-                                                />
-                                            </button>
-                                        </div>
-
-                                        <div className="flex items-center justify-between gap-4">
-                                            <div>
-                                                <div className="text-xs font-semibold text-[#0B123D]">
-                                                    Require two-factor authentication for admins
-                                                </div>
-                                                <div className="text-xs text-[#64708C] mt-0.5">
-                                                    Protect privileged actions with an additional sign-in step.
-                                                </div>
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={() =>
-                                                    setUserAccess({
-                                                        ...userAccess,
-                                                        requireAdmin2FA: !userAccess.requireAdmin2FA,
-                                                    })
-                                                }
-                                                className={`w-11 h-6 rounded-full transition-colors relative shrink-0 ${userAccess.requireAdmin2FA ? "bg-[#245CFF]" : "bg-[#B0BAD3]"
-                                                    }`}
-                                            >
-                                                <span
-                                                    className={`absolute top-1 left-1 bg-white w-4 h-4 rounded-full transition-transform ${userAccess.requireAdmin2FA ? "translate-x-5" : ""
-                                                        }`}
-                                                />
-                                            </button>
-                                        </div>
-
                                         <div className="flex items-center justify-between gap-4">
                                             <div>
                                                 <div className="text-xs font-semibold text-[#0B123D]">
@@ -718,8 +553,8 @@ export default function SystemSettingsPage() {
                                     </div>
 
                                     <p className="text-xs text-[#64708C]">
-                                        Staff and administrator roles are assigned from User Management. Permission
-                                        changes take effect at the next sign-in.
+                                        Staff and administrator roles are assigned from User Management. Registration
+                                        and profile email updates accept only the approved institutional domains above.
                                     </p>
                                 </div>
 
@@ -758,114 +593,46 @@ export default function SystemSettingsPage() {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                                        {/* Activity Digest */}
-                                        <div className="space-y-1.5">
-                                            <label className="text-xs font-semibold text-[#0B123D]">
-                                                Activity digest
-                                            </label>
-                                            <select
-                                                value={notifications.activityDigest}
-                                                onChange={(e) =>
-                                                    setNotifications({ ...notifications, activityDigest: e.target.value })
-                                                }
-                                                className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
-                                            >
-                                                <option value="Weekly — Monday">Weekly — Monday</option>
-                                                <option value="Daily">Daily</option>
-                                            </select>
-                                        </div>
-
-                                        {/* Delivery Time */}
-                                        <div className="space-y-1.5">
-                                            <label className="text-xs font-semibold text-[#0B123D]">
-                                                Delivery time
-                                            </label>
-                                            <select
-                                                value={notifications.deliveryTime}
-                                                onChange={(e) =>
-                                                    setNotifications({ ...notifications, deliveryTime: e.target.value })
-                                                }
-                                                className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
-                                            >
-                                                <option value="08:00 WAT">08:00 WAT</option>
-                                                <option value="12:00 WAT">12:00 WAT</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* 6. Backup Card */}
-                                <div id="backup" className="bg-white p-6 rounded-xl border border-[#E1E6F3] shadow-sm space-y-5">
-                                    <div className="border-b border-[#E1E6F3] pb-4 flex items-center justify-between gap-2">
-                                        <div>
-                                            <h3 className="text-lg font-bold text-[#0B123D]">Backup</h3>
-                                            <p className="text-xs text-[#64708C] mt-1">
-                                                Backup provider integration is not configured.
-                                            </p>
-                                        </div>
-                                        <span className="px-2.5 py-1 bg-[#FFF5EB] text-[#B86A17] text-xs font-semibold rounded-full">
-                                            Not configured
-                                        </span>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                        {/* Schedule */}
-                                        <div className="space-y-1.5">
-                                            <label className="text-xs font-semibold text-[#0B123D]">Schedule</label>
-                                            <select
-                                                value={backupSettings.schedule}
-                                                onChange={(e) =>
-                                                    setBackupSettings({ ...backupSettings, schedule: e.target.value })
-                                                }
-                                                className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
-                                            >
-                                                <option value="Daily at 02:00 WAT">Daily at 02:00 WAT</option>
-                                                <option value="Weekly at 02:00 WAT">Weekly at 02:00 WAT</option>
-                                            </select>
-                                        </div>
-
-                                        {/* Retention */}
-                                        <div className="space-y-1.5">
-                                            <label className="text-xs font-semibold text-[#0B123D]">Retention</label>
-                                            <select
-                                                value={backupSettings.retention}
-                                                onChange={(e) =>
-                                                    setBackupSettings({ ...backupSettings, retention: e.target.value })
-                                                }
-                                                className="w-full h-11 px-3.5 bg-white border border-[#E1E6F3] rounded-lg text-xs text-[#0B123D] focus:outline-none focus:border-[#245CFF]"
-                                            >
-                                                <option value="30 days">30 days</option>
-                                                <option value="60 days">60 days</option>
-                                            </select>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-2 text-xs border-y border-[#E1E6F3] py-3">
-                                        <div className="flex justify-between">
-                                            <span className="text-[#64708C]">Next backup:</span>
-                                            <span className="font-medium text-[#0B123D]">Unavailable</span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-[#64708C]">Storage:</span>
-                                            <span className="font-medium text-[#0B123D]">
-                                                No backup storage connected
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    <div className="p-3.5 bg-[#FFF5EB] rounded-lg flex items-start gap-2.5 text-xs text-[#B86A17]">
-                                        <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-                                        <span>
-                                            Schedule and retention are stored as preferences only. No backups will run until a backup provider is configured.
-                                        </span>
+                                    <div className="space-y-3 border-t border-[#E1E6F3] pt-4">
+                                        <h4 className="text-sm font-bold text-[#0B123D]">Compose announcement</h4>
+                                        <input
+                                            type="text"
+                                            maxLength={255}
+                                            value={announcementTitle}
+                                            onChange={(event) => setAnnouncementTitle(event.target.value)}
+                                            placeholder="Announcement title"
+                                            disabled={!notifications.systemAnnouncements}
+                                            className="h-11 w-full rounded-lg border border-[#E1E6F3] px-3.5 text-sm focus:outline-none focus:border-[#245CFF] disabled:bg-[#F6F8FF]"
+                                        />
+                                        <textarea
+                                            maxLength={4000}
+                                            value={announcementMessage}
+                                            onChange={(event) => setAnnouncementMessage(event.target.value)}
+                                            placeholder="Write the message for active users"
+                                            rows={4}
+                                            disabled={!notifications.systemAnnouncements}
+                                            className="w-full resize-y rounded-lg border border-[#E1E6F3] p-3.5 text-sm focus:outline-none focus:border-[#245CFF] disabled:bg-[#F6F8FF]"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={handleSendAnnouncement}
+                                            disabled={
+                                                !notifications.systemAnnouncements
+                                                || isSendingAnnouncement
+                                                || !announcementTitle.trim()
+                                                || !announcementMessage.trim()
+                                            }
+                                            className="rounded-lg bg-[#245CFF] px-4 py-2.5 text-xs font-semibold text-white disabled:opacity-50"
+                                        >
+                                            {isSendingAnnouncement ? "Sending..." : "Send to active users"}
+                                        </button>
                                     </div>
                                 </div>
 
                                 {/* Save Footer Action */}
                                 <div className="p-4 bg-white rounded-xl border border-[#E1E6F3] shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
                                     <span className="text-xs text-[#64708C]">
-                                        Changes apply to the entire department.
+                                        Changes apply across the platform.
                                     </span>
                                     <div className="flex items-center gap-3 w-full sm:w-auto">
                                         <button

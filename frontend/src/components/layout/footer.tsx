@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePublicAppSettings } from '@/lib/queries';
 
 interface FooterProps {
     links?: { label: string; href: string }[];
@@ -13,6 +14,7 @@ const defaultLinks = [
 ];
 
 export default function Footer({ links = defaultLinks }: FooterProps) {
+    const { data: appSettings } = usePublicAppSettings();
     return (
         <footer className="px-4 sm:px-8 py-5 border-t border-[#E1E6F3] flex flex-col sm:flex-row items-center justify-between gap-3 text-[12px] text-[#64708C] bg-white lg:bg-transparent">
             {/* Footer Navigation Links */}
@@ -29,8 +31,13 @@ export default function Footer({ links = defaultLinks }: FooterProps) {
             </div>
 
             {/* Copyright Notice */}
-            <div className="text-center sm:text-right font-medium">
-                © 2026 Olawale Akinbileje Emmanuel. All rights reserved.
+            <div className="text-center sm:text-right">
+                {(appSettings?.department || appSettings?.academicYear) && (
+                    <p className="mb-1 font-medium">
+                        {[appSettings.department, appSettings.academicYear].filter(Boolean).join(' · ')}
+                    </p>
+                )}
+                <p className="font-medium">© 2026 Olawale Akinbileje Emmanuel. All rights reserved.</p>
             </div>
         </footer>
     );

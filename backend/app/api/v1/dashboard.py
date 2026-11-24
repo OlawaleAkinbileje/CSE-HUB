@@ -22,9 +22,10 @@ def get_student_dashboard_metrics(
         text(
             """
             SELECT
-                (SELECT count(*) FROM public.resources WHERE status::text = 'approved') AS total_resources,
                 (SELECT count(*) FROM public.backend_downloads
-                 WHERE user_id = :user_id AND downloaded_at >= NOW() - INTERVAL '30 days') AS downloads,
+                 WHERE user_id = :user_id) AS downloads,
+                (SELECT count(*) FROM public.backend_downloads
+                 WHERE user_id = :user_id AND downloaded_at >= NOW() - INTERVAL '30 days') AS recent_downloads,
                 (SELECT count(*) FROM public.backend_saved_resources WHERE user_id = :user_id) AS bookmarks,
                 (SELECT count(*) FROM public.backend_search_events
                  WHERE user_id = :user_id AND created_at >= NOW() - INTERVAL '30 days') AS recent_searches
@@ -48,8 +49,8 @@ def get_student_dashboard_metrics(
     ).mappings().all()
     return {
         "metrics": {
-            "totalResources": metrics["total_resources"],
             "downloads": metrics["downloads"],
+            "recentDownloads": metrics["recent_downloads"],
             "bookmarks": metrics["bookmarks"],
             "recentSearches": metrics["recent_searches"],
         },
@@ -83,12 +84,20 @@ def get_staff_dashboard_metrics(
         text(
             """
             SELECT
-                (SELECT count(*) FROM public.resources) AS total_resources,
-                (SELECT count(*) FROM public.resources WHERE status::text = 'approved') AS published_resources,
-                (SELECT count(*) FROM public.backend_downloads) AS total_downloads,
-                (SELECT count(*) FROM public.users WHERE is_active) AS active_users
+                (SELECT count(*) FROM public.resources
+                 WHERE backend_uploader_id = :user_id) AS personal_uploads,
+                (SELECT count(*) FROM public.resources
+                 WHERE backend_uploader_id = :user_id AND status::text = 'approved') AS published_uploads,
+                (SELECT count(*) FROM public.backend_downloads d
+                 JOIN public.resources r ON r.id = d.resource_id
+                 WHERE r.backend_uploader_id = :user_id) AS resource_downloads,
+                (SELECT count(*) FROM public.backend_downloads d
+                 JOIN public.resources r ON r.id = d.resource_id
+                 WHERE r.backend_uploader_id = :user_id
+                   AND d.downloaded_at >= NOW() - INTERVAL '30 days') AS recent_resource_downloads
             """
-        )
+        ),
+        {"user_id": current_user.id},
     ).mappings().one()
     recent_submissions = db.execute(
         text(
@@ -99,17 +108,19 @@ def get_staff_dashboard_metrics(
             FROM public.resources r
             LEFT JOIN public.users u ON u.id = r.backend_uploader_id
             LEFT JOIN public.courses c ON c.id = r.course_id
+            WHERE r.backend_uploader_id = :user_id
             ORDER BY r.created_at DESC
             LIMIT 6
             """
-        )
+        ),
+        {"user_id": current_user.id},
     ).mappings().all()
     return {
         "metrics": {
-            "totalResources": metrics["total_resources"],
-            "publishedResources": metrics["published_resources"],
-            "totalDownloads": metrics["total_downloads"],
-            "activeUsers": metrics["active_users"],
+            "personalUploads": metrics["personal_uploads"],
+            "publishedUploads": metrics["published_uploads"],
+            "resourceDownloads": metrics["resource_downloads"],
+            "recentResourceDownloads": metrics["recent_resource_downloads"],
         },
         "recentSubmissions": [
             {

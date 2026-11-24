@@ -25,9 +25,18 @@ storage are provided by Supabase.
    - `SUPABASE_STORAGE_BUCKET=cse-hub-files`
    - `SUPABASE_SERVICE_ROLE_KEY` set to the local server-side service role
      secret printed by the Supabase CLI
+   - `RESEND_API_KEY` set to a Resend API key
+   - `EMAIL_FROM` set to a sender on a domain verified in Resend, for example
+     `CSE Hub <no-reply@mail.example.com>`
+   - `FRONTEND_URL` set to the web app origin, such as
+     `http://localhost:3000` locally or the deployed frontend URL in production
 
    Never use a publishable/anon key as `SUPABASE_SERVICE_ROLE_KEY`, and never
    expose the service role key in frontend variables.
+   Keep `RESEND_API_KEY` server-side as well. Resend's `onboarding@resend.dev`
+   sender is intended for testing and is restricted to the account owner's
+   recipient address; verify a sending domain in Resend before sending to
+   student or staff addresses.
 4. Start FastAPI from this directory. In Git Bash, the existing virtual
    environment can be activated and the server started with:
 
@@ -39,6 +48,15 @@ storage are provided by Supabase.
 
    The SQLAlchemy environment variable is only needed on Windows machines where
    Application Control blocks SQLAlchemy's compiled extension.
+
+## Email verification
+
+After applying `20261124110000_email_verification_resend.sql`, new registrations
+receive a single-use verification link that expires after 24 hours. Login and
+authenticated API access require a verified email. Users can request another
+link at `/verify-email`; email changes from the profile also require confirmation.
+Set the Resend variables above in Render's backend environment before enabling
+registration in production.
 
 ## Copying older local uploads
 

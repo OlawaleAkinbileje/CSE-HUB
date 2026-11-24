@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
@@ -8,13 +8,11 @@ import { Eye, EyeOff, Check, AlertCircle } from 'lucide-react';
 import axios from 'axios';
 import { apiClient } from '@/lib/api';
 
-const INSTITUTIONAL_EMAIL_DOMAINS = new Set([
-    'oauife.edu.ng',
-    'student.oauife.ng',
-]);
-
 export default function RegisterPage() {
     const router = useRouter();
+    const [departments, setDepartments] = useState<{ id: string; name: string }[]>([]);
+    const [departmentId, setDepartmentId] = useState('');
+    const [accessCode, setAccessCode] = useState('');
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
     const [matricNumber, setMatricNumber] = useState('');
@@ -26,24 +24,33 @@ export default function RegisterPage() {
     const [errorMsg, setErrorMsg] = useState('');
     const [showSignInLink, setShowSignInLink] = useState(false);
 
+    useEffect(() => {
+        let isMounted = true;
+        apiClient.get('/departments')
+            .then(({ data }) => {
+                if (isMounted && Array.isArray(data.data)) setDepartments(data.data);
+            })
+            .catch(() => {
+                if (isMounted) setErrorMsg('Department options could not be loaded. Please refresh the page.');
+            });
+        return () => { isMounted = false; };
+    }, []);
+
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
         setErrorMsg('');
         setShowSignInLink(false);
 
-        const emailDomain = email.trim().toLowerCase().split('@').pop();
-        if (!emailDomain || !INSTITUTIONAL_EMAIL_DOMAINS.has(emailDomain)) {
-            setErrorMsg(
-                'Registration requires an OAU-issued email address. Students should use @student.oauife.ng; staff should use @oauife.edu.ng.'
-            );
+        // Client-side validations
+        if (!fullName.trim()) {
+            setErrorMsg('Full Name is required.');
             setLoading(false);
             return;
         }
 
-        // Client-side validations
-        if (!fullName.trim()) {
-            setErrorMsg('Full Name is required.');
+        if (!departmentId || !accessCode.trim()) {
+            setErrorMsg('Select your department and enter the access code provided by your class representative.');
             setLoading(false);
             return;
         }
@@ -62,15 +69,19 @@ export default function RegisterPage() {
 
         try {
             // Send registration request with explicit full_name to FastAPI
-            await apiClient.post('/auth/register', {
+            const response = await apiClient.post<{ verification_email_sent: boolean }>('/auth/register', {
                 full_name: fullName.trim(),
                 email: email.trim(),
                 username: matricNumber.trim() || email.split('@')[0],
                 password,
                 role: 'student',
+                department_id: departmentId,
+                access_code: accessCode.trim(),
             });
 
-            router.push('/register/success');
+            router.push(
+                `/register/success?email=${encodeURIComponent(email.trim())}&sent=${response.data.verification_email_sent ? '1' : '0'}`
+            );
         } catch (err: unknown) {
             const response = typeof err === 'object' && err !== null && 'response' in err ? err.response : undefined;
             const data = typeof response === 'object' && response !== null && 'data' in response ? response.data : undefined;
@@ -87,6 +98,15 @@ export default function RegisterPage() {
                     router.push('/register/success?existing=1');
                     return;
                 } catch (signInError: unknown) {
+                    if (
+                        axios.isAxiosError(signInError)
+                        && signInError.response?.status === 403
+                        && typeof signInError.response.data?.detail === 'string'
+                        && signInError.response.data.detail.toLowerCase().includes('verify')
+                    ) {
+                        router.push(`/verify-email?email=${encodeURIComponent(email.trim())}`);
+                        return;
+                    }
                     if (!axios.isAxiosError(signInError) || !signInError.response) {
                         setErrorMsg('An account already exists for these details, but we could not verify the sign-in. Try signing in directly.');
                         setShowSignInLink(true);
@@ -219,6 +239,38 @@ export default function RegisterPage() {
                                     className="w-full bg-transparent text-[#0B123D] text-[16px] placeholder-[#64708C] focus:outline-none"
                                 />
                             </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="block text-[16px] font-semibold leading-[23.2px] text-[#0B123D]">
+                                Department <span className="text-red-500">*</span>
+                            </label>
+                            <select
+                                required
+                                value={departmentId}
+                                onChange={(e) => setDepartmentId(e.target.value)}
+                                disabled={!departments.length}
+                                className="h-[50px] sm:h-[54px] w-full px-4 bg-white rounded-lg border border-[#E1E6F3] text-[#0B123D] focus:outline-none focus:ring-2 focus:ring-[#245CFF] disabled:opacity-60"
+                            >
+                                <option value="">Select your department</option>
+                                {departments.map((department) => (
+                                    <option key={department.id} value={department.id}>{department.name}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="block text-[16px] font-semibold leading-[23.2px] text-[#0B123D]">
+                                Department access code <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                required
+                                value={accessCode}
+                                onChange={(e) => setAccessCode(e.target.value)}
+                                placeholder="Enter the code shared by your class representative"
+                                className="h-[50px] sm:h-[54px] w-full px-4 bg-white rounded-lg border border-[#E1E6F3] text-[#0B123D] focus:outline-none focus:ring-2 focus:ring-[#245CFF]"
+                            />
                         </div>
 
                         {/* Password */}

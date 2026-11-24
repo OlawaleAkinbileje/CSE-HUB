@@ -11,6 +11,9 @@ export interface CurrentUser {
     email: string;
     role: 'student' | 'staff' | 'admin';
     initials: string;
+    avatar_url: string;
+    department_id: string;
+    is_verified: boolean;
     isAuthenticated: boolean;
 }
 
@@ -20,6 +23,9 @@ const FALLBACK: CurrentUser = {
     email: '',
     role: 'student',
     initials: 'U',
+    avatar_url: '',
+    department_id: '',
+    is_verified: false,
     isAuthenticated: false,
 };
 
@@ -38,6 +44,9 @@ function readFromCookies(): CurrentUser | null {
     const username = Cookies.get('user_username') || '';
     const email = Cookies.get('user_email') || '';
     const role = (Cookies.get('role') || 'student') as CurrentUser['role'];
+    const avatar_url = Cookies.get('user_avatar_url') || '';
+    const department_id = Cookies.get('user_department_id') || '';
+    const is_verified = Cookies.get('user_is_verified') === 'true';
 
     return {
         full_name,
@@ -45,6 +54,9 @@ function readFromCookies(): CurrentUser | null {
         email,
         role,
         initials: getInitials(full_name || username || email),
+        avatar_url,
+        department_id,
+        is_verified,
         isAuthenticated: true,
     };
 }
@@ -81,7 +93,7 @@ export function notifyCurrentUserChanged(): void {
 /**
  * Returns the currently authenticated user.
  * - Uses a stable fallback for server rendering and hydration, then reads cookies.
- * - If name is missing, falls back to GET /api/v1/auth/me (one fetch).
+ * - Hydrates profile details from GET /api/v1/auth/me once per sign-in.
  */
 export function useCurrentUser(): CurrentUser {
     const user = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
@@ -89,21 +101,29 @@ export function useCurrentUser(): CurrentUser {
     useEffect(() => {
         const cookieUser = readFromCookies();
 
-        // If we already have a name from cookies, skip the network call
-        if (!cookieUser || cookieUser.full_name) {
+        if (!cookieUser || Cookies.get('profile_loaded') === 'true') {
             return;
         }
 
-        // Fetch profile from /me endpoint
         apiClient
             .get('/auth/me')
             .then((res) => {
-                const { full_name, username, email } = res.data;
+                const {
+                    full_name,
+                    username,
+                    email,
+                    avatar_url,
+                    department_id,
+                    is_verified,
+                } = res.data;
                 const name = full_name || username || email || '';
-                // Cache in cookies for future renders
                 Cookies.set('user_name', name);
                 Cookies.set('user_username', username || '');
                 Cookies.set('user_email', email || '');
+                Cookies.set('user_avatar_url', avatar_url || '');
+                Cookies.set('user_department_id', department_id || '');
+                Cookies.set('user_is_verified', String(Boolean(is_verified)));
+                Cookies.set('profile_loaded', 'true');
                 notifyCurrentUserChanged();
             })
             .catch((error: unknown) => {

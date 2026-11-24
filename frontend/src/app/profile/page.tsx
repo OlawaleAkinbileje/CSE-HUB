@@ -1,7 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { ChangeEvent, useEffect, useState } from 'react';
 import Link from 'next/link';
+import Cookies from 'js-cookie';
+import { useMutation } from '@tanstack/react-query';
 import {
     Activity,
     BarChart2,
@@ -12,6 +14,7 @@ import {
     HelpCircle,
     Layers,
     KeyRound,
+    ImagePlus,
     Search,
     Shield,
     UploadCloud,
@@ -20,7 +23,9 @@ import {
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
 import Footer from '@/components/layout/footer';
-import { useCurrentUser } from '@/lib/useCurrentUser';
+import { notifyCurrentUserChanged, useCurrentUser } from '@/lib/useCurrentUser';
+import { apiClient } from '@/lib/api';
+import UserAvatar from '@/components/ui/UserAvatar';
 
 type ProfileTab = 'details' | 'security' | 'activity';
 
@@ -32,9 +37,79 @@ const roleLabels = {
 
 export default function ProfilePage() {
     const [activeTab, setActiveTab] = useState<ProfileTab>('details');
+    const [avatarError, setAvatarError] = useState('');
+    const [departments, setDepartments] = useState<{ id: string; name: string }[]>([]);
+    const [profileEmail, setProfileEmail] = useState<string | null>(null);
+    const [departmentId, setDepartmentId] = useState<string | null>(null);
+    const [departmentCode, setDepartmentCode] = useState('');
+    const [profileNotice, setProfileNotice] = useState('');
     const currentUser = useCurrentUser();
     const displayName = currentUser.full_name || currentUser.username || currentUser.email || 'User';
     const roleLabel = roleLabels[currentUser.role];
+    useEffect(() => {
+        let isMounted = true;
+        apiClient.get('/departments')
+            .then(({ data }) => {
+                if (isMounted && Array.isArray(data.data)) setDepartments(data.data);
+            })
+            .catch((error: unknown) => {
+                console.error('Failed to load department options.', error);
+            });
+        return () => { isMounted = false; };
+    }, []);
+    const avatarMutation = useMutation({
+        mutationFn: async (image: File) => {
+            const form = new FormData();
+            form.append('file', image);
+            const response = await apiClient.post<{ avatar_url: string }>('/auth/me/avatar', form, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+            });
+            return response.data;
+        },
+        onSuccess: ({ avatar_url }) => {
+            Cookies.set('user_avatar_url', avatar_url);
+            notifyCurrentUserChanged();
+        },
+    });
+    const profileMutation = useMutation({
+        mutationFn: async () => {
+            const response = await apiClient.patch<{
+                email: string;
+                department_id?: string | null;
+                is_verified: boolean;
+                verification_email_sent?: boolean | null;
+                message: string;
+            }>('/auth/me/profile', {
+                email: (profileEmail ?? currentUser.email).trim(),
+                department_id: departmentId ?? currentUser.department_id,
+                access_code: departmentCode.trim() || undefined,
+            });
+            return response.data;
+        },
+        onSuccess: (profile) => {
+            Cookies.set('user_email', profile.email);
+            Cookies.set('user_department_id', profile.department_id || '');
+            Cookies.set('user_is_verified', String(profile.is_verified));
+            Cookies.set('profile_loaded', 'true');
+            setProfileEmail(profile.email);
+            setDepartmentId(profile.department_id || '');
+            setDepartmentCode('');
+            setProfileNotice(profile.message);
+            notifyCurrentUserChanged();
+        },
+    });
+
+    const handleAvatarChange = (event: ChangeEvent<HTMLInputElement>) => {
+        const image = event.target.files?.[0];
+        event.target.value = '';
+        if (!image) return;
+        if (image.size > 5 * 1024 * 1024) {
+            setAvatarError('Profile pictures must be 5 MB or smaller.');
+            return;
+        }
+        setAvatarError('');
+        avatarMutation.mutate(image);
+    };
     const mobileNavItems = currentUser.role === 'admin'
         ? [
             { label: 'Home', href: '/admin/dashboard', icon: Home },
@@ -106,9 +181,33 @@ export default function ProfilePage() {
                             className="flex flex-col items-start gap-8 xl:flex-row"
                         >
                             <div className="flex w-full flex-col items-center gap-4 rounded-2xl border border-[#E1E6F3] bg-white p-6 text-center shadow-sm xl:w-[240px]">
-                                <div className="flex h-36 w-36 items-center justify-center rounded-full border-2 border-white bg-[#245CFF]/10 text-3xl font-bold text-[#245CFF] shadow-md sm:h-40 sm:w-40">
-                                    {currentUser.initials}
-                                </div>
+                                <UserAvatar
+                                    name={displayName}
+                                    avatarUrl={currentUser.avatar_url}
+                                    className="h-36 w-36 border-2 border-white text-3xl shadow-md sm:h-40 sm:w-40"
+                                />
+                                <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[#E1E6F3] px-3 py-2 text-xs font-semibold text-[#245CFF] hover:bg-[#F6F8FF]">
+                                    <ImagePlus className="h-4 w-4" />
+                                    {avatarMutation.isPending ? 'Uploading…' : 'Change profile picture'}
+                                    <input
+                                        type="file"
+                                        accept="image/png,image/jpeg,image/webp"
+                                        className="sr-only"
+                                        disabled={avatarMutation.isPending}
+                                        onChange={handleAvatarChange}
+                                    />
+                                </label>
+                                {avatarError && <p role="alert" className="text-xs text-red-600">{avatarError}</p>}
+                                {avatarMutation.error && (
+                                    <p role="alert" className="text-xs text-red-600">
+                                        {avatarMutation.error.message}
+                                    </p>
+                                )}
+                                {avatarMutation.isSuccess && (
+                                    <p role="status" className="text-xs text-[#009F75]">
+                                        Profile picture updated.
+                                    </p>
+                                )}
                                 <div>
                                     <h2 className="text-lg font-bold">{displayName}</h2>
                                     <p className="mt-1 text-sm text-[#64708C]">{roleLabel}</p>
@@ -151,6 +250,87 @@ export default function ProfilePage() {
                                     </dd>
                                 </div>
                             </dl>
+                            {currentUser.role !== 'admin' && (
+                                <form
+                                    className="w-full space-y-4 rounded-2xl border border-[#E1E6F3] bg-white p-5 shadow-sm sm:p-7"
+                                    onSubmit={(event) => {
+                                        event.preventDefault();
+                                        setProfileNotice('');
+                                        profileMutation.mutate();
+                                    }}
+                                >
+                                    <div>
+                                        <h2 className="text-lg font-bold">Update university details</h2>
+                                        <p className="mt-1 text-sm text-[#64708C]">
+                                            Keep your official university email and department current.
+                                        </p>
+                                    </div>
+                                    <label className="block space-y-2 text-sm font-semibold">
+                                        University email
+                                        <input
+                                            type="email"
+                                            required
+                                            value={profileEmail ?? currentUser.email}
+                                            onChange={(event) => setProfileEmail(event.target.value)}
+                                            className="h-12 w-full rounded-lg border border-[#E1E6F3] px-4 font-normal focus:outline-none focus:ring-2 focus:ring-[#245CFF]"
+                                        />
+                                    </label>
+                                    <label className="block space-y-2 text-sm font-semibold">
+                                        Department
+                                        <select
+                                            required
+                                            value={departmentId ?? currentUser.department_id}
+                                            onChange={(event) => setDepartmentId(event.target.value)}
+                                            className="h-12 w-full rounded-lg border border-[#E1E6F3] bg-white px-4 font-normal focus:outline-none focus:ring-2 focus:ring-[#245CFF]"
+                                        >
+                                            <option value="">Select your department</option>
+                                            {departments.map((department) => (
+                                                <option key={department.id} value={department.id}>{department.name}</option>
+                                            ))}
+                                        </select>
+                                    </label>
+                                    {currentUser.role === 'student' && (
+                                        <label className="block space-y-2 text-sm font-semibold">
+                                            Department access code
+                                            <input
+                                                type="text"
+                                                value={departmentCode}
+                                                onChange={(event) => setDepartmentCode(event.target.value)}
+                                                placeholder="Required to change department"
+                                                className="h-12 w-full rounded-lg border border-[#E1E6F3] px-4 font-normal focus:outline-none focus:ring-2 focus:ring-[#245CFF]"
+                                            />
+                                        </label>
+                                    )}
+                                    {profileMutation.error && (
+                                        <p role="alert" className="text-sm text-red-600">
+                                            {profileMutation.error.message}
+                                        </p>
+                                    )}
+                                    {profileNotice && (
+                                        <p
+                                            role="status"
+                                            className={`text-sm ${profileMutation.data?.verification_email_sent === false ? 'text-amber-700' : 'text-[#009F75]'}`}
+                                        >
+                                            {profileNotice}
+                                        </p>
+                                    )}
+                                    {profileMutation.data?.verification_email_sent === false && (
+                                        <Link
+                                            href={`/verify-email?email=${encodeURIComponent(profileMutation.data.email)}`}
+                                            className="inline-block text-sm font-semibold text-[#245CFF] hover:underline"
+                                        >
+                                            Retry verification email
+                                        </Link>
+                                    )}
+                                    <button
+                                        type="submit"
+                                        disabled={profileMutation.isPending || !departments.length}
+                                        className="rounded-lg bg-[#245CFF] px-5 py-3 text-sm font-semibold text-white disabled:opacity-50"
+                                    >
+                                        {profileMutation.isPending ? 'Saving…' : 'Save university details'}
+                                    </button>
+                                </form>
+                            )}
                         </section>
                     )}
 

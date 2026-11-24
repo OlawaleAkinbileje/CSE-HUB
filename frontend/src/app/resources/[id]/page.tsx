@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, Suspense, useState } from 'react';
+import { ChangeEvent, FormEvent, ReactNode, Suspense, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -16,6 +16,7 @@ import Footer from '@/components/layout/footer';
 import Navbar from '@/components/layout/Navbar';
 import Sidebar from '@/components/layout/Sidebar';
 import DataContainer from '@/components/ui/DataContainer';
+import UserAvatar from '@/components/ui/UserAvatar';
 import { apiClient } from '@/lib/api';
 import { useCurrentUser } from '@/lib/useCurrentUser';
 
@@ -45,7 +46,22 @@ interface ResourceComment {
     parent_id: string | null;
     content: string;
     author: string;
+    avatar_url: string | null;
     created_at: string;
+    replies?: ResourceComment[];
+}
+
+function nestComments(comments: ResourceComment[]): ResourceComment[] {
+    const nodes = new Map<string, ResourceComment>();
+    comments.forEach((comment) => nodes.set(comment.id, { ...comment, replies: [] }));
+
+    const roots: ResourceComment[] = [];
+    nodes.forEach((comment) => {
+        const parent = comment.parent_id ? nodes.get(comment.parent_id) : undefined;
+        if (parent) parent.replies?.push(comment);
+        else roots.push(comment);
+    });
+    return roots;
 }
 
 interface CodePreview {
@@ -81,6 +97,8 @@ function ResourceDetailsContent() {
     const queryClient = useQueryClient();
     const [commentText, setCommentText] = useState('');
     const [replyTo, setReplyTo] = useState<string | null>(null);
+    const [commentRows, setCommentRows] = useState(1);
+    const commentInputRef = useRef<HTMLTextAreaElement>(null);
 
     const {
         data: resource,
@@ -163,6 +181,8 @@ function ResourceDetailsContent() {
         onSuccess: async () => {
             setCommentText('');
             setReplyTo(null);
+            setCommentRows(1);
+            if (commentInputRef.current) commentInputRef.current.style.height = '';
             await queryClient.invalidateQueries({ queryKey: ['resource', id, 'comments'] });
         },
     });
@@ -172,11 +192,58 @@ function ResourceDetailsContent() {
         commentMutation.mutate();
     };
 
+    const handleCommentChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
+        const textarea = event.currentTarget;
+        setCommentText(textarea.value);
+        textarea.style.height = 'auto';
+        textarea.style.height = `${Math.min(textarea.scrollHeight, 240)}px`;
+        setCommentRows(Math.max(1, Math.min(7, Math.ceil(textarea.scrollHeight / 24))));
+    };
+
     const filePreviewUrl = `${apiClient.defaults.baseURL}/resources/${id}/file-preview`;
     const isPdf =
         resource?.file_type === 'document' &&
         resource.original_filename?.toLowerCase().endsWith('.pdf') === true;
     const comments = commentsQuery.data || [];
+    const commentThreads = nestComments(comments);
+
+    const renderComment = (comment: ResourceComment, depth = 0): ReactNode => (
+        <article
+            key={comment.id}
+            className={`rounded-xl border border-[#E1E6F3] p-4 ${depth > 0 ? 'ml-5 border-l-2 border-l-[#C7D2FE] sm:ml-10' : ''}`}
+        >
+            <div className="flex items-start justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-3">
+                    <UserAvatar
+                        name={comment.author}
+                        avatarUrl={comment.avatar_url}
+                        className="h-9 w-9 text-xs"
+                    />
+                    <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold">{comment.author}</p>
+                        <time className="text-xs text-[#64708C]">
+                            {new Date(comment.created_at).toLocaleString()}
+                        </time>
+                    </div>
+                </div>
+                {currentUser.isAuthenticated && (
+                    <button
+                        type="button"
+                        onClick={() => setReplyTo(comment.id)}
+                        className="inline-flex shrink-0 items-center gap-1 text-xs font-semibold text-[#245CFF]"
+                    >
+                        <Reply className="h-3.5 w-3.5" /> Reply
+                    </button>
+                )}
+            </div>
+            <p className="mt-3 whitespace-pre-wrap text-sm leading-6">{comment.content}</p>
+            {comment.replies?.length ? (
+                <div className="mt-4 space-y-3">
+                    {comment.replies.map((reply) => renderComment(reply, depth + 1))}
+                </div>
+            ) : null}
+        </article>
+    );
 
     return (
         <div className="min-h-screen w-full bg-[#F6F8FF] font-sans text-[#0B123D]">
@@ -297,12 +364,13 @@ function ResourceDetailsContent() {
                                             </div>
                                         )}
                                         <textarea
+                                            ref={commentInputRef}
                                             value={commentText}
-                                            onChange={(event) => setCommentText(event.target.value)}
+                                            onChange={handleCommentChange}
                                             maxLength={4000}
-                                            rows={3}
+                                            rows={commentRows}
                                             placeholder="Ask a question or share helpful feedback…"
-                                            className="w-full rounded-lg border border-[#E1E6F3] p-3 text-sm focus:border-[#245CFF] focus:outline-none"
+                                            className="min-h-11 w-full resize-none overflow-y-auto rounded-lg border border-[#E1E6F3] p-3 text-sm transition-[height] focus:border-[#245CFF] focus:outline-none"
                                         />
                                         <div className="flex items-center justify-between">
                                             <span className="text-xs text-[#64708C]">{commentText.length}/4000</span>
@@ -324,38 +392,14 @@ function ResourceDetailsContent() {
                                     )}
                                     <DataContainer
                                         isLoading={commentsQuery.isLoading}
-                                        data={comments}
+                                        data={commentThreads}
                                         emptyIcon={MessageSquare}
                                         emptyTitle="No comments yet"
                                         emptyDescription="Start the discussion with a question or helpful note."
                                         skeletonType="rows"
                                     >
                                         {(items) => (
-                                            <div className="space-y-4">
-                                                {items.map((comment) => (
-                                                    <article
-                                                        key={comment.id}
-                                                        className={`rounded-xl border border-[#E1E6F3] p-4 ${comment.parent_id ? 'ml-5 sm:ml-10' : ''}`}
-                                                    >
-                                                        <div className="flex items-start justify-between gap-3">
-                                                            <div>
-                                                                <p className="text-sm font-semibold">{comment.author}</p>
-                                                                <time className="text-xs text-[#64708C]">
-                                                                    {new Date(comment.created_at).toLocaleString()}
-                                                                </time>
-                                                            </div>
-                                                            <button
-                                                                type="button"
-                                                                onClick={() => setReplyTo(comment.id)}
-                                                                className="inline-flex items-center gap-1 text-xs font-semibold text-[#245CFF]"
-                                                            >
-                                                                <Reply className="h-3.5 w-3.5" /> Reply
-                                                            </button>
-                                                        </div>
-                                                        <p className="mt-3 whitespace-pre-wrap text-sm leading-6">{comment.content}</p>
-                                                    </article>
-                                                ))}
-                                            </div>
+                                            <div className="space-y-4">{items.map((comment) => renderComment(comment))}</div>
                                         )}
                                     </DataContainer>
                                 </section>

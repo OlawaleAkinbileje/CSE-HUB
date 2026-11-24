@@ -46,15 +46,15 @@ export default function StudentDashboardPage() {
 
     const metrics = [
         {
-            label: 'Total Resources',
-            count: studentMetrics?.totalResources.toLocaleString() ?? 'Unavailable',
+            label: 'Total Downloads',
+            count: studentMetrics?.downloads.toLocaleString() ?? 'Unavailable',
             bgColor: 'rgba(0, 197, 138, 0.09)',
-            iconColor: '#00C58A',
-            icon: FileText
+            iconColor: '#245CFF',
+            icon: Download
         },
         {
-            label: 'Downloads',
-            count: studentMetrics?.downloads.toLocaleString() ?? 'Unavailable',
+            label: 'Downloads · 30 days',
+            count: studentMetrics?.recentDownloads.toLocaleString() ?? 'Unavailable',
             bgColor: 'rgba(36, 92, 255, 0.09)',
             iconColor: '#245CFF',
             icon: Download

@@ -1,4 +1,5 @@
 import logging
+import hashlib
 import mimetypes
 import re
 import uuid
@@ -30,12 +31,12 @@ from app.api.deps import (
 from app.db.session import get_db
 from app.models.search_event import SearchEvent
 from app.models.user import User
+from app.services.admin_settings import load_admin_settings
 from app.services.storage import read_stored_bytes, save_uploaded_bytes
 
 router = APIRouter(prefix="/resources", tags=["Resources"])
 logger = logging.getLogger(__name__)
 
-MAX_UPLOAD_SIZE = 20 * 1024 * 1024
 ALLOWED_EXTENSIONS = {
     ".pdf": ("document", None),
     ".doc": ("document", None),
@@ -62,7 +63,7 @@ RESOURCE_TYPES = {"past_question", "project", "lecture_note", "code_preview", "o
 RESOURCE_SELECT = """
     SELECT r.id, r.title, r.description, r.file_url, r.file_type, r.file_size,
            r.course_id, r.category_id,
-           r.programming_language, r.keywords, r.resource_type,
+           r.programming_language, r.keywords, r.resource_type, r.visibility,
            r.status::text AS status, r.created_at, r.updated_at,
            r.storage_key, r.original_filename, r.backend_uploader_id,
            c.name AS category_name, cr.course_code, cr.title AS course_title,
@@ -135,6 +136,14 @@ def _visible_resource(db: Session, resource_id: uuid.UUID, user: Optional[User])
         )
     ):
         raise HTTPException(status_code=404, detail="Resource not found")
+    if row["visibility"] == "staff_only" and (
+        user is None
+        or (
+            _role_name(user) not in {"staff", "admin"}
+            and row["backend_uploader_id"] != user.id
+        )
+    ):
+        raise HTTPException(status_code=404, detail="Resource not found")
     return row
 
 
@@ -150,6 +159,8 @@ def _resource_query(
     year: Optional[int] = None,
     sort_by: str = "relevance",
     status_filter: Optional[str] = "approved",
+    include_staff_only: bool = False,
+    full_text_search: bool = True,
     limit: int = 50,
     offset: int = 0,
 ):
@@ -158,6 +169,8 @@ def _resource_query(
     if status_filter:
         conditions.append("r.status::text = :status")
         params["status"] = status_filter
+    if not include_staff_only:
+        conditions.append("r.visibility = 'public'")
     if resource_type:
         conditions.append("r.resource_type = :resource_type")
         params["resource_type"] = resource_type
@@ -177,11 +190,17 @@ def _resource_query(
         conditions.append("EXTRACT(YEAR FROM r.created_at) = :year")
         params["year"] = year
     if search:
-        conditions.append(
-            "(r.search_vector @@ plainto_tsquery('english', :search) "
-            "OR similarity(r.title, :search) >= 0.12)"
-        )
         params["search"] = search
+        if full_text_search:
+            conditions.append(
+                "(r.search_vector @@ plainto_tsquery('english', :search) "
+                "OR similarity(r.title, :search) >= 0.12)"
+            )
+        else:
+            params["search_pattern"] = f"%{search}%"
+            conditions.append(
+                "(r.title ILIKE :search_pattern OR r.description ILIKE :search_pattern)"
+            )
 
     where_clause = " WHERE " + " AND ".join(conditions) if conditions else ""
     count = db.execute(
@@ -248,11 +267,11 @@ def get_resources(
     file_type: Optional[str] = Query(None),
     programming_language: Optional[str] = Query(None),
     year: Optional[int] = Query(None, ge=1900, le=2200),
-    sort_by: str = Query(
-        "relevance",
+    sort_by: Optional[str] = Query(
+        None,
         pattern="^(relevance|newest|oldest|title_asc|title_desc|downloads)$",
     ),
-    limit: int = Query(50, ge=1, le=100),
+    limit: Optional[int] = Query(None, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_optional_current_user),
@@ -262,6 +281,21 @@ def get_resources(
         if not search:
             raise HTTPException(status_code=422, detail="Search term cannot be empty")
 
+    settings = load_admin_settings(db)
+    search_settings = settings["searchSettings"]
+    configured_sort = search_settings["defaultSort"]
+    if configured_sort not in {"relevance", "newest", "downloads"}:
+        configured_sort = {
+            "Relevance": "relevance",
+            "Newest First": "newest",
+            "Most Downloaded": "downloads",
+        }.get(configured_sort, "relevance")
+    selected_sort = sort_by or configured_sort
+    try:
+        configured_limit = int(search_settings["resultsPerPage"])
+    except (TypeError, ValueError):
+        configured_limit = 20
+    selected_limit = limit or (configured_limit if configured_limit in {10, 20, 50} else 20)
     selected_status = status_filter
     staff_view = current_user is not None and _role_name(current_user) in {"staff", "admin"}
     if selected_status is None and not staff_view:
@@ -288,9 +322,11 @@ def get_resources(
         file_type=file_type,
         programming_language=programming_language,
         year=year,
-        sort_by=sort_by,
+        sort_by=selected_sort,
         status_filter=selected_status,
-        limit=limit,
+        include_staff_only=staff_view,
+        full_text_search=bool(search_settings["fullTextSearch"]),
+        limit=selected_limit,
         offset=offset,
     )
     if search and current_user:
@@ -378,7 +414,7 @@ def get_public_resource_stats(db: Session = Depends(get_db)):
             """
             SELECT
                 (SELECT count(*) FROM public.resources
-                 WHERE status::text = 'approved') AS total_resources,
+                 WHERE status::text = 'approved' AND visibility = 'public') AS total_resources,
                 (SELECT count(*) FROM public.users) AS total_users,
                 (SELECT count(*) FROM public.courses) AS total_courses
             """
@@ -397,6 +433,7 @@ def get_code_preview(db: Session = Depends(get_db)):
         text(
             RESOURCE_SELECT
             + " WHERE r.resource_type = 'code_preview' AND r.status::text = 'approved'"
+            + " AND r.visibility = 'public'"
             + " ORDER BY r.created_at DESC LIMIT 1"
         )
     ).mappings().first()
@@ -563,6 +600,30 @@ def update_resource_metadata(
     return _resource_values(updated)
 
 
+def _upload_policy(db: Session) -> tuple[int, set[str], bool, str]:
+    policy = load_admin_settings(db)["resourcePolicy"]
+    match = re.fullmatch(r"\s*(\d+)\s*(MB|KB|B)\s*", str(policy["maxFileSize"]), re.I)
+    if not match:
+        raise HTTPException(status_code=500, detail="Invalid maximum upload size configuration.")
+    size, unit = int(match.group(1)), match.group(2).upper()
+    max_bytes = size * {"MB": 1024 * 1024, "KB": 1024, "B": 1}[unit]
+    if max_bytes <= 0 or max_bytes > 100 * 1024 * 1024:
+        raise HTTPException(status_code=500, detail="Maximum upload size must be between 1 byte and 100 MB.")
+
+    extensions = {
+        f".{token.strip().lower().lstrip('.')}"
+        for token in str(policy["allowedFormats"]).split(",")
+        if token.strip()
+    }
+    if not extensions or extensions - ALLOWED_EXTENSIONS.keys():
+        raise HTTPException(status_code=500, detail="Invalid allowed file formats configuration.")
+    visibility_setting = str(policy["defaultVisibility"]).strip().lower()
+    if visibility_setting not in {"public — all visitors", "staff only"}:
+        raise HTTPException(status_code=500, detail="Invalid default resource visibility configuration.")
+    visibility = "staff_only" if visibility_setting == "staff only" else "public"
+    return max_bytes, extensions, bool(policy["detectDuplicates"]), visibility
+
+
 @router.post("/upload", status_code=status.HTTP_201_CREATED)
 def upload_resource(
     file: UploadFile = File(...),
@@ -581,10 +642,11 @@ def upload_resource(
     title = title.strip()
     if not title:
         raise HTTPException(status_code=422, detail="Title cannot be empty")
+    max_upload_size, allowed_extensions, detect_duplicates, visibility = _upload_policy(db)
     original_filename = re.split(r"[/\\]", file.filename or "upload")[-1]
     extension = Path(original_filename).suffix.lower()
     file_info = ALLOWED_EXTENSIONS.get(extension)
-    if file_info is None:
+    if file_info is None or extension not in allowed_extensions:
         raise HTTPException(status_code=415, detail="This file type is not permitted")
 
     selected_category_id = None
@@ -623,13 +685,25 @@ def upload_resource(
     ))[:20]
     language = (programming_language or file_info[1] or "").strip() or None
     storage_key = f"{uuid.uuid4().hex}{extension}"
-    file_bytes = file.file.read()
-    file_size = len(file_bytes)
     try:
+        file_bytes = file.file.read(max_upload_size + 1)
+        file_size = len(file_bytes)
         if file_size == 0:
             raise HTTPException(status_code=422, detail="The uploaded file is empty")
-        if file_size > MAX_UPLOAD_SIZE:
-            raise HTTPException(status_code=413, detail="File exceeds the 20 MB limit")
+        if file_size > max_upload_size:
+            raise HTTPException(
+                status_code=413,
+                detail="File exceeds the configured maximum upload size.",
+            )
+        content_hash = hashlib.sha256(file_bytes).hexdigest()
+        if detect_duplicates and db.execute(
+            text("SELECT 1 FROM public.resources WHERE content_hash = :content_hash LIMIT 1"),
+            {"content_hash": content_hash},
+        ).first():
+            raise HTTPException(
+                status_code=409,
+                detail="An identical file has already been submitted.",
+            )
 
         save_uploaded_bytes(file_bytes, storage_key)
 
@@ -639,12 +713,14 @@ def upload_resource(
                 INSERT INTO public.resources
                     (title, description, file_url, file_type, file_size, course_id,
                      category_id, programming_language, keywords, status, resource_type,
-                     storage_key, original_filename, backend_uploader_id)
+                     storage_key, original_filename, backend_uploader_id, visibility,
+                     content_hash)
                 VALUES
                     (:title, :description, :file_url, :file_type, :file_size, :course_id,
                      :category_id, :programming_language, :keywords,
                      'approved'::public.resource_status, :resource_type,
-                     :storage_key, :original_filename, :uploader_id)
+                     :storage_key, :original_filename, :uploader_id, :visibility,
+                     :content_hash)
                 RETURNING id
                 """
             ),
@@ -662,6 +738,8 @@ def upload_resource(
                 "storage_key": storage_key,
                 "original_filename": original_filename[:255],
                 "uploader_id": current_user.id,
+                "visibility": visibility,
+                "content_hash": content_hash,
             },
         ).scalar_one()
         file_url = f"/api/v1/resources/{resource_id}/download"
@@ -701,8 +779,9 @@ def get_resource_comments(
     rows = db.execute(
         text(
             """
-            SELECT c.id, c.parent_id, c.content, c.created_at,
-                   u.full_name AS author_name, u.username AS author_username
+            SELECT c.id, c.parent_id, c.content, c.created_at, c.user_id,
+                   u.full_name AS author_name, u.username AS author_username,
+                   u.avatar_key
             FROM public.backend_comments c
             JOIN public.users u ON u.id = c.user_id
             WHERE c.resource_id = :resource_id
@@ -717,6 +796,11 @@ def get_resource_comments(
             "parent_id": str(row["parent_id"]) if row["parent_id"] else None,
             "content": row["content"],
             "author": row["author_name"] or row["author_username"] or "User",
+            "avatar_url": (
+                f"/api/v1/auth/users/{row['user_id']}/avatar"
+                if row["avatar_key"]
+                else None
+            ),
             "created_at": row["created_at"].isoformat(),
         }
         for row in rows
@@ -790,16 +874,18 @@ def create_resource_comment(
     content = comment.content.strip()
     if not content:
         raise HTTPException(status_code=422, detail="Comment cannot be empty")
+    parent_user_id = None
     if comment.parent_id:
         parent = db.execute(
             text(
-                "SELECT 1 FROM public.backend_comments "
+                "SELECT user_id FROM public.backend_comments "
                 "WHERE id = :parent_id AND resource_id = :resource_id"
             ),
             {"parent_id": comment.parent_id, "resource_id": parsed_id},
         ).first()
         if not parent:
             raise HTTPException(status_code=422, detail="Reply target not found")
+        parent_user_id = parent.user_id
 
     row = db.execute(
         text(
@@ -816,7 +902,20 @@ def create_resource_comment(
             "content": content,
         },
     ).mappings().one()
-    if resource["backend_uploader_id"] not in (None, current_user.id):
+    notified_users = set()
+    if parent_user_id not in (None, current_user.id):
+        _notify_user(
+            db,
+            parent_user_id,
+            "New reply to your comment",
+            f"{current_user.full_name or current_user.username} replied to your comment on {resource['title']}.",
+            "resource_reply",
+        )
+        notified_users.add(parent_user_id)
+    if (
+        resource["backend_uploader_id"] not in (None, current_user.id)
+        and resource["backend_uploader_id"] not in notified_users
+    ):
         _notify_user(
             db,
             resource["backend_uploader_id"],
@@ -830,6 +929,11 @@ def create_resource_comment(
         "parent_id": str(comment.parent_id) if comment.parent_id else None,
         "content": content,
         "author": current_user.full_name or current_user.username,
+        "avatar_url": (
+            f"/api/v1/auth/users/{current_user.id}/avatar"
+            if getattr(current_user, "avatar_key", None)
+            else None
+        ),
         "created_at": row["created_at"].isoformat(),
     }
 

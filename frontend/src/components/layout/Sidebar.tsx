@@ -23,6 +23,8 @@ import {
     HelpCircle,
     Home,
     Info,
+    CalendarDays,
+    KeyRound,
     LogOut,
     PanelLeftClose,
     PanelLeftOpen,
@@ -69,6 +71,10 @@ function SidebarContent({ userRole }: SidebarProps) {
         Cookies.remove('user_name');
         Cookies.remove('user_username');
         Cookies.remove('user_email');
+        Cookies.remove('user_avatar_url');
+        Cookies.remove('user_department_id');
+        Cookies.remove('user_is_verified');
+        Cookies.remove('profile_loaded');
         notifyCurrentUserChanged();
         router.push('/login');
     };
@@ -76,6 +82,7 @@ function SidebarContent({ userRole }: SidebarProps) {
     // Shared & Role Navigation Links
     const studentNav = [
         { label: 'Dashboard', icon: LayoutDashboard, href: '/student/dashboard' },
+        { label: 'Department Timetable', icon: CalendarDays, href: '/student/timetable' },
         { label: 'Search Resources', icon: Search, href: '/search' },
         { label: 'Past Questions', icon: FileText, href: '/past-questions' },
         { label: 'Projects', icon: FolderGit2, href: '/projects' },
@@ -102,6 +109,8 @@ function SidebarContent({ userRole }: SidebarProps) {
         { label: 'Dashboard', icon: LayoutDashboard, href: '/admin/dashboard' },
         { label: 'Manage Users', icon: Users, href: '/admin/users' },
         { label: 'Categories & Courses', icon: FolderKanban, href: '/admin/categories' },
+        { label: 'Department Access Codes', icon: KeyRound, href: '/admin/departments' },
+        { label: 'Department Timetable', icon: CalendarDays, href: '/admin/timetable' },
         { label: 'Manage Resources', icon: FileSearch, href: '/staff/manage-resources' },
         { label: 'System Settings', icon: Settings, href: '/admin/settings' },
         { label: 'Analytics', icon: BarChart2, href: '/admin/analytics' },
