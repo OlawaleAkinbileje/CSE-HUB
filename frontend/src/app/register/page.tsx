@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import { Eye, EyeOff, Check, AlertCircle } from 'lucide-react';
 import axios from 'axios';
 import { apiClient } from '@/lib/api';
+import { usePublicAppSettings } from '@/lib/queries';
 
 export default function RegisterPage() {
     const router = useRouter();
@@ -23,6 +24,8 @@ export default function RegisterPage() {
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
     const [showSignInLink, setShowSignInLink] = useState(false);
+    const [showVerificationLink, setShowVerificationLink] = useState(false);
+    const { data: publicSettings } = usePublicAppSettings();
 
     useEffect(() => {
         let isMounted = true;
@@ -41,6 +44,7 @@ export default function RegisterPage() {
         setLoading(true);
         setErrorMsg('');
         setShowSignInLink(false);
+        setShowVerificationLink(false);
 
         // Client-side validations
         if (!fullName.trim()) {
@@ -51,6 +55,17 @@ export default function RegisterPage() {
 
         if (!departmentId || !accessCode.trim()) {
             setErrorMsg('Select your department and enter the access code provided by your class representative.');
+            setLoading(false);
+            return;
+        }
+
+        const approvedDomains = (publicSettings?.userAccess.approvedDomains || '')
+            .split(',')
+            .map((domain) => domain.trim().toLowerCase())
+            .filter(Boolean);
+        const emailDomain = email.trim().toLowerCase().split('@').pop() || '';
+        if (approvedDomains.length && !approvedDomains.includes(emailDomain)) {
+            setErrorMsg(`Use an email address ending in one of these approved domains: ${approvedDomains.join(', ')}.`);
             setLoading(false);
             return;
         }
@@ -71,8 +86,8 @@ export default function RegisterPage() {
             // Send registration request with explicit full_name to FastAPI
             const response = await apiClient.post<{ verification_email_sent: boolean }>('/auth/register', {
                 full_name: fullName.trim(),
-                email: email.trim(),
-                username: matricNumber.trim() || email.split('@')[0],
+                email: email.trim().toLowerCase(),
+                username: matricNumber.trim() || email.trim().toLowerCase().split('@')[0],
                 password,
                 role: 'student',
                 department_id: departmentId,
@@ -80,56 +95,28 @@ export default function RegisterPage() {
             });
 
             router.push(
-                `/register/success?email=${encodeURIComponent(email.trim())}&sent=${response.data.verification_email_sent ? '1' : '0'}`
+                `/register/success?email=${encodeURIComponent(email.trim().toLowerCase())}&sent=${response.data.verification_email_sent ? '1' : '0'}`
             );
         } catch (err: unknown) {
-            const response = typeof err === 'object' && err !== null && 'response' in err ? err.response : undefined;
-            const data = typeof response === 'object' && response !== null && 'data' in response ? response.data : undefined;
-            const detail = typeof data === 'object' && data !== null && 'detail' in data ? data.detail : undefined;
-            const status = typeof response === 'object' && response !== null && 'status' in response ? response.status : undefined;
-            const duplicateAccount = typeof detail === 'string' && detail.toLowerCase().includes('already exists');
-
-            if (duplicateAccount) {
-                try {
-                    await apiClient.post('/auth/login', {
-                        email: email.trim(),
-                        password,
-                    });
-                    router.push('/register/success?existing=1');
-                    return;
-                } catch (signInError: unknown) {
-                    if (
-                        axios.isAxiosError(signInError)
-                        && signInError.response?.status === 403
-                        && typeof signInError.response.data?.detail === 'string'
-                        && signInError.response.data.detail.toLowerCase().includes('verify')
-                    ) {
-                        router.push(`/verify-email?email=${encodeURIComponent(email.trim())}`);
-                        return;
-                    }
-                    if (!axios.isAxiosError(signInError) || !signInError.response) {
-                        setErrorMsg('An account already exists for these details, but we could not verify the sign-in. Try signing in directly.');
-                        setShowSignInLink(true);
-                        setLoading(false);
-                        return;
-                    }
-                }
-            }
-
-            const message = duplicateAccount
-                ? typeof detail === 'string'
-                    ? detail
-                    : 'An account already exists. Please sign in or use different registration details.'
-                : typeof detail === 'string'
+            const response = axios.isAxiosError(err) ? err.response : undefined;
+            const detail = response?.data?.detail;
+            const message = typeof detail === 'string'
                 ? detail
-                : Array.isArray(detail) && detail[0]?.msg
+                : Array.isArray(detail) && typeof detail[0]?.msg === 'string'
                     ? detail[0].msg
-                    : axios.isAxiosError(err) && (!err.response || (typeof status === 'number' && status >= 500))
-                        ? 'We could not confirm the registration result. Your account may already have been created. Try signing in before submitting the registration form again.'
-                        : 'We could not complete registration. Please review your details and try again.';
-
+                    : axios.isAxiosError(err) && !err.response
+                        ? 'We could not reach CSE Hub. Your registration may not have been submitted; check before trying again.'
+                        : response?.status && response.status >= 500
+                            ? 'We could not complete registration right now. Please try again shortly; if the issue continues, contact support.'
+                            : 'We could not complete registration. Please review your details and try again.';
+            const emailAlreadyRegistered = response?.status === 409
+                && typeof detail === 'string'
+                && detail.toLowerCase().includes('email address is already registered');
+            const registrationResultUnknown = axios.isAxiosError(err)
+                && (!err.response || (response?.status ?? 0) >= 500);
             setErrorMsg(message);
-            setShowSignInLink(duplicateAccount || (axios.isAxiosError(err) && (!err.response || (typeof status === 'number' && status >= 500))));
+            setShowSignInLink(emailAlreadyRegistered || registrationResultUnknown);
+            setShowVerificationLink(emailAlreadyRegistered || registrationResultUnknown);
             setLoading(false);
         }
     };
@@ -172,10 +159,16 @@ export default function RegisterPage() {
                             <div>
                                 <span>{errorMsg}</span>
                                 {showSignInLink && (
-                                    <p className="mt-2">
-                                        <Link href="/login" className="font-semibold underline">
-                                            Go to sign in
-                                        </Link>
+                                    <p className="mt-2 flex flex-wrap gap-3">
+                                        <Link href="/login" className="font-semibold underline">Sign in</Link>
+                                        {showVerificationLink && (
+                                            <Link
+                                                href={`/verify-email?email=${encodeURIComponent(email.trim().toLowerCase())}`}
+                                                className="font-semibold underline"
+                                            >
+                                                Request a verification link
+                                            </Link>
+                                        )}
                                     </p>
                                 )}
                             </div>
@@ -221,7 +214,8 @@ export default function RegisterPage() {
                                 />
                             </div>
                             <p className="text-[13px] text-[#64708C]">
-                                Use the email address issued to you by your school or organisation. Personal email addresses are not accepted.
+                                Approved domains: {publicSettings?.userAccess.approvedDomains || "Loading approved institutional domains…"}.
+                                Personal email addresses are not accepted.
                             </p>
                         </div>
 

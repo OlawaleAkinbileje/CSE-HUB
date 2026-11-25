@@ -34,6 +34,18 @@ DEFAULT_ADMIN_SETTINGS: dict[str, dict[str, Any]] = {
     },
 }
 
+EMAIL_DOMAIN_PATTERN = re.compile(
+    r"(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}"
+)
+
+
+def parse_approved_domains(value: Any) -> set[str]:
+    return {
+        domain.strip().lower()
+        for domain in str(value).split(",")
+        if domain.strip() and EMAIL_DOMAIN_PATTERN.fullmatch(domain.strip().lower())
+    }
+
 
 def normalize_admin_settings(value: Any) -> dict[str, dict[str, Any]]:
     source = value if isinstance(value, dict) else {}
@@ -115,12 +127,12 @@ def validate_admin_settings(settings: dict[str, dict[str, Any]]) -> None:
     if not formats or formats - supported_formats:
         raise ValueError("Allowed formats contain unsupported or empty file extensions.")
 
-    domains = {
-        item.strip().lower().lstrip("@")
+    raw_domains = [
+        item.strip().lower()
         for item in str(settings["userAccess"]["approvedDomains"]).split(",")
         if item.strip()
-    }
-    if not domains or any(not re.fullmatch(r"[a-z0-9.-]+", domain) for domain in domains):
+    ]
+    if not raw_domains or any(not EMAIL_DOMAIN_PATTERN.fullmatch(domain) for domain in raw_domains):
         raise ValueError("Approved email domains must be comma-separated domain names.")
 
 

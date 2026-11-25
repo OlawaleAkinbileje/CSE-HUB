@@ -14,9 +14,19 @@ class EmailDeliveryError(Exception):
 
 
 def send_verification_email(email: str, full_name: str, token: str) -> None:
-    if not settings.RESEND_API_KEY or not settings.EMAIL_FROM or not settings.FRONTEND_URL:
+    missing_settings = [
+        name
+        for name, value in (
+            ("RESEND_API_KEY", settings.RESEND_API_KEY),
+            ("EMAIL_FROM", settings.EMAIL_FROM),
+            ("FRONTEND_URL", settings.FRONTEND_URL),
+        )
+        if not value.strip()
+    ]
+    if missing_settings:
+        logger.error("Email delivery is unavailable; missing backend settings: %s", ", ".join(missing_settings))
         raise EmailDeliveryError(
-            "Email delivery is not configured. Set RESEND_API_KEY, EMAIL_FROM, and FRONTEND_URL."
+            "Email verification is temporarily unavailable. Please try again later or contact support."
         )
 
     verification_url = (
@@ -61,8 +71,14 @@ def send_verification_email(email: str, full_name: str, token: str) -> None:
                 )
     except HTTPError as exc:
         logger.error("Resend rejected verification email with HTTP %s.", exc.code)
+        if exc.code == 401:
+            message = "The email service rejected its credentials. Please contact support."
+        elif exc.code == 403:
+            message = "The configured sender address is not authorized by the email service. Please contact support."
+        else:
+            message = f"The email service could not send the verification message (HTTP {exc.code}). Please try again."
         raise EmailDeliveryError(
-            f"Resend rejected the verification email (HTTP {exc.code}). Check sender-domain verification and API key."
+            message
         ) from exc
     except URLError as exc:
         logger.error("Could not reach Resend to send verification email: %s", exc.reason)

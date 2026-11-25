@@ -30,24 +30,28 @@ function RegistrationConfirmation() {
                 </h1>
                 <p className="mt-3 text-base leading-7 text-[#64708C]">
                     {accountAlreadyExists
-                        ? 'This OAU email is already registered, and the password you entered is valid. Sign in to continue.'
+                        ? 'An account with this email is already registered. Sign in, or request a fresh verification link if the account is not verified yet.'
                         : verificationEmailSent
-                            ? `Your CSE Hub account has been created. Follow the verification link sent to ${email || 'your email address'} before signing in.`
-                            : 'Your account was created, but the verification message could not be sent. You can retry after the mail service is configured.'}
+                            ? `Your account is registered. Follow the verification link sent to ${email || 'your email address'} to activate it, then sign in.`
+                            : 'Your account is registered, but we could not send the verification message. You can request a fresh link or contact support.'}
                 </p>
-                {!accountAlreadyExists && (
+                {(!accountAlreadyExists || email) && (
                     <Link
                         href={`/verify-email${email ? `?email=${encodeURIComponent(email)}` : ''}`}
                         className="mt-8 inline-flex min-h-12 items-center justify-center rounded-lg border border-[#245CFF] px-7 py-3 font-semibold text-[#245CFF] transition-colors hover:bg-blue-50"
                     >
-                        {verificationEmailSent ? 'Resend verification email' : 'Try sending the email again'}
+                        {accountAlreadyExists
+                            ? 'Request a verification link'
+                            : verificationEmailSent
+                                ? 'Resend verification email'
+                                : 'Try sending the email again'}
                     </Link>
                 )}
                 <Link
                     href="/login"
                     className={`${accountAlreadyExists ? 'mt-8' : 'mt-3'} inline-flex min-h-12 items-center justify-center rounded-lg bg-[#245CFF] px-7 py-3 font-semibold text-white transition-colors hover:bg-blue-700`}
                 >
-                    {accountAlreadyExists ? 'Proceed to sign in' : 'Proceed to sign in after verification'}
+                    Go to sign in
                 </Link>
             </section>
         </main>

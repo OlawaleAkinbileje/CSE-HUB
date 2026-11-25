@@ -2,9 +2,10 @@ import re
 import uuid
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.api.deps import RoleChecker, get_optional_current_user
@@ -85,6 +86,7 @@ def get_admin_users(
         text(
             """
             SELECT u.id, u.full_name, u.username, u.email, u.role, u.is_active,
+                   u.is_verified,
                    u.created_at,
                    (SELECT count(*) FROM public.resources r
                     WHERE r.backend_uploader_id = u.id) AS resources_uploaded
@@ -100,6 +102,7 @@ def get_admin_users(
             "email": row["email"],
             "role": str(row["role"]).title(),
             "status": "Active" if row["is_active"] else "Suspended",
+            "emailVerified": row["is_verified"],
             "lastActive": "Not recorded",
             "staffOrMatricId": None,
             "joinedDate": row["created_at"].strftime("%d %b %Y") if row["created_at"] else "Unknown",
@@ -130,6 +133,61 @@ def update_admin_user(
     db.commit()
     db.refresh(target)
     return {"id": str(target.id), "role": _role_value(target), "is_active": target.is_active}
+
+
+@router.delete("/users/{user_id}", status_code=204)
+def delete_admin_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(allow_admin),
+):
+    target = db.query(User).filter(User.id == user_id).first()
+    if target is None:
+        raise HTTPException(status_code=404, detail="User not found.")
+    if target.id == current_user.id:
+        raise HTTPException(status_code=400, detail="You cannot delete your own administrator account.")
+
+    role = _role_value(target)
+    if role == "admin":
+        other_active_admins = db.execute(
+            text(
+                """
+                SELECT count(*)
+                FROM public.users
+                WHERE role = 'admin' AND is_active = TRUE AND id != :user_id
+                """
+            ),
+            {"user_id": target.id},
+        ).scalar_one()
+        if other_active_admins == 0:
+            raise HTTPException(
+                status_code=409,
+                detail="This is the last active administrator. Promote another administrator before deleting this account.",
+            )
+
+    owned_resources = db.execute(
+        text("SELECT count(*) FROM public.resources WHERE backend_uploader_id = :user_id"),
+        {"user_id": target.id},
+    ).scalar_one()
+    if owned_resources:
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                f"This account owns {owned_resources} resource(s). Reassign those resources "
+                "before deleting the account."
+            ),
+        )
+
+    try:
+        db.delete(target)
+        db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="This account is still referenced by related records and cannot be deleted yet.",
+        ) from exc
+    return Response(status_code=204)
 
 
 @router.get("/categories")

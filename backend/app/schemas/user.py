@@ -33,6 +33,7 @@ class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
     role: str
+    id: Optional[str] = None
     full_name: Optional[str] = None
     username: Optional[str] = None
     email: Optional[str] = None

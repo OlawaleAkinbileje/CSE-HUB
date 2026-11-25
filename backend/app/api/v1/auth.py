@@ -23,23 +23,13 @@ from app.schemas.user import (
     UserRegister,
     UserResponse,
 )
-from app.services.admin_settings import load_admin_settings
+from app.services.admin_settings import load_admin_settings, parse_approved_domains
 from app.services.email_verification import EmailDeliveryError, send_verification_email
 from app.services.storage import read_stored_bytes, save_uploaded_bytes
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 MAX_AVATAR_SIZE = 5 * 1024 * 1024
 logger = logging.getLogger(__name__)
-
-INSTITUTIONAL_EMAIL_ERROR = (
-    "This email domain is not approved by the administrator. "
-    "Use your official OAU email address."
-)
-ACCOUNT_EXISTS_ERROR = (
-    "An account with this email address or username already exists. "
-    "Please sign in or use a different email address or matric number."
-)
-
 
 def _issue_verification_email(db: Session, user: User) -> None:
     token = secrets.token_urlsafe(32)
@@ -89,17 +79,16 @@ def register(user_in: UserRegister, db: Session = Depends(get_db)):
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Student self-registration is currently disabled.",
         )
-    approved_domains = {
-        domain.strip().lower().lstrip("@")
-        for domain in str(settings["userAccess"]["approvedDomains"]).split(",")
-        if domain.strip()
-    }
     email = str(user_in.email).strip().lower()
     email_domain = email.rsplit("@", 1)[-1]
+    approved_domains = parse_approved_domains(settings["userAccess"]["approvedDomains"])
     if email_domain not in approved_domains:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=INSTITUTIONAL_EMAIL_ERROR,
+            detail=(
+                "Use an email address from an approved institutional domain: "
+                f"{', '.join(sorted(approved_domains))}."
+            ),
         )
     department_exists = db.execute(
         text("SELECT 1 FROM public.departments WHERE id = :department_id"),
@@ -113,13 +102,15 @@ def register(user_in: UserRegister, db: Session = Depends(get_db)):
             detail="The department access code is invalid.",
         )
 
-    existing_user = db.query(User.id).filter(
-        (User.email == email) | (User.username == user_in.username)
-    ).first()
-    if existing_user:
+    if db.query(User.id).filter(User.email == email).first():
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=ACCOUNT_EXISTS_ERROR,
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This email address is already registered. Sign in or request an email verification link.",
+        )
+    if db.query(User.id).filter(User.username == user_in.username).first():
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="This matric number or username is already in use. Check it or enter a different one.",
         )
 
     user = User(
@@ -139,13 +130,15 @@ def register(user_in: UserRegister, db: Session = Depends(get_db)):
     db.commit()
 
     verification_email_sent = True
-    delivery_error = ""
     try:
         _issue_verification_email(db, user)
     except EmailDeliveryError as exc:
-        logger.error("Account %s was created but its verification email could not be sent.", user.id)
+        logger.error(
+            "Account %s was created but its verification email could not be sent: %s",
+            user.id,
+            exc,
+        )
         verification_email_sent = False
-        delivery_error = str(exc)
 
     response = RegistrationResponse(
         id=str(user.id),
@@ -159,9 +152,12 @@ def register(user_in: UserRegister, db: Session = Depends(get_db)):
         is_verified=user.is_verified,
         verification_email_sent=verification_email_sent,
         message=(
-            "Account created. Check your email and verify it before signing in."
+            "Your account is registered. Check your inbox for a verification link before signing in."
             if verification_email_sent
-            else f"Account created, but the verification email was not sent: {delivery_error}"
+            else (
+                "Your account is registered, but we could not send the verification email. "
+                "Request a fresh link or contact support."
+            )
         ),
     )
     return response
@@ -176,7 +172,7 @@ def resend_verification_email(
     user = db.query(User).filter(User.email == email).first()
     if user is None or user.is_verified or not user.is_active:
         return {
-            "message": "If that account needs verification, a link will be sent to its email address."
+            "message": "If this address belongs to an unverified account, a new verification link will be sent shortly."
         }
 
     can_send = db.execute(
@@ -196,7 +192,7 @@ def resend_verification_email(
             logger.error("Could not resend verification email for account %s.", user.id)
             raise HTTPException(status_code=503, detail=str(exc)) from exc
     return {
-        "message": "If that account needs verification, a link will be sent to its email address."
+        "message": "If this address belongs to an unverified account, a new verification link will be sent shortly."
     }
 
 
@@ -225,19 +221,20 @@ def verify_email(
     if user_id is None:
         raise HTTPException(
             status_code=400,
-            detail="This verification link is invalid or has expired. Request a new link.",
+            detail="This link has expired or was already used. Request a fresh verification link below.",
         )
     db.commit()
-    return {"verified": True, "message": "Email verified. You can now sign in."}
+    return {"verified": True, "message": "Email verified successfully. You can now sign in."}
 
 
 @router.post("/login", response_model=Token)
 def login(credentials: UserLogin, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == credentials.email).first()
+    email = str(credentials.email).strip().lower()
+    user = db.query(User).filter(User.email == email).first()
     if not user or not verify_password(credentials.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            detail="That email and password combination does not match our records.",
             headers={"WWW-Authenticate": "Bearer"},
         )
     if not user.is_active:
@@ -255,6 +252,7 @@ def login(credentials: UserLogin, db: Session = Depends(get_db)):
         {"user_id": user.id},
     ).mappings().one()
     return {
+        "id": str(user.id),
         "access_token": access_token,
         "token_type": "bearer",
         "role": role,
@@ -297,15 +295,17 @@ def update_my_profile(
     current_user: User = Depends(get_current_user),
 ):
     settings = load_admin_settings(db)
-    approved_domains = {
-        domain.strip().lower().lstrip("@")
-        for domain in str(settings["userAccess"]["approvedDomains"]).split(",")
-        if domain.strip()
-    }
     email = str(profile.email).strip().lower()
     email_domain = email.rsplit("@", 1)[-1]
+    approved_domains = parse_approved_domains(settings["userAccess"]["approvedDomains"])
     if email_domain not in approved_domains:
-        raise HTTPException(status_code=400, detail=INSTITUTIONAL_EMAIL_ERROR)
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "Use an email address from an approved institutional domain: "
+                f"{', '.join(sorted(approved_domains))}."
+            ),
+        )
     if not db.execute(
         text("SELECT 1 FROM public.departments WHERE id = :department_id"),
         {"department_id": profile.department_id},

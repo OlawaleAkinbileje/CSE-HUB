@@ -11,12 +11,14 @@ import {
     ChevronDown,
     Check,
     UserX,
-    Users
+    Users,
+    Trash2,
 } from "lucide-react";
 import { useAdminUsers, AdminUserItem } from "@/lib/queries";
 import DataContainer from "@/components/ui/DataContainer";
 import EmptyState from "@/components/ui/EmptyState";
 import { apiClient } from "@/lib/api";
+import { useCurrentUser } from "@/lib/useCurrentUser";
 
 export default function AdminUserManagementPage() {
     const [searchTerm, setSearchTerm] = useState("");
@@ -25,8 +27,10 @@ export default function AdminUserManagementPage() {
     const [selectedUserId, setSelectedUserId] = useState<string>("");
     const [assignedRole, setAssignedRole] = useState<AdminUserItem["role"]>("Student");
     const [actionError, setActionError] = useState("");
+    const [actionNotice, setActionNotice] = useState("");
     const [isSaving, setIsSaving] = useState(false);
     const queryClient = useQueryClient();
+    const currentUser = useCurrentUser();
 
     const { data: rawUsers, isLoading, error } = useAdminUsers();
     const users = rawUsers || [];
@@ -65,6 +69,7 @@ export default function AdminUserManagementPage() {
         if (!selectedUser) return;
         setIsSaving(true);
         setActionError("");
+        setActionNotice("");
         try {
             await apiClient.patch(`/admin/users/${selectedUser.id}`, {
                 role: assignedRole.toLowerCase(),
@@ -81,6 +86,7 @@ export default function AdminUserManagementPage() {
         if (!selectedUser) return;
         setIsSaving(true);
         setActionError("");
+        setActionNotice("");
         try {
             await apiClient.patch(`/admin/users/${selectedUser.id}`, {
                 is_active: selectedUser.status !== "Active",
@@ -93,10 +99,41 @@ export default function AdminUserManagementPage() {
         }
     };
 
+    const handleDeleteUser = async () => {
+        if (!selectedUser) return;
+        const confirmed = window.confirm(
+            `Permanently delete ${selectedUser.name} (${selectedUser.email})? This removes the account and associated account activity. Resources uploaded by this user must be reassigned first. This cannot be undone.`
+        );
+        if (!confirmed) return;
+
+        setIsSaving(true);
+        setActionError("");
+        setActionNotice("");
+        try {
+            await apiClient.delete(`/admin/users/${selectedUser.id}`);
+            setSelectedUserId("__none__");
+            setActionNotice(`${selectedUser.name}'s account was deleted.`);
+            await queryClient.invalidateQueries({ queryKey: ["admin", "users"] });
+        } catch (error) {
+            const response = typeof error === "object" && error !== null && "response" in error
+                ? (error as { response?: { data?: { detail?: unknown } } }).response
+                : undefined;
+            const detail = response?.data?.detail;
+            setActionError(
+                typeof detail === "string"
+                    ? detail
+                    : "Could not delete the account. Please try again or contact support."
+            );
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     const handleCopyRegistrationLink = async () => {
         try {
             await navigator.clipboard.writeText(`${window.location.origin}/register`);
             setActionError("");
+            setActionNotice("Registration link copied.");
         } catch {
             setActionError("Could not copy the registration link. Copy it from the address bar instead.");
         }
@@ -287,6 +324,9 @@ export default function AdminUserManagementPage() {
                                                                         <div className="text-[11px] text-[#64708C]">
                                                                             {user.email}
                                                                         </div>
+                                                                        <div className={`mt-1 text-[10px] font-medium ${user.emailVerified ? "text-[#009F75]" : "text-amber-700"}`}>
+                                                                            {user.emailVerified ? "Email verified" : "Email verification pending"}
+                                                                        </div>
                                                                     </td>
                                                                     <td className="p-4 text-[#0B123D]">{user.role}</td>
                                                                     <td className="p-4">
@@ -402,8 +442,20 @@ export default function AdminUserManagementPage() {
                                             >
                                                 {selectedUser.status === "Active" ? "Suspend Account" : "Reactivate Account"}
                                             </button>
+                                            <button
+                                                onClick={handleDeleteUser}
+                                                disabled={isSaving || currentUser.id === selectedUser.id}
+                                                title={currentUser.id === selectedUser.id ? "You cannot delete your own account." : undefined}
+                                                className="flex w-full h-10 items-center justify-center gap-2 border border-[#DF365B] text-[#DF365B] text-xs font-semibold rounded-lg hover:bg-[#FFF0F4] transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+                                            >
+                                                <Trash2 className="h-4 w-4" />
+                                                Delete Account
+                                            </button>
                                             {actionError && (
                                                 <p role="alert" className="text-xs text-[#DF365B]">{actionError}</p>
+                                            )}
+                                            {actionNotice && (
+                                                <p role="status" className="text-xs text-[#009F75]">{actionNotice}</p>
                                             )}
                                         </div>
                                     </div>

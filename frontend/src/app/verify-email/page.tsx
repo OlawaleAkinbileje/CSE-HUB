@@ -24,7 +24,7 @@ function VerificationContent() {
             .then(({ data }) => {
                 if (!isMounted) return;
                 setVerificationStatus('verified');
-                setVerificationMessage(data.message || 'Email verified. You can now sign in.');
+                setVerificationMessage(data.message || 'Email verified successfully. You can now sign in.');
             })
             .catch((error: unknown) => {
                 if (!isMounted) return;
@@ -33,7 +33,7 @@ function VerificationContent() {
                     ? (error as { response?: { data?: { detail?: unknown } } }).response?.data?.detail
                     : undefined;
                 setVerificationMessage(
-                    typeof detail === 'string' ? detail : 'We could not verify this link. Request a new one below.'
+                    typeof detail === 'string' ? detail : 'We could not verify this link. Request a fresh link below.'
                 );
             });
         return () => { isMounted = false; };
@@ -46,13 +46,13 @@ function VerificationContent() {
         setResendMessage('');
         try {
             const { data } = await apiClient.post('/auth/resend-verification', { email: email.trim() });
-            setResendMessage(data.message || 'If your account needs verification, a link will be sent.');
+            setResendMessage(data.message || 'If this address needs verification, a fresh link will be sent shortly.');
         } catch (error: unknown) {
             const detail = typeof error === 'object' && error !== null && 'response' in error
                 ? (error as { response?: { data?: { detail?: unknown } } }).response?.data?.detail
                 : undefined;
             setResendError(
-                typeof detail === 'string' ? detail : 'We could not send the verification email. Please try again.'
+                typeof detail === 'string' ? detail : 'We could not send a verification link right now. Please try again shortly.'
             );
         } finally {
             setIsSending(false);

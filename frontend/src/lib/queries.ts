@@ -264,6 +264,7 @@ export interface AdminUserItem {
   email: string;
   role: "Admin" | "Staff" | "Student";
   status: "Active" | "Suspended" | "Invited";
+  emailVerified: boolean;
   lastActive: string;
   staffOrMatricId?: string;
   joinedDate: string;
@@ -280,6 +281,9 @@ export function useAdminUsers() {
       }
       return res.data;
     },
+    staleTime: 15_000,
+    refetchInterval: 30_000,
+    refetchOnWindowFocus: true,
   });
 }
 

@@ -33,6 +33,7 @@ export default function LoginPage() {
 
             const {
                 access_token,
+                id,
                 role,
                 full_name,
                 username,
@@ -45,6 +46,7 @@ export default function LoginPage() {
             // Set cookie expiration based on 'Remember Me'
             const cookieOptions = rememberMe ? { expires: 7 } : {};
             Cookies.set('token', access_token, cookieOptions);
+            Cookies.set('user_id', String(id || ''), cookieOptions);
             Cookies.set('role', role, cookieOptions);
             Cookies.set('user_name', full_name || username || '', cookieOptions);
             Cookies.set('user_username', username || '', cookieOptions);

@@ -67,6 +67,7 @@ function SidebarContent({ userRole }: SidebarProps) {
 
     const handleLogout = () => {
         Cookies.remove('token');
+        Cookies.remove('user_id');
         Cookies.remove('role');
         Cookies.remove('user_name');
         Cookies.remove('user_username');

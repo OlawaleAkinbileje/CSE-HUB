@@ -58,6 +58,13 @@ link at `/verify-email`; email changes from the profile also require confirmatio
 Set the Resend variables above in Render's backend environment before enabling
 registration in production.
 
+Registration and profile email changes require an exact match against the
+comma-separated domains in administrator settings; subdomains are accepted only
+when explicitly listed. The administrator user list refreshes periodically and
+shows email-verification state. User deletion is restricted: administrators
+cannot delete their own account, the last active administrator, or an account
+that still owns resources.
+
 ## Copying older local uploads
 
 Older versions of the upload endpoint could save files under `backend/uploads`

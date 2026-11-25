@@ -49,6 +49,7 @@ function readFromCookies(): CurrentUser | null {
     const is_verified = Cookies.get('user_is_verified') === 'true';
 
     return {
+        id: Cookies.get('user_id') || undefined,
         full_name,
         username,
         email,
@@ -101,7 +102,10 @@ export function useCurrentUser(): CurrentUser {
     useEffect(() => {
         const cookieUser = readFromCookies();
 
-        if (!cookieUser || Cookies.get('profile_loaded') === 'true') {
+        if (
+            !cookieUser
+            || (Cookies.get('profile_loaded') === 'true' && cookieUser.id)
+        ) {
             return;
         }
 
@@ -110,6 +114,7 @@ export function useCurrentUser(): CurrentUser {
             .then((res) => {
                 const {
                     full_name,
+                    id,
                     username,
                     email,
                     avatar_url,
@@ -117,6 +122,7 @@ export function useCurrentUser(): CurrentUser {
                     is_verified,
                 } = res.data;
                 const name = full_name || username || email || '';
+                Cookies.set('user_id', String(id || ''));
                 Cookies.set('user_name', name);
                 Cookies.set('user_username', username || '');
                 Cookies.set('user_email', email || '');
